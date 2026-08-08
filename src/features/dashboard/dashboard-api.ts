@@ -1,0 +1,3 @@
+import { apiFetch } from "@/lib/api/api-client";
+import type { ActivityItem, AttendanceTrend, LeaveSummaryItem, TodaySummary } from "@/types/dashboard";
+export const dashboardApi={ today:async()=> (await apiFetch<{data:TodaySummary}>("/admin/dashboard/today")).data, trend:async(from:string,to:string)=>(await apiFetch<{data:AttendanceTrend}>(`/admin/dashboard/attendance-trend?from=${from}&to=${to}`)).data, leave:async(from:string,to:string)=>(await apiFetch<{data:LeaveSummaryItem[]}>(`/admin/dashboard/leave-summary?from=${from}&to=${to}`)).data, activity:async()=>(await apiFetch<{data:ActivityItem[]}>("/admin/dashboard/recent-activity?limit=8")).data };

@@ -1,0 +1,4 @@
+"use client";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import type { AttendanceTrend } from "@/types/dashboard";
+export function AttendanceChart({data}:{data:AttendanceTrend}) { return <div className="h-72 w-full"><ResponsiveContainer width="100%" height="100%"><LineChart data={data} margin={{left:-20,right:8,top:8,bottom:0}}><CartesianGrid strokeDasharray="3 3" vertical={false}/><XAxis dataKey="date" tick={{fontSize:11}} tickFormatter={v=>String(v).slice(5)}/><YAxis allowDecimals={false} tick={{fontSize:11}}/><Tooltip/><Legend/><Line type="monotone" dataKey="attendance" stroke="#2563eb" strokeWidth={2} dot={false}/><Line type="monotone" dataKey="late" stroke="#d97706" strokeWidth={2} dot={false}/></LineChart></ResponsiveContainer></div> }

@@ -1,0 +1,2 @@
+import Link from "next/link";import { Button } from "@/components/ui/button";
+export default function NotFound(){return <main className="grid min-h-screen place-items-center bg-slate-50 p-6"><div className="text-center"><div className="text-6xl font-bold text-slate-200">404</div><h1 className="mt-4 text-2xl font-semibold">Page not found</h1><p className="mt-2 text-sm text-slate-500">The requested administration page does not exist.</p><Button className="mt-6" asChild><Link href="/dashboard">Back to dashboard</Link></Button></div></main>}

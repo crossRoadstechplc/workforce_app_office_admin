@@ -1,0 +1,2 @@
+import { Inbox } from "lucide-react";
+export function EmptyState({ title="Nothing here yet", description="There is no data to show." }: { title?:string; description?:string }) { return <div className="flex min-h-48 flex-col items-center justify-center text-center"><div className="mb-3 rounded-full bg-slate-100 p-3"><Inbox className="size-5 text-slate-500"/></div><p className="font-semibold">{title}</p><p className="mt-1 max-w-sm text-sm text-slate-500">{description}</p></div>; }

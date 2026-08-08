@@ -1,0 +1,3 @@
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import { Button } from "./button";
+export function ErrorState({ message="Could not load this data.", onRetry }: { message?:string; onRetry?:()=>void }) { return <div className="flex min-h-48 flex-col items-center justify-center text-center"><div className="mb-3 rounded-full bg-red-50 p-3"><AlertTriangle className="size-5 text-red-600"/></div><p className="font-semibold">Something went wrong</p><p className="mt-1 max-w-sm text-sm text-slate-500">{message}</p>{onRetry && <Button variant="outline" className="mt-4" onClick={onRetry}><RefreshCw className="size-4"/>Try again</Button>}</div>; }
