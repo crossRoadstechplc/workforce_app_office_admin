@@ -1,13 +1,141 @@
 "use client";
+
 import { useState } from "react";
-import { useMutation,useQuery,useQueryClient } from "@tanstack/react-query";
-import { Plus,MapPin,Power } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ExternalLink, MapPin, Plus, Power } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";import { Card } from "@/components/ui/card";import { Dialog,DialogContent,DialogDescription,DialogTitle,DialogTrigger } from "@/components/ui/dialog";import { Input } from "@/components/ui/input";import { Label } from "@/components/ui/label";import { PageSkeleton } from "@/components/ui/page-skeleton";import { StatusBadge } from "@/components/ui/badge";import { Textarea } from "@/components/ui/textarea";
-import { configurationApi,itemsOf } from "@/features/configuration/configuration-api";import type { Office } from "@/types/configuration";
-const blank={name:"",address:"",latitude:"",longitude:"",allowedRadiusMeters:"150",maximumAccuracyMeters:"100",timezone:"Africa/Addis_Ababa"};
-export default function OfficesPage(){const qc=useQueryClient();const [open,setOpen]=useState(false);const [editing,setEditing]=useState<Office|null>(null);const [form,setForm]=useState<any>(blank);const q=useQuery({queryKey:["offices"],queryFn:()=>configurationApi.offices()});const save=useMutation({mutationFn:async()=>{const input={...form,latitude:Number(form.latitude),longitude:Number(form.longitude),allowedRadiusMeters:Number(form.allowedRadiusMeters),maximumAccuracyMeters:Number(form.maximumAccuracyMeters)};return editing?configurationApi.updateOffice(editing.id,input):configurationApi.createOffice(input)},onSuccess:()=>{toast.success(editing?"Office updated":"Office created");setOpen(false);setEditing(null);setForm(blank);void qc.invalidateQueries({queryKey:["offices"]})},onError:(e:Error)=>toast.error(e.message)});const status=useMutation({mutationFn:({o,reason}:{o:Office;reason:string})=>configurationApi.officeStatus(o.id,!o.isActive,reason),onSuccess:()=>{toast.success("Office status updated");void qc.invalidateQueries({queryKey:["offices"]})},onError:(e:Error)=>toast.error(e.message)});
-if(q.isLoading)return <PageSkeleton/>;const offices=itemsOf(q.data??[]);function edit(o:Office){setEditing(o);setForm({name:o.name,address:o.address??"",latitude:o.latitude??"",longitude:o.longitude??"",allowedRadiusMeters:o.allowedRadiusMeters,maximumAccuracyMeters:o.maximumAccuracyMeters,timezone:o.timezone});setOpen(true)}
-return <div className="space-y-6"><PageHeader title="Offices" description="Configure approved work locations and geofence rules." action={<Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button onClick={()=>{setEditing(null);setForm(blank)}}><Plus className="size-4"/>Add office</Button></DialogTrigger><DialogContent><DialogTitle>{editing?"Edit office":"Create office"}</DialogTitle><DialogDescription>Location values are used by the backend for authoritative attendance validation.</DialogDescription><div className="mt-5 grid gap-4 sm:grid-cols-2"><Field label="Office name"><Input value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></Field><Field label="Timezone"><Input value={form.timezone} onChange={e=>setForm({...form,timezone:e.target.value})}/></Field><div className="sm:col-span-2"><Field label="Address"><Input value={form.address} onChange={e=>setForm({...form,address:e.target.value})}/></Field></div><Field label="Latitude"><Input type="number" step="any" value={form.latitude} onChange={e=>setForm({...form,latitude:e.target.value})}/></Field><Field label="Longitude"><Input type="number" step="any" value={form.longitude} onChange={e=>setForm({...form,longitude:e.target.value})}/></Field><Field label="Allowed radius (m)"><Input type="number" value={form.allowedRadiusMeters} onChange={e=>setForm({...form,allowedRadiusMeters:e.target.value})}/></Field><Field label="Max GPS accuracy (m)"><Input type="number" value={form.maximumAccuracyMeters} onChange={e=>setForm({...form,maximumAccuracyMeters:e.target.value})}/></Field></div><div className="mt-6 flex justify-end"><Button disabled={save.isPending} onClick={()=>save.mutate()}>{save.isPending?"Saving...":"Save office"}</Button></div></DialogContent></Dialog>}/><div className="grid gap-4 lg:grid-cols-2">{offices.map(o=><Card key={o.id} className="p-5"><div className="flex items-start justify-between gap-4"><div className="flex gap-3"><div className="rounded-lg bg-blue-50 p-2 text-blue-600"><MapPin className="size-5"/></div><div><div className="flex items-center gap-2"><h2 className="font-semibold">{o.name}</h2><StatusBadge status={o.isActive?"ACTIVE":"INACTIVE"}/></div><p className="mt-1 text-sm text-slate-500">{o.address||"No address"}</p></div></div><Button size="sm" variant="outline" onClick={()=>edit(o)}>Edit</Button></div><dl className="mt-5 grid grid-cols-2 gap-4 text-sm"><Info k="Geofence" v={`${o.allowedRadiusMeters} m`}/><Info k="GPS accuracy" v={`≤ ${o.maximumAccuracyMeters} m`}/><Info k="Coordinates" v={`${o.latitude}, ${o.longitude}`}/><Info k="Timezone" v={o.timezone}/></dl><div className="mt-5 border-t pt-4"><Button size="sm" variant={o.isActive?"danger":"secondary"} onClick={()=>{const reason=window.prompt(`Reason to ${o.isActive?"deactivate":"activate"} this office?`);if(reason)status.mutate({o,reason})}}><Power className="size-4"/>{o.isActive?"Deactivate":"Activate"}</Button></div></Card>)}</div></div>}
-function Field({label,children}:{label:string;children:React.ReactNode}){return <div className="space-y-1.5"><Label>{label}</Label>{children}</div>}function Info({k,v}:{k:string;v:string}){return <div><dt className="text-slate-500">{k}</dt><dd className="mt-1 font-medium text-slate-900">{v}</dd></div>}
+import { CompanyAdminGate } from "@/components/auth/role-gates";
+import { OfficeFormDialog } from "@/components/offices/office-form-dialog";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
+import { StatusBadge } from "@/components/ui/badge";
+import { configurationApi, itemsOf } from "@/features/configuration/configuration-api";
+import type { Office } from "@/types/configuration";
+
+export default function OfficesPage() {
+  return (
+    <CompanyAdminGate>
+      <OfficesPageInner />
+    </CompanyAdminGate>
+  );
+}
+
+function OfficesPageInner() {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Office | null>(null);
+  const q = useQuery({ queryKey: ["offices"], queryFn: () => configurationApi.offices() });
+
+  const status = useMutation({
+    mutationFn: ({ o, reason }: { o: Office; reason: string }) => configurationApi.officeStatus(o.id, !o.isActive, reason),
+    onSuccess: () => {
+      toast.success("Office status updated");
+      void qc.invalidateQueries({ queryKey: ["offices"] });
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
+
+  if (q.isLoading) return <PageSkeleton />;
+
+  const offices = itemsOf(q.data ?? []);
+
+  function edit(office: Office) {
+    setEditing(office);
+    setOpen(true);
+  }
+
+  function openCreate() {
+    setEditing(null);
+    setOpen(true);
+  }
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Offices"
+        description="Configure approved work locations and geofence rules."
+        action={
+          <Button onClick={openCreate}>
+            <Plus className="size-4" />
+            Add office
+          </Button>
+        }
+      />
+
+      <OfficeFormDialog
+        open={open}
+        onOpenChange={setOpen}
+        editing={editing}
+        onSaved={() => void qc.invalidateQueries({ queryKey: ["offices"] })}
+      />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        {offices.map((o) => (
+          <Card key={o.id} className="p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex gap-3">
+                <div className="rounded-lg bg-blue-50 p-2 text-blue-600">
+                  <MapPin className="size-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-semibold">{o.name}</h2>
+                    <StatusBadge status={o.isActive ? "ACTIVE" : "INACTIVE"} />
+                  </div>
+                  <p className="mt-1 text-sm text-slate-500">{o.address || "No address"}</p>
+                </div>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => edit(o)}>
+                Edit
+              </Button>
+            </div>
+
+            <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
+              <Info k="Geofence" v={`${o.allowedRadiusMeters} m`} />
+              <Info k="GPS accuracy" v={`≤ ${o.maximumAccuracyMeters} m`} />
+              <Info k="Coordinates" v={`${o.latitude}, ${o.longitude}`} />
+              <Info k="Timezone" v={o.timezone} />
+            </dl>
+
+            {o.latitude != null && o.longitude != null && (
+              <a
+                href={`https://www.openstreetmap.org/?mlat=${o.latitude}&mlon=${o.longitude}#map=17/${o.latitude}/${o.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
+              >
+                <ExternalLink className="size-3.5" />
+                View on OpenStreetMap
+              </a>
+            )}
+
+            <div className="mt-5 border-t pt-4">
+              <Button
+                size="sm"
+                variant={o.isActive ? "danger" : "secondary"}
+                onClick={() => {
+                  const reason = window.prompt(`Reason to ${o.isActive ? "deactivate" : "activate"} this office?`);
+                  if (reason) status.mutate({ o, reason });
+                }}
+              >
+                <Power className="size-4" />
+                {o.isActive ? "Deactivate" : "Activate"}
+              </Button>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Info({ k, v }: { k: string; v: string }) {
+  return (
+    <div>
+      <dt className="text-slate-500">{k}</dt>
+      <dd className="mt-1 font-medium text-slate-900">{v}</dd>
+    </div>
+  );
+}

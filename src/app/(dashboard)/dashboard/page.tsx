@@ -1,4 +1,6 @@
 "use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { endOfToday, format, subDays } from "date-fns";
 import { AlertTriangle, Clock3, FileCheck2, Plane, UserCheck, Users } from "lucide-react";
@@ -10,5 +12,153 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
 import { StatusBadge } from "@/components/ui/badge";
-export default function DashboardPage(){ const to=format(endOfToday(),"yyyy-MM-dd"), from=format(subDays(new Date(),13),"yyyy-MM-dd"); const today=useQuery({queryKey:["dashboard","today"],queryFn:dashboardApi.today,refetchInterval:60_000}); const trend=useQuery({queryKey:["dashboard","trend",from,to],queryFn:()=>dashboardApi.trend(from,to)}); const leave=useQuery({queryKey:["dashboard","leave",from,to],queryFn:()=>dashboardApi.leave(from,to)}); const activity=useQuery({queryKey:["dashboard","activity"],queryFn:dashboardApi.activity}); if(today.isError)return <ErrorState message="The workforce dashboard could not be loaded." onRetry={()=>today.refetch()}/>; const s=today.data; return <><PageHeader title="Workforce dashboard" description="A focused view of today's workforce and recent operational activity."/><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">{today.isLoading?Array.from({length:5}).map((_,i)=><Skeleton key={i} className="h-36"/>):<><MetricCard label="Employees" value={s!.totalEmployees} helper="Active workforce" icon={Users}/><MetricCard label="Checked in" value={s!.checkedIn} helper={`${s!.checkedOut} already checked out`} icon={UserCheck} tone="green"/><MetricCard label="Late" value={s!.late} helper={`${s!.onTime} on time`} icon={Clock3} tone="amber"/><MetricCard label="On leave" value={s!.onLeave} helper={`${s!.pendingLeaveRequests} pending requests`} icon={Plane}/><MetricCard label="Missing checkout" value={s!.missingCheckout} helper="Needs attention" icon={AlertTriangle} tone="red"/></>}</div><div className="mt-6 grid gap-6 xl:grid-cols-[1.7fr_1fr]"><Card><CardHeader><CardTitle>Attendance trend · last 14 days</CardTitle></CardHeader><CardContent>{trend.isLoading?<Skeleton className="h-72"/>:trend.data?<AttendanceChart data={trend.data}/>:null}</CardContent></Card><Card><CardHeader><CardTitle>Leave summary</CardTitle></CardHeader><CardContent className="space-y-3">{leave.isLoading?Array.from({length:4}).map((_,i)=><Skeleton key={i} className="h-12"/>):leave.data?.map(item=><div key={item.status} className="flex items-center justify-between rounded-lg border p-3"><div><StatusBadge status={item.status}/><p className="mt-1 text-xs text-slate-500">{item.days} days</p></div><p className="text-xl font-bold">{item.requests}</p></div>)}</CardContent></Card></div><div className="mt-6 grid gap-6 xl:grid-cols-[1.25fr_.75fr]"><Card><CardHeader><CardTitle>Recent activity</CardTitle></CardHeader><CardContent>{activity.isLoading?<div className="space-y-3">{Array.from({length:5}).map((_,i)=><Skeleton key={i} className="h-12"/>)}</div>:<div className="divide-y">{activity.data?.map(a=><div key={a.id} className="flex items-start gap-3 py-3"><div className="mt-0.5 rounded-lg bg-slate-100 p-2"><FileCheck2 className="size-4 text-slate-600"/></div><div className="min-w-0 flex-1"><p className="text-sm font-medium">{a.action.replaceAll("_"," ")}</p><p className="truncate text-xs text-slate-500">{a.actor?.email??"System"} · {a.entityType}</p></div><time className="text-xs text-slate-400">{format(new Date(a.createdAt),"MMM d, HH:mm")}</time></div>)}</div>}</CardContent></Card><Card><CardHeader><CardTitle>Today at a glance</CardTitle></CardHeader><CardContent className="space-y-4"><Summary label="Not checked in" value={s?.notCheckedIn}/><Summary label="Worksheets submitted" value={s?.worksheetsSubmitted}/><Summary label="Checked out" value={s?.checkedOut}/><Summary label="Pending leave" value={s?.pendingLeaveRequests}/></CardContent></Card></div></> }
-function Summary({label,value}:{label:string;value?:number}){return <div className="flex items-center justify-between"><span className="text-sm text-slate-500">{label}</span><span className="font-semibold">{value??"—"}</span></div>}
+import { useAuth } from "@/features/auth/auth-provider";
+import { TenantOpsGate } from "@/components/auth/role-gates";
+import { homePathForRoles } from "@/features/navigation/role-nav";
+
+export default function DashboardPage() {
+  const { isSuperAdmin, user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isSuperAdmin) router.replace(homePathForRoles(user?.roles));
+  }, [isSuperAdmin, user?.roles, router]);
+
+  if (isSuperAdmin) return null;
+
+  return (
+    <TenantOpsGate>
+      <TenantDashboard />
+    </TenantOpsGate>
+  );
+}
+
+function TenantDashboard() {
+  const { isOfficeAdmin, user } = useAuth();
+  const officeLabel = user?.offices?.map((o) => o.name).join(", ");
+
+  const to = format(endOfToday(), "yyyy-MM-dd");
+  const from = format(subDays(new Date(), 13), "yyyy-MM-dd");
+  const today = useQuery({ queryKey: ["dashboard", "today"], queryFn: dashboardApi.today, refetchInterval: 60_000 });
+  const trend = useQuery({ queryKey: ["dashboard", "trend", from, to], queryFn: () => dashboardApi.trend(from, to) });
+  const leave = useQuery({ queryKey: ["dashboard", "leave", from, to], queryFn: () => dashboardApi.leave(from, to) });
+  const activity = useQuery({ queryKey: ["dashboard", "activity"], queryFn: dashboardApi.activity });
+
+  if (today.isError) return <ErrorState message="The workforce dashboard could not be loaded." onRetry={() => today.refetch()} />;
+
+  const s = today.data;
+
+  return (
+    <>
+      <PageHeader
+        title={isOfficeAdmin ? "Office dashboard" : "Company dashboard"}
+        description={
+          isOfficeAdmin
+            ? `Today's workforce activity for ${officeLabel ?? "your assigned offices"}.`
+            : `Organization-wide view for ${user?.organization?.name ?? "your company"}.`
+        }
+      />
+
+      {isOfficeAdmin && officeLabel && (
+        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-900">
+          Scoped to: <span className="font-semibold">{officeLabel}</span>
+        </div>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        {today.isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-36" />)
+        ) : (
+          <>
+            <MetricCard label="Employees" value={s!.totalEmployees} helper="Active in scope" icon={Users} />
+            <MetricCard label="Checked in" value={s!.checkedIn} helper={`${s!.checkedOut} already checked out`} icon={UserCheck} tone="green" />
+            <MetricCard label="Late" value={s!.late} helper={`${s!.onTime} on time`} icon={Clock3} tone="amber" />
+            <MetricCard label="On leave" value={s!.onLeave} helper={`${s!.pendingLeaveRequests} pending requests`} icon={Plane} />
+            <MetricCard label="Missing checkout" value={s!.missingCheckout} helper="Needs attention" icon={AlertTriangle} tone="red" />
+          </>
+        )}
+      </div>
+
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.7fr_1fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Attendance trend · last 14 days</CardTitle>
+          </CardHeader>
+          <CardContent>{trend.isLoading ? <Skeleton className="h-72" /> : trend.data ? <AttendanceChart data={trend.data} /> : null}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Leave summary</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {leave.isLoading
+              ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12" />)
+              : leave.data?.map((item) => (
+                  <div key={item.status} className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <StatusBadge status={item.status} />
+                      <p className="mt-1 text-xs text-slate-500">{item.days} days</p>
+                    </div>
+                    <p className="text-xl font-bold">{item.requests}</p>
+                  </div>
+                ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.25fr_.75fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {activity.isLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12" />
+                ))}
+              </div>
+            ) : (
+              <div className="divide-y">
+                {activity.data?.map((a) => (
+                  <div key={a.id} className="flex items-start gap-3 py-3">
+                    <div className="mt-0.5 rounded-lg bg-slate-100 p-2">
+                      <FileCheck2 className="size-4 text-slate-600" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">{a.action.replaceAll("_", " ")}</p>
+                      <p className="truncate text-xs text-slate-500">
+                        {a.actor?.email ?? "System"} · {a.entityType}
+                      </p>
+                    </div>
+                    <time className="text-xs text-slate-400">{format(new Date(a.createdAt), "MMM d, HH:mm")}</time>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Today at a glance</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Summary label="Not checked in" value={s?.notCheckedIn} />
+            <Summary label="Worksheets submitted" value={s?.worksheetsSubmitted} />
+            <Summary label="Checked out" value={s?.checkedOut} />
+            <Summary label="Pending leave" value={s?.pendingLeaveRequests} />
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  );
+}
+
+function Summary({ label, value }: { label: string; value?: number }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-slate-500">{label}</span>
+      <span className="font-semibold">{value ?? "—"}</span>
+    </div>
+  );
+}

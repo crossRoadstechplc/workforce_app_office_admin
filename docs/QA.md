@@ -28,5 +28,5 @@
 - ADMIN role enforced after session restore
 - Backend permissions remain authoritative
 - Security response headers enabled
-- Browser geolocation/camera/microphone disabled for admin portal by Permissions-Policy
+- Browser camera/microphone disabled for admin portal by Permissions-Policy; geolocation allowed for office location picker
 - CSV export requires backend `report.export`

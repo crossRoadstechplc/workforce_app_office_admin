@@ -9,7 +9,7 @@ export async function apiFetch<T>(path:string, init:RequestInit = {}, retry=true
   const token=getAccessToken();
   const response=await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api/v1"}${path}`, { ...init, headers:{ "content-type":"application/json", ...(token?{authorization:`Bearer ${token}`}:{ }), ...(init.headers??{}) } });
   if(response.status===401 && retry) { const next=await refreshToken(); if(next) return apiFetch<T>(path,init,false); }
-  if(!response.ok) { const body=await response.json().catch(()=>({})); throw new ApiError(response.status, body.code??"REQUEST_FAILED", body.message??"Request failed", body.details); }
+  if(!response.ok) { const body=await response.json().catch(()=>({})); const err=body.error??body; throw new ApiError(response.status, err.code??"REQUEST_FAILED", err.message??"Request failed", err.details); }
   if(response.status===204) return undefined as T;
   return response.json() as Promise<T>;
 }
