@@ -7,5 +7,8 @@ export type TenantContext = {
 };
 
 export const tenantContextApi = {
-  get: () => apiFetch<TenantContext>("/admin/context")
+  get: async () => {
+    const raw = await apiFetch<any>("/admin/context");
+    return (raw?.data ?? raw) as TenantContext;
+  }
 };
