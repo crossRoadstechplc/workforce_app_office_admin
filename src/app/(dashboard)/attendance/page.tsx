@@ -6,6 +6,13 @@ import { useRouter } from "next/navigation";
 import { PencilLine, Search } from "lucide-react";
 import { toast } from "sonner";
 import { TenantOpsGate } from "@/components/auth/role-gates";
+import {
+  AttendancePhotoLightbox,
+  AttendancePhotoThumb,
+  locationPhotoTitle,
+  locationPhotoType,
+  type AttendancePhotoPreview
+} from "@/components/attendance/attendance-photo";
 import { DateDayPicker, defaultOpsDate } from "@/components/ops/date-day-picker";
 import { MonthYearPicker, defaultOpsMonth } from "@/components/ops/month-year-picker";
 import { OfficeFilter } from "@/components/ops/office-filter";
@@ -48,6 +55,7 @@ function AttendancePageInner() {
   const [search, setSearch] = useState("");
   const [selectedTimesheetId, setSelectedTimesheetId] = useState<string | null>(null);
   const [correction, setCorrection] = useState({ actualCheckIn: "", actualCheckOut: "", reason: "" });
+  const [photoPreview, setPhotoPreview] = useState<AttendancePhotoPreview | null>(null);
 
   const dayParams = useMemo(() => {
     const p = new URLSearchParams({ date });
@@ -188,7 +196,7 @@ function AttendancePageInner() {
           <table className="w-full text-left text-sm">
             <thead className="border-b bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
-                {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Check in", "Checkout", "Late", "Worked", "Status", ""].map((h) => (
+                {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Photo", "Check in", "Checkout", "Late", "Worked", "Status", ""].map((h) => (
                   <th className="px-4 py-3" key={h || "actions"}>
                     {h}
                   </th>
@@ -197,11 +205,17 @@ function AttendancePageInner() {
             </thead>
             <tbody className="divide-y">
               {dayItems.map((row) => (
-                <DayRow key={row.employee.id} row={row} showOffice={showOfficeFilter} onView={() => row.timesheet && setSelectedTimesheetId(row.timesheet.id)} />
+                <DayRow
+                  key={row.employee.id}
+                  row={row}
+                  showOffice={showOfficeFilter}
+                  onView={() => row.timesheet && setSelectedTimesheetId(row.timesheet.id)}
+                  onOpenPhoto={setPhotoPreview}
+                />
               ))}
               {!dayItems.length && (
                 <tr>
-                  <td colSpan={showOfficeFilter ? 8 : 7} className="px-4 py-10 text-center text-slate-500">
+                  <td colSpan={showOfficeFilter ? 9 : 8} className="px-4 py-10 text-center text-slate-500">
                     No employees match this filter.
                   </td>
                 </tr>
@@ -273,16 +287,30 @@ function AttendancePageInner() {
                 </div>
               )}
               <div>
-                <h3 className="mb-2 text-sm font-semibold">Location evidence</h3>
+                <h3 className="mb-2 text-sm font-semibold">Photos & location</h3>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {d.locations?.map((l, i) => (
-                    <div className="rounded-lg border p-3 text-sm" key={i}>
-                      <b>{l.locationType}</b>
-                      <div className="mt-1 text-slate-500">
-                        {l.distanceFromOfficeMeters}m from office · accuracy {l.accuracyMeters}m
-                      </div>
-                    </div>
-                  ))}
+                  {d.locations?.length ? (
+                    d.locations.map((l, i) => {
+                      const type = locationPhotoType(l);
+                      return (
+                        <div className="flex items-center gap-3 rounded-lg border p-3 text-sm" key={i}>
+                          <AttendancePhotoThumb
+                            url={l.photoUrl}
+                            title={locationPhotoTitle(type)}
+                            onOpen={setPhotoPreview}
+                          />
+                          <div>
+                            <b>{type.replaceAll("_", " ")}</b>
+                            <div className="mt-1 text-slate-500">
+                              {l.distanceFromOfficeMeters}m from office · accuracy {l.accuracyMeters}m
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-slate-500">No location or photo evidence for this timesheet.</p>
+                  )}
                 </div>
               </div>
               <div className="border-t pt-5">
@@ -316,11 +344,22 @@ function AttendancePageInner() {
           )}
         </DialogContent>
       </Dialog>
+      <AttendancePhotoLightbox photo={photoPreview} onClose={() => setPhotoPreview(null)} />
     </div>
   );
 }
 
-function DayRow({ row, showOffice, onView }: { row: AttendanceDayRosterRow; showOffice: boolean; onView: () => void }) {
+function DayRow({
+  row,
+  showOffice,
+  onView,
+  onOpenPhoto
+}: {
+  row: AttendanceDayRosterRow;
+  showOffice: boolean;
+  onView: () => void;
+  onOpenPhoto: (photo: AttendancePhotoPreview) => void;
+}) {
   return (
     <tr className="hover:bg-slate-50">
       <td className="px-4 py-3">
@@ -328,6 +367,12 @@ function DayRow({ row, showOffice, onView }: { row: AttendanceDayRosterRow; show
         <div className="text-xs text-slate-500">{row.employee.employeeCode}</div>
       </td>
       {showOffice && <td className="px-4 py-3">{row.office?.name ?? "—"}</td>}
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-2">
+          <AttendancePhotoThumb url={row.timesheet?.checkInPhotoUrl} title="Check-in photo" onOpen={onOpenPhoto} />
+          <AttendancePhotoThumb url={row.timesheet?.checkOutPhotoUrl} title="Check-out photo" onOpen={onOpenPhoto} />
+        </div>
+      </td>
       <td className="px-4 py-3">{formatDateTime(row.timesheet?.actualCheckIn)}</td>
       <td className="px-4 py-3">{formatDateTime(row.timesheet?.actualCheckOut)}</td>
       <td className="px-4 py-3">{row.timesheet ? `${row.timesheet.lateMinutes}m` : "—"}</td>

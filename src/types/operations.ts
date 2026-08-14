@@ -28,12 +28,14 @@ export type Timesheet = {
   lateReason?: { reasonType: string; reasonDescription?: string | null };
   worksheet?: { id: string; workDescription: string; status: string } | null;
   locations?: Array<{
-    locationType: string;
+    type?: string;
+    locationType?: string;
     latitude: number;
     longitude: number;
     accuracyMeters: number;
     distanceFromOfficeMeters: number;
     isInsideRadius: boolean;
+    photoUrl?: string | null;
   }>;
   corrections?: Array<{ id: string; reason: string; createdAt: string }>;
 };
@@ -101,6 +103,8 @@ export type AttendanceDayRosterRow = {
     isLate: boolean;
     isMissingCheckout: boolean;
     lateReason?: { reasonType: string; reasonDescription?: string | null } | null;
+    checkInPhotoUrl?: string | null;
+    checkOutPhotoUrl?: string | null;
   } | null;
   leave: { id: string; startDate: string; endDate: string } | null;
   worksheet: { id: string; status: string } | null;
