@@ -65,6 +65,12 @@ export type LeaveRequest = {
   decisions?: Array<{ id: string; decision: string; decisionReason?: string | null; decidedAt: string; adminUser?: { email: string } }>;
 };
 
+export type LeaveRequestList = {
+  items: LeaveRequest[];
+  meta: { page: number; pageSize: number; total: number; totalPages: number };
+  counts: { total: number; pending: number; approved: number; rejected: number; cancelled: number };
+};
+
 export type Notification = {
   id: string;
   type: string;

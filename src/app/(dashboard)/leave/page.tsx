@@ -5,7 +5,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Search, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { TenantOpsGate } from "@/components/auth/role-gates";
-import { DateDayPicker, defaultOpsDate } from "@/components/ops/date-day-picker";
 import { OfficeFilter } from "@/components/ops/office-filter";
 import { OpsSummaryStrip } from "@/components/ops/ops-summary-strip";
 import { useAuth } from "@/features/auth/auth-provider";
@@ -37,23 +36,23 @@ function LeavePageInner() {
   const officeLabel = user?.offices?.map((o) => o.name).join(", ");
   const qc = useQueryClient();
 
-  const [date, setDate] = useState(defaultOpsDate);
   const [officeId, setOfficeId] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("PENDING");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [reason, setReason] = useState("");
 
   const params = useMemo(() => {
-    const p = new URLSearchParams({ date });
+    const p = new URLSearchParams({ page: String(page), pageSize: "50" });
     if (officeId) p.set("officeId", officeId);
     if (status) p.set("status", status);
     return p;
-  }, [date, officeId, status]);
+  }, [officeId, status, page]);
 
   const q = useQuery({
-    queryKey: ["leave-day-roster", params.toString()],
-    queryFn: () => operationsApi.leaveDayRoster(params)
+    queryKey: ["leave-requests", params.toString()],
+    queryFn: () => operationsApi.leaves(params)
   });
 
   const detail = useQuery({
@@ -77,7 +76,7 @@ function LeavePageInner() {
     toast.success(message);
     setReason("");
     setSelectedId(null);
-    void qc.invalidateQueries({ queryKey: ["leave-day-roster"] });
+    void qc.invalidateQueries({ queryKey: ["leave-requests"] });
     void qc.invalidateQueries({ queryKey: ["dashboard"] });
   }
 
@@ -89,6 +88,8 @@ function LeavePageInner() {
     return `${row.employee.firstName} ${row.employee.lastName} ${row.employee.employeeCode}`.toLowerCase().includes(needle);
   });
   const d = detail.data as LeaveRequest | undefined;
+  const counts = q.data?.counts;
+  const meta = q.data?.meta;
 
   return (
     <div className="space-y-6">
@@ -96,34 +97,32 @@ function LeavePageInner() {
         title={isOfficeAdmin ? "Office leave" : "Leave"}
         description={
           isOfficeAdmin
-            ? `See leave status for every employee in ${officeLabel ?? "your assigned offices"}.`
-            : "Full employee leave roster for the selected day, with review and decision history."
+            ? `Review leave requests for ${officeLabel ?? "your assigned offices"}.`
+            : "Review employee leave requests, open details, and approve or reject pending items."
         }
       />
 
-      {q.data && (
+      {counts && (
         <OpsSummaryStrip
           metrics={[
-            { label: "Employees", value: q.data.counts.totalEmployees },
-            { label: "On leave", value: q.data.counts.onLeave, tone: "success" },
-            { label: "Pending", value: q.data.counts.pending, tone: "warning" },
-            { label: "No leave", value: q.data.counts.none }
+            { label: "Requests", value: counts.total },
+            { label: "Pending", value: counts.pending, tone: "warning" },
+            { label: "Approved", value: counts.approved, tone: "success" },
+            { label: "Rejected", value: counts.rejected, tone: "danger" }
           ]}
         />
       )}
 
       <div className="flex flex-wrap items-end gap-3 rounded-xl border bg-white p-4">
-        <DateDayPicker value={date} onChange={setDate} />
-        <OfficeFilter visible={showOfficeFilter} value={officeId} onChange={setOfficeId} />
+        <OfficeFilter visible={showOfficeFilter} value={officeId} onChange={(v) => { setOfficeId(v); setPage(1); }} />
         <div className="min-w-44 space-y-1.5">
           <Label>Status</Label>
-          <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+          <Select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
+            <option value="PENDING">Pending</option>
             <option value="">All statuses</option>
-            {["ON_LEAVE", "PENDING", "NONE", "REJECTED", "CANCELLED"].map((s) => (
-              <option key={s} value={s}>
-                {s.replaceAll("_", " ")}
-              </option>
-            ))}
+            <option value="APPROVED">Approved</option>
+            <option value="REJECTED">Rejected</option>
+            <option value="CANCELLED">Cancelled</option>
           </Select>
         </div>
         <div className="relative min-w-56 flex-1">
@@ -148,42 +147,52 @@ function LeavePageInner() {
           </thead>
           <tbody className="divide-y">
             {items.map((row) => (
-              <tr key={row.employee.id} className="hover:bg-slate-50">
+              <tr key={row.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3">
                   <b>{employeeName(row.employee)}</b>
                   <div className="text-xs text-slate-500">{row.employee.employeeCode}</div>
                 </td>
-                {showOfficeFilter && <td className="px-4 py-3">{row.office?.name ?? "—"}</td>}
-                <td className="px-4 py-3">{row.leave?.leaveType.name ?? "—"}</td>
+                {showOfficeFilter && <td className="px-4 py-3">{row.employee.office?.name ?? "—"}</td>}
+                <td className="px-4 py-3">{row.leaveType.name}</td>
                 <td className="px-4 py-3">
-                  {row.leave ? `${formatDate(row.leave.startDate)} – ${formatDate(row.leave.endDate)}` : "—"}
+                  {formatDate(row.startDate)} – {formatDate(row.endDate)}
                 </td>
-                <td className="px-4 py-3">{row.leave ? String(row.leave.numberOfDays) : "—"}</td>
-                <td className="max-w-xs truncate px-4 py-3 text-slate-600">{row.leave?.reason ?? "—"}</td>
+                <td className="px-4 py-3">{String(row.numberOfDays)}</td>
+                <td className="max-w-xs truncate px-4 py-3 text-slate-600">{row.reason}</td>
                 <td className="px-4 py-3">
-                  <StatusBadge status={row.leaveState} />
+                  <StatusBadge status={row.status} />
                 </td>
                 <td className="px-4 py-3">
-                  {row.leave ? (
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedId(row.leave!.id)}>
-                      Review
-                    </Button>
-                  ) : (
-                    <span className="text-xs text-slate-400">—</span>
-                  )}
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedId(row.id)}>
+                    {row.status === "PENDING" ? "Review" : "Details"}
+                  </Button>
                 </td>
               </tr>
             ))}
             {!items.length && (
               <tr>
                 <td colSpan={showOfficeFilter ? 8 : 7} className="px-4 py-10 text-center text-slate-500">
-                  No employees match this filter.
+                  {status === "PENDING" ? "No pending leave requests." : "No leave requests match this filter."}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </TableShell>
+
+      {meta && meta.totalPages > 1 && (
+        <div className="flex items-center justify-end gap-2">
+          <Button size="sm" variant="ghost" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            Previous
+          </Button>
+          <span className="text-sm text-slate-500">
+            Page {meta.page} of {meta.totalPages}
+          </span>
+          <Button size="sm" variant="ghost" disabled={page >= meta.totalPages} onClick={() => setPage((p) => p + 1)}>
+            Next
+          </Button>
+        </div>
+      )}
 
       <Dialog open={!!selectedId} onOpenChange={(v) => !v && setSelectedId(null)}>
         <DialogContent className="max-w-2xl">

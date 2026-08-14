@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { TenantOpsGate } from "@/components/auth/role-gates";
 import {
   AttendancePhotoLightbox,
+  AttendancePhotoStack,
   AttendancePhotoThumb,
   locationPhotoTitle,
   locationPhotoType,
@@ -55,7 +56,7 @@ function AttendancePageInner() {
   const [search, setSearch] = useState("");
   const [selectedTimesheetId, setSelectedTimesheetId] = useState<string | null>(null);
   const [correction, setCorrection] = useState({ actualCheckIn: "", actualCheckOut: "", reason: "" });
-  const [photoPreview, setPhotoPreview] = useState<AttendancePhotoPreview | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<AttendancePhotoPreview[] | null>(null);
 
   const dayParams = useMemo(() => {
     const p = new URLSearchParams({ date });
@@ -344,7 +345,7 @@ function AttendancePageInner() {
           )}
         </DialogContent>
       </Dialog>
-      <AttendancePhotoLightbox photo={photoPreview} onClose={() => setPhotoPreview(null)} />
+      <AttendancePhotoLightbox photos={photoPreview} onClose={() => setPhotoPreview(null)} />
     </div>
   );
 }
@@ -358,8 +359,13 @@ function DayRow({
   row: AttendanceDayRosterRow;
   showOffice: boolean;
   onView: () => void;
-  onOpenPhoto: (photo: AttendancePhotoPreview) => void;
+  onOpenPhoto: (photos: AttendancePhotoPreview[]) => void;
 }) {
+  const photos: AttendancePhotoPreview[] = [
+    row.timesheet?.checkInPhotoUrl ? { url: row.timesheet.checkInPhotoUrl, title: "Check-in photo" } : null,
+    row.timesheet?.checkOutPhotoUrl ? { url: row.timesheet.checkOutPhotoUrl, title: "Check-out photo" } : null
+  ].filter((photo): photo is AttendancePhotoPreview => photo !== null);
+
   return (
     <tr className="hover:bg-slate-50">
       <td className="px-4 py-3">
@@ -368,10 +374,7 @@ function DayRow({
       </td>
       {showOffice && <td className="px-4 py-3">{row.office?.name ?? "—"}</td>}
       <td className="px-4 py-3">
-        <div className="flex items-center gap-2">
-          <AttendancePhotoThumb url={row.timesheet?.checkInPhotoUrl} title="Check-in photo" onOpen={onOpenPhoto} />
-          <AttendancePhotoThumb url={row.timesheet?.checkOutPhotoUrl} title="Check-out photo" onOpen={onOpenPhoto} />
-        </div>
+        <AttendancePhotoStack photos={photos} onOpen={onOpenPhoto} />
       </td>
       <td className="px-4 py-3">{formatDateTime(row.timesheet?.actualCheckIn)}</td>
       <td className="px-4 py-3">{formatDateTime(row.timesheet?.actualCheckOut)}</td>

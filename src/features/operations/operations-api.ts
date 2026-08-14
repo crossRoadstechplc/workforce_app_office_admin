@@ -4,6 +4,7 @@ import type {
   AttendanceMonthSummary,
   LeaveDayRoster,
   LeaveRequest,
+  LeaveRequestList,
   Timesheet,
   Worksheet,
   WorksheetDayRoster
@@ -26,7 +27,7 @@ export const operationsApi = {
   worksheet: async (id: string) => d<Worksheet>(await apiFetch<any>(`/admin/worksheets/${id}`)),
   reviewWorksheet: async (id: string, input: { adminComment?: string }) =>
     d<Worksheet>(await apiFetch<any>(`/admin/worksheets/${id}/review`, { method: "POST", body: JSON.stringify(input) })),
-  leaves: async (params: URLSearchParams) => d<any>(await apiFetch<any>(`/admin/leave-requests?${params}`)),
+  leaves: async (params: URLSearchParams) => d<LeaveRequestList>(await apiFetch<any>(`/admin/leave-requests?${params}`)),
   leaveDayRoster: async (params: URLSearchParams) =>
     d<LeaveDayRoster>(await apiFetch<any>(`/admin/leave/day-roster?${params}`)),
   leave: async (id: string) => d<LeaveRequest>(await apiFetch<any>(`/admin/leave-requests/${id}`)),
