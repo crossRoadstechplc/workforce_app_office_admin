@@ -11,8 +11,8 @@ export const officeAdminApi = {
   list: (params?: URLSearchParams) =>
     apiFetch<{ items: OfficeAdminUser[]; meta: { total: number } }>(`/admin/office-admins?${params ?? "page=1&pageSize=50"}`),
 
-  create: (body: { email: string; officeIds: string[] }) =>
-    apiFetch<{ user: OfficeAdminUser; temporaryPassword: string }>("/admin/office-admins", {
+  create: (body: { email: string; officeIds: string[]; deliveryMethod?: "SHOW_PASSWORD" | "SEND_EMAIL" }) =>
+    apiFetch<{ user: OfficeAdminUser; temporaryPassword?: string; emailSent?: boolean; inviteId?: string; emailError?: string }>("/admin/office-admins", {
       method: "POST",
       body: JSON.stringify(body)
     }),

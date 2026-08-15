@@ -11,10 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { StatusBadge } from "@/components/ui/badge";
+import { CopyValue } from "@/components/ui/copy-value";
 import { PlatformGate } from "@/components/auth/role-gates";
-import { platformApi, type PlatformOrganization } from "@/features/platform/platform-api";
+import { platformApi, type CreatedOrganization, type PlatformOrganization } from "@/features/platform/platform-api";
 
-const blank = { name: "", slug: "" };
+const blank = { name: "", slug: "", adminEmail: "", sendInvite: true };
 
 export default function OrganizationsPage() {
   return (
@@ -29,20 +30,39 @@ function OrganizationsInner() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PlatformOrganization | null>(null);
   const [form, setForm] = useState(blank);
+  const [createdAdminPassword, setCreatedAdminPassword] = useState<string | null>(null);
   const q = useQuery({ queryKey: ["platform", "organizations"], queryFn: () => platformApi.organizations() });
   const save = useMutation({
     mutationFn: async () => {
       const slug = form.slug.trim().toLowerCase();
       return editing
         ? platformApi.updateOrganization(editing.id, { name: form.name, slug })
-        : platformApi.createOrganization({ name: form.name, slug });
+        : platformApi.createOrganization({
+            name: form.name,
+            slug,
+            ...(form.adminEmail.trim()
+              ? { adminEmail: form.adminEmail.trim(), sendInvite: form.sendInvite }
+              : {})
+          });
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success(editing ? "Organization updated" : "Organization created");
-      setOpen(false);
-      setEditing(null);
-      setForm(blank);
+      const admin = "admin" in res ? (res as CreatedOrganization).admin : undefined;
+      if (admin?.temporaryPassword) {
+        setCreatedAdminPassword(admin.temporaryPassword);
+        toast.success("Company admin created. Copy the temporary password.");
+      } else if (admin?.emailSent) {
+        toast.success("Company admin invite email sent");
+      } else if (admin && admin.emailSent === false) {
+        toast.error(admin.emailError ?? "Company admin was created, but the email was not sent");
+      }
+      if (!admin?.temporaryPassword) {
+        setOpen(false);
+        setEditing(null);
+        setForm(blank);
+      }
       void qc.invalidateQueries({ queryKey: ["platform", "organizations"] });
+      void qc.invalidateQueries({ queryKey: ["platform", "org-admins"] });
       void qc.invalidateQueries({ queryKey: ["platform", "dashboard"] });
     },
     onError: (e: Error) => toast.error(e.message)
@@ -63,7 +83,8 @@ function OrganizationsInner() {
 
   function edit(o: PlatformOrganization) {
     setEditing(o);
-    setForm({ name: o.name, slug: o.slug });
+    setForm({ name: o.name, slug: o.slug, adminEmail: "", sendInvite: true });
+    setCreatedAdminPassword(null);
     setOpen(true);
   }
 
@@ -79,6 +100,7 @@ function OrganizationsInner() {
                 onClick={() => {
                   setEditing(null);
                   setForm(blank);
+                  setCreatedAdminPassword(null);
                 }}
               >
                 <Plus className="size-4" />
@@ -101,11 +123,53 @@ function OrganizationsInner() {
                     placeholder="company-1"
                   />
                 </div>
+                {!editing && (
+                  <>
+                    <div className="space-y-1.5">
+                      <Label>Company admin email (optional)</Label>
+                      <Input
+                        type="email"
+                        value={form.adminEmail}
+                        onChange={(e) => setForm({ ...form, adminEmail: e.target.value })}
+                        placeholder="admin@company.com"
+                      />
+                    </div>
+                    {form.adminEmail.trim() ? (
+                      <label className="flex items-start gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          className="mt-1"
+                          checked={form.sendInvite}
+                          onChange={(e) => setForm({ ...form, sendInvite: e.target.checked })}
+                        />
+                        <span>
+                          <span className="font-medium">Send invite email</span>
+                          <span className="block text-xs text-slate-500">
+                            Uncheck to create the admin now and copy a temporary password instead.
+                          </span>
+                        </span>
+                      </label>
+                    ) : null}
+                  </>
+                )}
+                {createdAdminPassword ? <CopyValue label="Temporary password" value={createdAdminPassword} tone="amber" /> : null}
               </div>
               <div className="mt-6 flex justify-end">
-                <Button disabled={save.isPending} onClick={() => save.mutate()}>
-                  {save.isPending ? "Saving..." : "Save"}
-                </Button>
+                {createdAdminPassword ? (
+                  <Button
+                    onClick={() => {
+                      setOpen(false);
+                      setCreatedAdminPassword(null);
+                      setForm(blank);
+                    }}
+                  >
+                    Done
+                  </Button>
+                ) : (
+                  <Button disabled={save.isPending} onClick={() => save.mutate()}>
+                    {save.isPending ? "Saving..." : "Save"}
+                  </Button>
+                )}
               </div>
             </DialogContent>
           </Dialog>

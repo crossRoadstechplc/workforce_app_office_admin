@@ -1,9 +1,11 @@
 "use client";
 
 import { useDeferredValue, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
+import { toast } from "sonner";
 import { employeeApi } from "@/features/employees/employee-api";
+import { inviteApi, type InviteRecord } from "@/features/invites/invite-api";
 import { PageHeader } from "@/components/layout/page-header";
 import { CreateEmployeeDialog } from "@/components/employees/create-employee-dialog";
 import { EmployeeTable } from "@/components/employees/employee-table";
@@ -26,6 +28,7 @@ export default function EmployeesPage() {
 
 function EmployeesPageInner() {
   const { isOfficeAdmin, user } = useAuth();
+  const qc = useQueryClient();
   const showOfficeFilter = !isOfficeAdmin;
   const officeLabel = user?.offices?.map((o) => o.name).join(", ");
   const [search, setSearch] = useState("");
@@ -45,7 +48,22 @@ function EmployeesPageInner() {
     }
   });
 
+  const invitesQ = useQuery({
+    queryKey: ["employee-invites"],
+    queryFn: () => inviteApi.list(new URLSearchParams({ type: "EMPLOYEE", status: "PENDING", page: "1", pageSize: "20" }))
+  });
+
+  const resend = useMutation({
+    mutationFn: (id: string) => inviteApi.resend(id),
+    onSuccess: (r) => {
+      toast.success(r.emailSent ? "Invite email resent" : r.emailError ?? "Invite saved, but the email was not sent");
+      void qc.invalidateQueries({ queryKey: ["employee-invites"] });
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
+
   const data = query.data as { items: any[]; meta: { total: number; totalPages: number } } | undefined;
+  const pendingInvites = (invitesQ.data?.items ?? []) as InviteRecord[];
 
   return (
     <>
@@ -58,6 +76,24 @@ function EmployeesPageInner() {
         }
         action={<CreateEmployeeDialog />}
       />
+      {pendingInvites.length > 0 && (
+        <Card className="p-4">
+          <p className="text-sm font-medium">Pending employee invites</p>
+          <ul className="mt-3 space-y-2">
+            {pendingInvites.map((invite) => (
+              <li key={invite.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span>
+                  <span className="font-medium">{invite.email}</span>
+                  {invite.office?.name ? <span className="text-slate-500"> · {invite.office.name}</span> : null}
+                </span>
+                <Button size="sm" variant="outline" disabled={resend.isPending} onClick={() => resend.mutate(invite.id)}>
+                  Resend
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
       <Card>
         <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:flex-wrap sm:items-end">
           <div className="relative min-w-56 flex-1">

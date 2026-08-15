@@ -9,6 +9,10 @@ export type PlatformOrganization = {
   _count?: { offices: number; employees: number; memberships: number; schedules?: number };
 };
 
+export type CreatedOrganization = PlatformOrganization & {
+  admin?: { user: PlatformOrgAdmin; temporaryPassword?: string; emailSent?: boolean; inviteId?: string; emailError?: string };
+};
+
 export type PlatformOrgAdmin = {
   id: string;
   email: string;
@@ -27,8 +31,10 @@ export const platformApi = {
   dashboard: () => apiFetch<{ data: { organizations: number; activeOrganizations: number; orgAdmins: number; employees: number; offices: number } }>("/platform/dashboard"),
   organizations: (params?: URLSearchParams) =>
     apiFetch<{ items: PlatformOrganization[]; meta: unknown }>(`/platform/organizations${params ? `?${params}` : ""}`),
-  createOrganization: (body: { name: string; slug: string; isActive?: boolean }) =>
-    apiFetch<PlatformOrganization>("/platform/organizations", { method: "POST", body: JSON.stringify(body) }),
+  createOrganization: (body: { name: string; slug: string; isActive?: boolean; adminEmail?: string; sendInvite?: boolean }) =>
+    apiFetch<PlatformOrganization & {
+      admin?: { user: PlatformOrgAdmin; temporaryPassword?: string; emailSent?: boolean; inviteId?: string; emailError?: string };
+    }>("/platform/organizations", { method: "POST", body: JSON.stringify(body) }),
   updateOrganization: (id: string, body: Partial<{ name: string; slug: string; isActive: boolean }>) =>
     apiFetch<PlatformOrganization>(`/platform/organizations/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
   organizationStatus: (id: string, isActive: boolean, reason: string) =>
@@ -38,8 +44,8 @@ export const platformApi = {
     }),
   orgAdmins: (params?: URLSearchParams) =>
     apiFetch<{ items: PlatformOrgAdmin[]; meta: unknown }>(`/platform/org-admins${params ? `?${params}` : ""}`),
-  createOrgAdmin: (body: { organizationId: string; email: string; temporaryPassword?: string }) =>
-    apiFetch<{ user: PlatformOrgAdmin; temporaryPassword: string }>("/platform/org-admins", {
+  createOrgAdmin: (body: { organizationId: string; email: string; temporaryPassword?: string; deliveryMethod?: "SHOW_PASSWORD" | "SEND_EMAIL" }) =>
+    apiFetch<{ user: PlatformOrgAdmin; temporaryPassword?: string; emailSent?: boolean; inviteId?: string; emailError?: string }>("/platform/org-admins", {
       method: "POST",
       body: JSON.stringify(body)
     }),

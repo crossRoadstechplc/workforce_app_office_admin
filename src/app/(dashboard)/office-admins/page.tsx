@@ -8,11 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CopyValue } from "@/components/ui/copy-value";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { StatusBadge } from "@/components/ui/badge";
 import { TableShell } from "@/components/ui/table-shell";
 import { CompanyAdminGate } from "@/components/auth/role-gates";
+import { InviteDeliveryFields, type InviteDeliveryMethod } from "@/components/invites/invite-delivery-fields";
 import { configurationApi, itemsOf } from "@/features/configuration/configuration-api";
+import { inviteApi } from "@/features/invites/invite-api";
 import { officeAdminApi } from "@/features/office-admins/office-admin-api";
 
 export default function OfficeAdminsPage() {
@@ -29,6 +32,8 @@ function OfficeAdminsInner() {
   const [email, setEmail] = useState("");
   const [officeIds, setOfficeIds] = useState<string[]>([]);
   const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [delivery, setDelivery] = useState<InviteDeliveryMethod>("SHOW_PASSWORD");
+  const [inviteResult, setInviteResult] = useState<{ emailSent: boolean; inviteId?: string; emailError?: string } | null>(null);
 
   const officesQ = useQuery({ queryKey: ["offices", "all"], queryFn: () => configurationApi.offices() });
   const adminsQ = useQuery({ queryKey: ["office-admins"], queryFn: () => officeAdminApi.list() });
@@ -37,11 +42,25 @@ function OfficeAdminsInner() {
   const admins = adminsQ.data?.items ?? [];
 
   const create = useMutation({
-    mutationFn: () => officeAdminApi.create({ email, officeIds }),
+    mutationFn: () => officeAdminApi.create({ email, officeIds, deliveryMethod: delivery }),
     onSuccess: (res) => {
-      toast.success("Office admin created");
-      setTempPassword(res.temporaryPassword);
+      if (res.temporaryPassword) {
+        toast.success("Office admin created");
+        setTempPassword(res.temporaryPassword);
+      } else {
+        setInviteResult({ emailSent: !!res.emailSent, inviteId: res.inviteId, emailError: res.emailError });
+        toast.success(res.emailSent ? "Invite email sent" : "Admin created, but the email was not sent");
+      }
       void qc.invalidateQueries({ queryKey: ["office-admins"] });
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
+
+  const resend = useMutation({
+    mutationFn: (id: string) => inviteApi.resend(id),
+    onSuccess: (res) => {
+      setInviteResult({ emailSent: res.emailSent, inviteId: res.inviteId, emailError: res.emailError });
+      toast.success(res.emailSent ? "Invite email resent" : "Invite saved, but the email was not sent");
     },
     onError: (e: Error) => toast.error(e.message)
   });
@@ -77,7 +96,10 @@ function OfficeAdminsInner() {
             open={open}
             onOpenChange={(v) => {
               setOpen(v);
-              if (!v) setTempPassword(null);
+              if (!v) {
+                setTempPassword(null);
+                setInviteResult(null);
+              }
             }}
           >
             <DialogTrigger asChild>
@@ -86,6 +108,8 @@ function OfficeAdminsInner() {
                   setEmail("");
                   setOfficeIds(offices[0] ? [offices[0].id] : []);
                   setTempPassword(null);
+                  setInviteResult(null);
+                  setDelivery("SHOW_PASSWORD");
                 }}
               >
                 <Plus className="size-4" />
@@ -98,9 +122,19 @@ function OfficeAdminsInner() {
                 They will only see data for the selected office(s). They cannot create offices or schedules.
               </DialogDescription>
               {tempPassword ? (
-                <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
-                  <p className="font-semibold text-amber-900">Temporary password (copy now)</p>
-                  <p className="mt-2 font-mono text-amber-950">{tempPassword}</p>
+                <CopyValue label="Temporary password" value={tempPassword} tone="amber" />
+              ) : inviteResult ? (
+                <div className="mt-5 space-y-3 text-sm">
+                  <p className="text-slate-600">
+                    {inviteResult.emailSent
+                      ? "An invite email was sent. They will set a password from the link, then sign in."
+                      : inviteResult.emailError ?? "The account was created, but the email could not be sent. Configure SMTP and resend."}
+                  </p>
+                  {!inviteResult.emailSent && inviteResult.inviteId && (
+                    <Button variant="outline" disabled={resend.isPending} onClick={() => resend.mutate(inviteResult.inviteId!)}>
+                      {resend.isPending ? "Resending..." : "Resend invite"}
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className="mt-5 grid gap-4">
@@ -127,19 +161,21 @@ function OfficeAdminsInner() {
                       ))}
                     </div>
                   </div>
+                  <InviteDeliveryFields value={delivery} onChange={setDelivery} />
                 </div>
               )}
               <div className="mt-6 flex justify-end gap-2">
-                {!tempPassword && (
+                {!tempPassword && !inviteResult && (
                   <Button disabled={create.isPending || !email || officeIds.length === 0} onClick={() => create.mutate()}>
-                    {create.isPending ? "Creating..." : "Create"}
+                    {create.isPending ? "Creating..." : delivery === "SEND_EMAIL" ? "Send invite" : "Create"}
                   </Button>
                 )}
-                {tempPassword && (
+                {(tempPassword || inviteResult) && (
                   <Button
                     onClick={() => {
                       setOpen(false);
                       setTempPassword(null);
+                      setInviteResult(null);
                     }}
                   >
                     Done
@@ -151,12 +187,7 @@ function OfficeAdminsInner() {
         }
       />
 
-      {tempPassword && !open && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
-          <p className="font-semibold text-amber-900">Latest temporary password</p>
-          <p className="mt-1 font-mono">{tempPassword}</p>
-        </div>
-      )}
+      {tempPassword && !open && <CopyValue label="Latest temporary password" value={tempPassword} tone="amber" />}
 
       <TableShell>
         <table className="min-w-full text-sm">
