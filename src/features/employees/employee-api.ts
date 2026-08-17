@@ -14,6 +14,7 @@ export type CreateEmployeeInput = {
   employmentStartDate: string;
   officeId?: string;
   scheduleId?: string;
+  supervisorId?: string | null;
   temporaryPassword?: string;
 };
 

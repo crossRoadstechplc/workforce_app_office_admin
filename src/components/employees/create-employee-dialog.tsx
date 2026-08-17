@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CopyValue } from "@/components/ui/copy-value";
+import { SupervisorSelect } from "@/components/employees/supervisor-select";
 
 type CreateResult = { temporaryPassword: string; employeeCode: string };
 type InviteResult = { emailSent: boolean; inviteId?: string; emailError?: string; email: string };
@@ -64,7 +65,8 @@ export function CreateEmployeeDialog() {
       department: String(f.get("department") || "") || undefined,
       employmentStartDate: String(f.get("employmentStartDate")),
       officeId: String(f.get("officeId") || "") || undefined,
-      scheduleId: String(f.get("scheduleId") || "") || undefined
+      scheduleId: String(f.get("scheduleId") || "") || undefined,
+      supervisorId: String(f.get("supervisorId") || "") || undefined
     });
   }
 
@@ -167,6 +169,9 @@ export function CreateEmployeeDialog() {
                 <Field label="Department" name="department" />
                 <Field label="Start date" name="employmentStartDate" type="date" required />
                 <OfficeScheduleSelects offices={offices.data} schedules={schedules.data} />
+                <div className="sm:col-span-2">
+                  <SupervisorSelect value="" />
+                </div>
                 <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
                   <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                     Cancel

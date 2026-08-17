@@ -4,6 +4,7 @@ import {
   Building2,
   Building,
   CalendarClock,
+  ClipboardCheck,
   ClipboardList,
   FileBarChart2,
   LayoutDashboard,
@@ -76,7 +77,8 @@ const companySections: NavSection[] = [
       { label: "Employees", href: "/employees", icon: Users },
       { label: "Attendance", href: "/attendance", icon: Clock3 },
       { label: "Worksheets", href: "/worksheets", icon: ClipboardList },
-      { label: "Leave", href: "/leave", icon: CalendarClock }
+      { label: "Leave", href: "/leave", icon: CalendarClock },
+      { label: "Performance", href: "/performance", icon: ClipboardCheck }
     ]
   },
   {
@@ -111,7 +113,8 @@ const officeSections: NavSection[] = [
       { label: "Employees", href: "/employees", icon: Users },
       { label: "Attendance", href: "/attendance", icon: Clock3 },
       { label: "Worksheets", href: "/worksheets", icon: ClipboardList },
-      { label: "Leave", href: "/leave", icon: CalendarClock }
+      { label: "Leave", href: "/leave", icon: CalendarClock },
+      { label: "Performance", href: "/performance", icon: ClipboardCheck }
     ]
   },
   {
@@ -137,8 +140,8 @@ export function navSectionsForRoles(roles: string[] | undefined): NavSection[] {
 
 /** Paths each portal role may access (prefix match). */
 const platformPaths = ["/platform", "/organizations", "/org-admins", "/audit", "/notifications"];
-const companyOnlyPaths = ["/offices", "/schedules", "/office-admins"];
-const tenantOpsPaths = ["/dashboard", "/employees", "/attendance", "/worksheets", "/leave", "/reports", "/notifications", "/audit"];
+const companyOnlyPaths = ["/offices", "/schedules", "/office-admins", "/performance/templates", "/performance/cycles"];
+const tenantOpsPaths = ["/dashboard", "/employees", "/attendance", "/worksheets", "/leave", "/performance", "/reports", "/notifications", "/audit"];
 
 export function isPathAllowed(pathname: string, roles: string[] | undefined): boolean {
   const kind = resolvePortalRole(roles);
@@ -148,7 +151,10 @@ export function isPathAllowed(pathname: string, roles: string[] | undefined): bo
 
   if (kind === "platform") return match(platformPaths);
   if (kind === "company") return match([...tenantOpsPaths, ...companyOnlyPaths]);
-  if (kind === "office") return match(tenantOpsPaths.filter((p) => !companyOnlyPaths.includes(p)));
+  if (kind === "office") {
+    if (match(companyOnlyPaths)) return false;
+    return match(tenantOpsPaths);
+  }
   return false;
 }
 
