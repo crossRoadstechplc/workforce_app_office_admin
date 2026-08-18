@@ -26,6 +26,8 @@ const styles: Record<string,string> = {
   EVALUATOR_SUBMITTED:"bg-emerald-50 text-emerald-700 ring-emerald-600/20",
   FINALIZED:"bg-slate-900 text-white ring-slate-900/20",
   DRAFT:"bg-slate-100 text-slate-600 ring-slate-500/20",
-  CLOSED:"bg-slate-100 text-slate-600 ring-slate-500/20"
+  CLOSED:"bg-slate-100 text-slate-600 ring-slate-500/20",
+  BOOKED:"bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  RESCHEDULED:"bg-amber-50 text-amber-700 ring-amber-600/20"
 };
 export function StatusBadge({ status }: { status: string }) { return <span className={cn("inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset", styles[status] ?? "bg-blue-50 text-blue-700 ring-blue-600/20")}>{status.replaceAll("_", " ")}</span>; }

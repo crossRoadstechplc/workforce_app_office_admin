@@ -4,8 +4,10 @@ import {
   Building2,
   Building,
   CalendarClock,
+  CalendarRange,
   ClipboardCheck,
   ClipboardList,
+  DoorOpen,
   FileBarChart2,
   LayoutDashboard,
   Users,
@@ -82,6 +84,13 @@ const companySections: NavSection[] = [
     ]
   },
   {
+    title: "Meetings",
+    items: [
+      { label: "Bookings", href: "/meetings", icon: CalendarRange },
+      { label: "Rooms", href: "/meetings/rooms", icon: DoorOpen }
+    ]
+  },
+  {
     title: "Insights",
     items: [{ label: "Reports", href: "/reports", icon: FileBarChart2 }]
   },
@@ -140,7 +149,7 @@ export function navSectionsForRoles(roles: string[] | undefined): NavSection[] {
 
 /** Paths each portal role may access (prefix match). */
 const platformPaths = ["/platform", "/organizations", "/org-admins", "/audit", "/notifications"];
-const companyOnlyPaths = ["/offices", "/schedules", "/office-admins", "/performance/templates", "/performance/cycles"];
+const companyOnlyPaths = ["/offices", "/schedules", "/office-admins", "/performance/templates", "/performance/cycles", "/meetings"];
 const tenantOpsPaths = ["/dashboard", "/employees", "/attendance", "/worksheets", "/leave", "/performance", "/reports", "/notifications", "/audit"];
 
 export function isPathAllowed(pathname: string, roles: string[] | undefined): boolean {

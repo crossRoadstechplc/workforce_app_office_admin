@@ -18,6 +18,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }, [status, router]);
 
   useEffect(() => {
+    if (status !== "loading") return;
+    const t = window.setTimeout(() => router.replace("/login"), 15_000);
+    return () => window.clearTimeout(t);
+  }, [status, router]);
+
+  useEffect(() => {
     if (status !== "authenticated" || !user?.roles?.length) return;
     if (!isPathAllowed(pathname, user.roles)) {
       router.replace(homePathForRoles(user.roles));

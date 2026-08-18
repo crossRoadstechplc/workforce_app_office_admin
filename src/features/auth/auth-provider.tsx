@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const hydrate = useCallback(async () => {
     try {
-      const r = await fetch("/api/auth/refresh", { method: "POST" });
+      const r = await fetch("/api/auth/refresh", { method: "POST", signal: AbortSignal.timeout(12_000) });
       if (!r.ok) throw new Error();
       const session = await r.json();
       const sessionUser = userFromSession(session);
