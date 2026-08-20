@@ -17,6 +17,7 @@ import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/badge";
 import { TableShell } from "@/components/ui/table-shell";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { performanceApi } from "@/features/performance/performance-api";
 import { employeeName, formatDate } from "@/lib/utils/format";
 
@@ -96,9 +97,9 @@ function PerformanceQueue() {
         />
       )}
 
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border bg-white p-4">
+      <FilterBar>
         <OfficeFilter visible={!isOfficeAdmin} value={officeId} onChange={(v) => { setOfficeId(v); setPage(1); }} />
-        <div className="min-w-44 space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
           <Label>Cycle</Label>
           <Select value={cycleId} onChange={(e) => { setCycleId(e.target.value); setPage(1); }}>
             <option value="">All cycles</option>
@@ -109,7 +110,7 @@ function PerformanceQueue() {
             ))}
           </Select>
         </div>
-        <div className="min-w-44 space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
           <Label>Status</Label>
           <Select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
             <option value="">All statuses</option>
@@ -125,14 +126,14 @@ function PerformanceQueue() {
           <input type="checkbox" checked={myReports} onChange={(e) => { setMyReports(e.target.checked); setPage(1); }} />
           My reports
         </label>
-        <div className="relative min-w-56 flex-1">
+        <div className="relative min-w-0 flex-1">
           <Label>Search</Label>
           <div className="relative mt-1.5">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <Input className="pl-9" placeholder="Name or code" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
           </div>
         </div>
-      </div>
+      </FilterBar>
 
       <TableShell>
         <table className="w-full text-left text-sm">

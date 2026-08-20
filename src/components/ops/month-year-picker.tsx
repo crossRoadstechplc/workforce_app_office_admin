@@ -36,17 +36,17 @@ export function MonthYearPicker({
   const nextBlocked = next.year > now.year || (next.year === now.year && next.month > now.month);
 
   return (
-    <div className="min-w-56 space-y-1.5">
+    <div className="w-full min-w-0 space-y-1.5">
       <Label>{label}</Label>
-      <div className="flex items-center gap-1">
-        <Button type="button" size="sm" variant="outline" onClick={() => onChange(prev)} aria-label="Previous month">
+      <div className="flex min-w-0 items-center gap-1">
+        <Button type="button" size="sm" variant="outline" className="shrink-0" onClick={() => onChange(prev)} aria-label="Previous month">
           <ChevronLeft className="size-4" />
         </Button>
-        <div className="flex h-10 flex-1 items-center justify-center rounded-lg border bg-white px-3 text-sm font-medium">{labelFor(year, month)}</div>
-        <Button type="button" size="sm" variant="outline" disabled={nextBlocked} onClick={() => onChange(next)} aria-label="Next month">
+        <div className="flex h-10 min-w-0 flex-1 items-center justify-center truncate rounded-lg border bg-white px-2 text-sm font-medium sm:px-3">{labelFor(year, month)}</div>
+        <Button type="button" size="sm" variant="outline" className="shrink-0" disabled={nextBlocked} onClick={() => onChange(next)} aria-label="Next month">
           <ChevronRight className="size-4" />
         </Button>
-        <Button type="button" size="sm" variant="ghost" disabled={atCurrent} onClick={() => onChange(now)}>
+        <Button type="button" size="sm" variant="ghost" className="shrink-0 px-2 sm:px-3" disabled={atCurrent} onClick={() => onChange(now)}>
           This month
         </Button>
       </div>

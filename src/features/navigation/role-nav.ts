@@ -1,4 +1,5 @@
 import {
+  MonitorSmartphone,
   Bell,
   BookOpenCheck,
   Building2,
@@ -15,6 +16,7 @@ import {
   History,
   UserCog,
   UserSquare2,
+  Lock,
   type LucideIcon
 } from "lucide-react";
 import { isOfficeAdmin, isOrgAdmin, isSuperAdmin, ROLE } from "@/types/auth";
@@ -87,7 +89,8 @@ const companySections: NavSection[] = [
     title: "Meetings",
     items: [
       { label: "Bookings", href: "/meetings", icon: CalendarRange },
-      { label: "Rooms", href: "/meetings/rooms", icon: DoorOpen }
+      { label: "Rooms", href: "/meetings/rooms", icon: DoorOpen },
+      { label: "Displays", href: "/meetings/displays", icon: MonitorSmartphone }
     ]
   },
   {
@@ -99,7 +102,8 @@ const companySections: NavSection[] = [
     items: [
       { label: "Offices", href: "/offices", icon: Building2 },
       { label: "Schedules", href: "/schedules", icon: BookOpenCheck },
-      { label: "Office Admins", href: "/office-admins", icon: UserSquare2 }
+      { label: "Office Admins", href: "/office-admins", icon: UserSquare2 },
+      { label: "Private vault", href: "/vault", icon: Lock }
     ]
   },
   {
@@ -149,7 +153,7 @@ export function navSectionsForRoles(roles: string[] | undefined): NavSection[] {
 
 /** Paths each portal role may access (prefix match). */
 const platformPaths = ["/platform", "/organizations", "/org-admins", "/audit", "/notifications"];
-const companyOnlyPaths = ["/offices", "/schedules", "/office-admins", "/performance/templates", "/performance/cycles", "/meetings"];
+const companyOnlyPaths = ["/offices", "/schedules", "/office-admins", "/performance/templates", "/performance/cycles", "/meetings", "/vault"];
 const tenantOpsPaths = ["/dashboard", "/employees", "/attendance", "/worksheets", "/leave", "/performance", "/reports", "/notifications", "/audit"];
 
 export function isPathAllowed(pathname: string, roles: string[] | undefined): boolean {

@@ -1,18 +1,16 @@
 "use client";
-import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+
+import { useEffect, useState } from "react";
 import { Menu, ShieldCheck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { useAuth } from "@/features/auth/auth-provider";
-import { navSectionsForRoles, roleLabel, resolvePortalRole, roleBadgeClass } from "@/features/navigation/role-nav";
+import { roleBadgeClass, roleLabel, resolvePortalRole } from "@/features/navigation/role-nav";
+import { NavList } from "./nav-list";
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
-  const path = usePathname();
   const { user, isSuperAdmin, isOfficeAdmin } = useAuth();
-  const sections = navSectionsForRoles(user?.roles);
   const portalRole = resolvePortalRole(user?.roles);
 
   const subtitle = isSuperAdmin
@@ -20,6 +18,20 @@ export function MobileNav() {
     : isOfficeAdmin
       ? user?.offices?.map((o) => o.name).join(", ") || "Office admin"
       : user?.organization?.name ?? "Company";
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
   return (
     <>
@@ -46,38 +58,17 @@ export function MobileNav() {
                 </button>
               </div>
               {portalRole && (
-                <span className={cn("mt-3 inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide", roleBadgeClass(portalRole))}>
+                <span
+                  className={cn(
+                    "mt-3 inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                    roleBadgeClass(portalRole)
+                  )}
+                >
                   {roleLabel(user?.roles)}
                 </span>
               )}
             </div>
-            <nav className="flex-1 space-y-5 overflow-y-auto p-3">
-              {sections.map((section) => (
-                <div key={section.title}>
-                  <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{section.title}</p>
-                  <div className="space-y-0.5">
-                    {section.items.map((item) => {
-                      const Icon = item.icon;
-                      const active = path === item.href || path.startsWith(item.href + "/");
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setOpen(false)}
-                          className={cn(
-                            "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium",
-                            active ? "bg-blue-600 text-white" : "hover:bg-slate-900 hover:text-white"
-                          )}
-                        >
-                          <Icon className="size-4" />
-                          {item.label}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </nav>
+            <NavList onNavigate={() => setOpen(false)} />
           </aside>
         </div>
       )}

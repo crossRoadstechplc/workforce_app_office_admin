@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { notificationApi } from "@/features/notifications/notification-api";
-import { formatDateTime } from "@/lib/utils/format";
+import { EmptyState } from "@/components/ui/empty-state";
+import { formatDateTime, humanizeKey } from "@/lib/utils/format";
 
 export default function NotificationsPage() {
   return (
@@ -58,13 +59,13 @@ function NotificationsPageInner() {
                 {!n.isRead && <span className="mt-1 size-2 rounded-full bg-blue-600" />}
               </div>
               <div className="mt-3 text-xs text-slate-400">
-                {formatDateTime(n.createdAt)} · {n.type.replaceAll("_", " ")}
+                {formatDateTime(n.createdAt)} · {humanizeKey(n.type)}
               </div>
             </button>
           </Card>
         ))}
         {!data?.items?.length && (
-          <Card className="p-10 text-center text-sm text-slate-500">No notifications yet.</Card>
+          <EmptyState title="No notifications yet" description="Operational alerts will appear here as they are generated." />
         )}
       </div>
     </div>

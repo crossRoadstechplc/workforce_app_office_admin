@@ -1,8 +1,10 @@
 "use client";
+
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
+import { SidebarProvider } from "./sidebar-context";
 import { useAuth } from "@/features/auth/auth-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { homePathForRoles, isPathAllowed } from "@/features/navigation/role-nav";
@@ -40,11 +42,19 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen">
+    <SidebarProvider>
+      <DashboardFrame>{children}</DashboardFrame>
+    </SidebarProvider>
+  );
+}
+
+function DashboardFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex min-h-screen min-w-0 bg-[var(--background)]">
       <Sidebar />
-      <div className="lg:pl-64">
+      <div className="flex min-w-0 flex-1 flex-col overflow-x-clip">
         <Header />
-        <main className="p-4 md:p-6 xl:p-8">{children}</main>
+        <main className="min-w-0 flex-1 p-4 md:p-6 xl:p-8">{children}</main>
       </div>
     </div>
   );

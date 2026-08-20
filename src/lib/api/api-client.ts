@@ -5,11 +5,24 @@ async function refreshToken() {
   if (!refreshPromise) refreshPromise = fetch("/api/auth/refresh", { method:"POST" }).then(async r => { if(!r.ok) return null; const data=await r.json(); setAccessToken(data.accessToken); return data.accessToken as string; }).finally(()=>{refreshPromise=null;});
   return refreshPromise;
 }
+function formatApiError(err: { code?: string; message?: string; details?: unknown }) {
+  const base = err.message || "Request failed";
+  const details = err.details as { issues?: Array<{ path?: string; message?: string }>; fieldErrors?: Record<string, string[] | undefined> } | undefined;
+  if (details?.issues?.length) {
+    return details.issues.map((issue) => (issue.path ? `${issue.path}: ${issue.message}` : issue.message)).filter(Boolean).join("; ") || base;
+  }
+  if (details?.fieldErrors) {
+    const parts = Object.entries(details.fieldErrors).flatMap(([key, messages]) => (messages ?? []).map((message) => `${key}: ${message}`));
+    if (parts.length) return parts.join("; ");
+  }
+  return base;
+}
+
 export async function apiFetch<T>(path:string, init:RequestInit = {}, retry=true):Promise<T> {
   const token=getAccessToken();
   const response=await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api/v1"}${path}`, { ...init, headers:{ "content-type":"application/json", ...(token?{authorization:`Bearer ${token}`}:{ }), ...(init.headers??{}) } });
   if(response.status===401 && retry) { const next=await refreshToken(); if(next) return apiFetch<T>(path,init,false); }
-  if(!response.ok) { const body=await response.json().catch(()=>({})); const err=body.error??body; throw new ApiError(response.status, err.code??"REQUEST_FAILED", err.message??"Request failed", err.details); }
+  if(!response.ok) { const body=await response.json().catch(()=>({})); const err=body.error??body; throw new ApiError(response.status, err.code??"REQUEST_FAILED", formatApiError(err), err.details); }
   if(response.status===204) return undefined as T;
   return response.json() as Promise<T>;
 }

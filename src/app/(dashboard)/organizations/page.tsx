@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { StatusBadge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { CopyValue } from "@/components/ui/copy-value";
 import { PlatformGate } from "@/components/auth/role-gates";
 import { platformApi, type CreatedOrganization, type PlatformOrganization } from "@/features/platform/platform-api";
@@ -177,7 +178,7 @@ function OrganizationsInner() {
       />
       <div className="grid gap-4 lg:grid-cols-2">
         {orgs.map((o) => (
-          <Card key={o.id} className="p-5">
+          <Card key={o.id} className="p-5 transition-shadow hover:shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
             <div className="flex items-start justify-between gap-4">
               <div className="flex gap-3">
                 <div className="rounded-lg bg-blue-50 p-2 text-blue-600">
@@ -224,6 +225,11 @@ function OrganizationsInner() {
             </div>
           </Card>
         ))}
+        {!orgs.length && (
+          <Card className="lg:col-span-2">
+            <EmptyState title="No organizations yet" description="Add the first tenant to start onboarding a customer." />
+          </Card>
+        )}
       </div>
     </div>
   );

@@ -1,9 +1,20 @@
 "use client";
+
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { endOfToday, format, subDays } from "date-fns";
-import { AlertTriangle, Clock3, FileCheck2, Plane, UserCheck, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  ClipboardList,
+  Clock3,
+  FileCheck2,
+  LogOut,
+  Plane,
+  UserCheck,
+  UserX,
+  Users
+} from "lucide-react";
 import { dashboardApi } from "@/features/dashboard/dashboard-api";
 import { PageHeader } from "@/components/layout/page-header";
 import { MetricCard } from "@/components/dashboard/metric-card";
@@ -11,10 +22,14 @@ import { AttendanceChart } from "@/components/dashboard/attendance-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/badge";
 import { useAuth } from "@/features/auth/auth-provider";
 import { TenantOpsGate } from "@/components/auth/role-gates";
 import { homePathForRoles } from "@/features/navigation/role-nav";
+import { humanizeKey } from "@/lib/utils/format";
+import { cn } from "@/lib/utils/cn";
+import type { LeaveSummaryItem } from "@/types/dashboard";
 
 export default function DashboardPage() {
   const { isSuperAdmin, user } = useAuth();
@@ -57,15 +72,16 @@ function TenantDashboard() {
             ? `Today's workforce activity for ${officeLabel ?? "your assigned offices"}.`
             : `Organization-wide view for ${user?.organization?.name ?? "your company"}.`
         }
+        action={
+          isOfficeAdmin && officeLabel ? (
+            <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800">
+              Scoped to {officeLabel}
+            </span>
+          ) : undefined
+        }
       />
 
-      {isOfficeAdmin && officeLabel && (
-        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-900">
-          Scoped to: <span className="font-semibold">{officeLabel}</span>
-        </div>
-      )}
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {today.isLoading ? (
           Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-36" />)
         ) : (
@@ -82,26 +98,30 @@ function TenantDashboard() {
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.7fr_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Attendance trend · last 14 days</CardTitle>
+            <CardTitle className="text-base">Attendance trend · last 14 days</CardTitle>
           </CardHeader>
-          <CardContent>{trend.isLoading ? <Skeleton className="h-72" /> : trend.data ? <AttendanceChart data={trend.data} /> : null}</CardContent>
+          <CardContent>
+            {trend.isLoading ? <Skeleton className="h-72" /> : trend.data ? <AttendanceChart data={trend.data} /> : (
+              <EmptyState title="Trend unavailable" description="Attendance history could not be loaded for this window." />
+            )}
+          </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Leave summary</CardTitle>
+            <CardTitle className="text-base">Leave summary</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {leave.isLoading
-              ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12" />)
-              : leave.data?.map((item) => (
-                  <div key={item.status} className="flex items-center justify-between rounded-lg border p-3">
-                    <div>
-                      <StatusBadge status={item.status} />
-                      <p className="mt-1 text-xs text-slate-500">{item.days} days</p>
-                    </div>
-                    <p className="text-xl font-bold">{item.requests}</p>
-                  </div>
+          <CardContent>
+            {leave.isLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12" />
                 ))}
+              </div>
+            ) : leave.data?.length ? (
+              <LeaveBars items={leave.data} />
+            ) : (
+              <EmptyState title="No leave in this period" description="Approved, pending, and rejected requests will show here." />
+            )}
           </CardContent>
         </Card>
       </div>
@@ -109,7 +129,7 @@ function TenantDashboard() {
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.25fr_.75fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Recent activity</CardTitle>
+            <CardTitle className="text-base">Recent activity</CardTitle>
           </CardHeader>
           <CardContent>
             {activity.isLoading ? (
@@ -118,35 +138,37 @@ function TenantDashboard() {
                   <Skeleton key={i} className="h-12" />
                 ))}
               </div>
-            ) : (
-              <div className="divide-y">
-                {activity.data?.map((a) => (
-                  <div key={a.id} className="flex items-start gap-3 py-3">
+            ) : activity.data?.length ? (
+              <div className="divide-y divide-slate-100">
+                {activity.data.map((a) => (
+                  <div key={a.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
                     <div className="mt-0.5 rounded-lg bg-slate-100 p-2">
                       <FileCheck2 className="size-4 text-slate-600" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium">{a.action.replaceAll("_", " ")}</p>
+                      <p className="text-sm font-medium">{humanizeKey(a.action)}</p>
                       <p className="truncate text-xs text-slate-500">
-                        {a.actor?.email ?? "System"} · {a.entityType}
+                        {a.actor?.email ?? "System"} · {humanizeKey(a.entityType)}
                       </p>
                     </div>
-                    <time className="text-xs text-slate-400">{format(new Date(a.createdAt), "MMM d, HH:mm")}</time>
+                    <time className="shrink-0 text-xs text-slate-400">{format(new Date(a.createdAt), "MMM d, HH:mm")}</time>
                   </div>
                 ))}
               </div>
+            ) : (
+              <EmptyState title="No recent activity" description="Admin actions and workforce decisions will appear here." />
             )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Today at a glance</CardTitle>
+            <CardTitle className="text-base">Today at a glance</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Summary label="Not checked in" value={s?.notCheckedIn} />
-            <Summary label="Worksheets submitted" value={s?.worksheetsSubmitted} />
-            <Summary label="Checked out" value={s?.checkedOut} />
-            <Summary label="Pending leave" value={s?.pendingLeaveRequests} />
+          <CardContent className="space-y-2">
+            <GlanceRow icon={UserX} label="Not checked in" value={s?.notCheckedIn} tone="amber" />
+            <GlanceRow icon={ClipboardList} label="Worksheets submitted" value={s?.worksheetsSubmitted} tone="blue" />
+            <GlanceRow icon={LogOut} label="Checked out" value={s?.checkedOut} tone="green" />
+            <GlanceRow icon={Plane} label="Pending leave" value={s?.pendingLeaveRequests} tone="blue" />
           </CardContent>
         </Card>
       </div>
@@ -154,11 +176,53 @@ function TenantDashboard() {
   );
 }
 
-function Summary({ label, value }: { label: string; value?: number }) {
+function LeaveBars({ items }: { items: LeaveSummaryItem[] }) {
+  const max = Math.max(...items.map((item) => item.requests), 1);
   return (
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-slate-500">{label}</span>
-      <span className="font-semibold">{value ?? "—"}</span>
+    <div className="space-y-3">
+      {items.map((item) => (
+        <div key={item.status} className="rounded-lg border border-slate-100 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <StatusBadge status={item.status} />
+              <p className="mt-1 text-xs text-slate-500">{item.days} days</p>
+            </div>
+            <p className="text-xl font-bold tabular-nums">{item.requests}</p>
+          </div>
+          <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-full rounded-full bg-blue-600" style={{ width: `${Math.max((item.requests / max) * 100, item.requests ? 6 : 0)}%` }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function GlanceRow({
+  icon: Icon,
+  label,
+  value,
+  tone
+}: {
+  icon: typeof Users;
+  label: string;
+  value?: number;
+  tone: "blue" | "green" | "amber";
+}) {
+  const tones = {
+    blue: "bg-blue-50 text-blue-700",
+    green: "bg-emerald-50 text-emerald-700",
+    amber: "bg-amber-50 text-amber-700"
+  };
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg px-1 py-1.5">
+      <span className="flex items-center gap-3 text-sm text-slate-600">
+        <span className={cn("grid size-8 place-items-center rounded-lg", tones[tone])}>
+          <Icon className="size-4" />
+        </span>
+        {label}
+      </span>
+      <span className="font-semibold tabular-nums text-slate-950">{value ?? "—"}</span>
     </div>
   );
 }

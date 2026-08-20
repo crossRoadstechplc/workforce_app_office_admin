@@ -25,7 +25,7 @@ export function OfficeFilter({
   const offices = q.data?.offices ?? [];
 
   return (
-    <div className="min-w-48 space-y-1.5">
+    <div className="w-full min-w-0 space-y-1.5">
       <Label>Office</Label>
       <Select value={value} onChange={(e) => onChange(e.target.value)}>
         <option value="">All offices</option>

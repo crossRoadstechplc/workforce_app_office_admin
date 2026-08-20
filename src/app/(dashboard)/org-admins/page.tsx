@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { CopyValue } from "@/components/ui/copy-value";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { StatusBadge } from "@/components/ui/badge";
-import { TableShell } from "@/components/ui/table-shell";
+import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { PlatformGate } from "@/components/auth/role-gates";
 import { InviteDeliveryFields, type InviteDeliveryMethod } from "@/components/invites/invite-delivery-fields";
 import { platformApi, type PlatformOrgAdmin, type PlatformOrganization } from "@/features/platform/platform-api";
@@ -185,26 +185,26 @@ function OrgAdminsInner() {
       {tempPassword && !open && <CopyValue label="Latest temporary password" value={tempPassword} tone="amber" />}
 
       <TableShell>
-        <table className="min-w-full text-sm">
-          <thead className="bg-slate-50 text-left text-slate-500">
+        <Table>
+          <TableHead>
             <tr>
-              <th className="px-4 py-3 font-medium">Email</th>
-              <th className="px-4 py-3 font-medium">Organization</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Actions</th>
+              <Th>Email</Th>
+              <Th>Organization</Th>
+              <Th>Status</Th>
+              <Th>Actions</Th>
             </tr>
-          </thead>
-          <tbody>
+          </TableHead>
+          <TableBody>
             {admins.map((a) => {
               const org = a.memberships?.[0]?.organization;
               return (
-                <tr key={a.id} className="border-t">
-                  <td className="px-4 py-3 font-medium">{a.email}</td>
-                  <td className="px-4 py-3">{org ? `${org.name} (${org.slug})` : "—"}</td>
-                  <td className="px-4 py-3">
+                <TableRow key={a.id}>
+                  <Td className="font-medium">{a.email}</Td>
+                  <Td>{org ? `${org.name} (${org.slug})` : "—"}</Td>
+                  <Td>
                     <StatusBadge status={a.status} />
-                  </td>
-                  <td className="px-4 py-3">
+                  </Td>
+                  <Td>
                     <div className="flex flex-wrap gap-2">
                       <Button
                         size="sm"
@@ -222,12 +222,13 @@ function OrgAdminsInner() {
                         Reset password
                       </Button>
                     </div>
-                  </td>
-                </tr>
+                  </Td>
+                </TableRow>
               );
             })}
-          </tbody>
-        </table>
+            {!admins.length && <TableEmpty colSpan={4}>No company administrators yet.</TableEmpty>}
+          </TableBody>
+        </Table>
       </TableShell>
     </div>
   );

@@ -16,6 +16,7 @@ import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/badge";
 import { TableShell } from "@/components/ui/table-shell";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { meetingApi } from "@/features/meetings/meeting-api";
 import { formatDateTime } from "@/lib/utils/format";
 import type { MeetingBooking } from "@/types/meetings";
@@ -109,9 +110,9 @@ function QueueInner() {
         />
       )}
 
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border bg-white p-4">
+      <FilterBar>
         <OfficeFilter visible value={officeId} onChange={(v) => { setOfficeId(v); setPage(1); }} />
-        <div className="min-w-44 space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
           <Label>Room</Label>
           <Select value={roomId} onChange={(e) => { setRoomId(e.target.value); setPage(1); }}>
             <option value="">All rooms</option>
@@ -120,11 +121,11 @@ function QueueInner() {
             ))}
           </Select>
         </div>
-        <div className="min-w-56 flex-1">
+        <div className="min-w-0 flex-1">
           <Label>Search</Label>
           <Input className="mt-1.5" placeholder="Title, name, or email" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
         </div>
-      </div>
+      </FilterBar>
 
       <TableShell>
         <table className="w-full text-left text-sm">

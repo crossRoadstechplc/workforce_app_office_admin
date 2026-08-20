@@ -1,6 +1,8 @@
 "use client";
+
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Building, Building2, UserCog, Users } from "lucide-react";
+import { ArrowRight, Building, Building2, History, UserCog, Users } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card } from "@/components/ui/card";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
@@ -30,10 +32,38 @@ function PlatformDashboardInner() {
         <MetricCard label="Employees" value={d?.employees ?? 0} helper="Across all orgs" icon={Users} />
         <MetricCard label="Offices" value={d?.offices ?? 0} helper="Branch locations" icon={Building2} />
       </div>
-      <Card className="p-5 text-sm text-slate-600">
-        Onboard a customer under <b>Organizations</b>, then create a <b>Company Admin</b> for that tenant. Company admins manage offices,
-        office admins, and day-to-day workforce operations inside their company only.
-      </Card>
+      <div className="grid gap-4 md:grid-cols-3">
+        <QuickLink href="/organizations" title="Organizations" description="Onboard a customer tenant and manage activation." />
+        <QuickLink href="/org-admins" title="Company Admins" description="Create the admin who will run that tenant." />
+        <QuickLink href="/audit" title="Audit log" description="Review recent platform and tenant changes." icon={History} />
+      </div>
     </div>
+  );
+}
+
+function QuickLink({
+  href,
+  title,
+  description,
+  icon: Icon = Building
+}: {
+  href: string;
+  title: string;
+  description: string;
+  icon?: typeof Building;
+}) {
+  return (
+    <Link href={href} className="group block">
+      <Card className="h-full p-5 transition-shadow hover:shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+        <div className="flex items-start justify-between gap-3">
+          <div className="rounded-lg bg-blue-50 p-2 text-blue-700">
+            <Icon className="size-4" />
+          </div>
+          <ArrowRight className="size-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-blue-600" />
+        </div>
+        <p className="mt-4 font-semibold text-slate-950">{title}</p>
+        <p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>
+      </Card>
+    </Link>
   );
 }

@@ -35,25 +35,26 @@ export function DateDayPicker({
   const atToday = value >= max;
 
   return (
-    <div className="min-w-52 space-y-1.5">
+    <div className="w-full min-w-0 space-y-1.5">
       <Label>{label}</Label>
-      <div className="flex items-center gap-1">
-        <Button type="button" size="sm" variant="outline" onClick={() => onChange(shiftDate(value, -1))} aria-label="Previous day">
+      <div className="flex min-w-0 items-center gap-1">
+        <Button type="button" size="sm" variant="outline" className="shrink-0" onClick={() => onChange(shiftDate(value, -1))} aria-label="Previous day">
           <ChevronLeft className="size-4" />
         </Button>
         <Input
           type="date"
           max={max}
           value={value}
+          className="min-w-0 flex-1"
           onChange={(e) => {
             const next = e.target.value || max;
             onChange(next > max ? max : next);
           }}
         />
-        <Button type="button" size="sm" variant="outline" disabled={atToday} onClick={() => onChange(shiftDate(value, 1))} aria-label="Next day">
+        <Button type="button" size="sm" variant="outline" className="shrink-0" disabled={atToday} onClick={() => onChange(shiftDate(value, 1))} aria-label="Next day">
           <ChevronRight className="size-4" />
         </Button>
-        <Button type="button" size="sm" variant="ghost" disabled={atToday} onClick={() => onChange(max)}>
+        <Button type="button" size="sm" variant="ghost" className="shrink-0 px-2 sm:px-3" disabled={atToday} onClick={() => onChange(max)}>
           Today
         </Button>
       </div>

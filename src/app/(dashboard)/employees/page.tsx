@@ -11,12 +11,14 @@ import { CreateEmployeeDialog } from "@/components/employees/create-employee-dia
 import { EmployeeTable } from "@/components/employees/employee-table";
 import { OfficeFilter } from "@/components/ops/office-filter";
 import { Card } from "@/components/ui/card";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { TenantOpsGate } from "@/components/auth/role-gates";
 import { useAuth } from "@/features/auth/auth-provider";
+import type { Employee } from "@/types/employee";
 
 export default function EmployeesPage() {
   return (
@@ -62,11 +64,11 @@ function EmployeesPageInner() {
     onError: (e: Error) => toast.error(e.message)
   });
 
-  const data = query.data as { items: any[]; meta: { total: number; totalPages: number } } | undefined;
+  const data = query.data as { items: Employee[]; meta: { total: number; totalPages: number } } | undefined;
   const pendingInvites = (invitesQ.data?.items ?? []) as InviteRecord[];
 
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
         title={isOfficeAdmin ? "Employees in my offices" : "Employees"}
         description={
@@ -95,8 +97,8 @@ function EmployeesPageInner() {
         </Card>
       )}
       <Card>
-        <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:flex-wrap sm:items-end">
-          <div className="relative min-w-56 flex-1">
+        <FilterBar className="rounded-none border-0 border-b shadow-none">
+          <div className="relative min-w-0 flex-1">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <Input
               className="pl-9"
@@ -129,7 +131,7 @@ function EmployeesPageInner() {
               setPage(1);
             }}
           />
-        </div>
+        </FilterBar>
         {query.isLoading ? (
           <div className="space-y-2 p-4">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -155,6 +157,6 @@ function EmployeesPageInner() {
           <EmptyState title="No employees found" description="Adjust your filters or register the first employee." />
         )}
       </Card>
-    </>
+    </div>
   );
 }

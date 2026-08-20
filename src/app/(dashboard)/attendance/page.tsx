@@ -27,7 +27,8 @@ import { Label } from "@/components/ui/label";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/badge";
-import { TableShell } from "@/components/ui/table-shell";
+import { FilterBar } from "@/components/ui/filter-bar";
+import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { Textarea } from "@/components/ui/textarea";
 import { operationsApi } from "@/features/operations/operations-api";
 import { employeeName, formatDate, formatDateTime, minutesToHours } from "@/lib/utils/format";
@@ -113,7 +114,7 @@ function AttendancePageInner() {
   const d = detail.data as Timesheet | undefined;
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <PageHeader
         title={isOfficeAdmin ? "Office attendance" : "Attendance"}
         description={
@@ -123,14 +124,14 @@ function AttendancePageInner() {
         }
       />
 
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border bg-white p-4">
+      <FilterBar>
         <div className="space-y-1.5">
           <Label>View</Label>
           <div className="flex rounded-lg border p-1">
-            <Button type="button" size="sm" variant={mode === "day" ? "default" : "ghost"} onClick={() => setMode("day")}>
+            <Button type="button" size="sm" className="flex-1" variant={mode === "day" ? "default" : "ghost"} onClick={() => setMode("day")}>
               Day
             </Button>
-            <Button type="button" size="sm" variant={mode === "month" ? "default" : "ghost"} onClick={() => setMode("month")}>
+            <Button type="button" size="sm" className="flex-1" variant={mode === "month" ? "default" : "ghost"} onClick={() => setMode("month")}>
               Month
             </Button>
           </div>
@@ -138,7 +139,7 @@ function AttendancePageInner() {
         {mode === "day" ? <DateDayPicker value={date} onChange={setDate} /> : <MonthYearPicker year={month.year} month={month.month} onChange={setMonth} />}
         <OfficeFilter visible={showOfficeFilter} value={officeId} onChange={setOfficeId} />
         {mode === "day" && (
-          <div className="min-w-44 space-y-1.5">
+          <div className="space-y-1.5">
             <Label>Status</Label>
             <Select value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="">All statuses</option>
@@ -159,14 +160,14 @@ function AttendancePageInner() {
             </Select>
           </div>
         )}
-        <div className="relative min-w-56 flex-1">
+        <div className="relative min-w-0 flex-1 xl:min-w-56">
           <Label>Search</Label>
           <div className="relative mt-1.5">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <Input className="pl-9" placeholder="Search by name or code" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
         </div>
-      </div>
+      </FilterBar>
 
       {mode === "day" && dayQuery.data && (
         <OpsSummaryStrip
@@ -194,17 +195,15 @@ function AttendancePageInner() {
 
       {mode === "day" ? (
         <TableShell>
-          <table className="w-full text-left text-sm">
-            <thead className="border-b bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+          <Table>
+            <TableHead>
               <tr>
                 {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Photo", "Check in", "Checkout", "Late", "Worked", "Status", ""].map((h) => (
-                  <th className="px-4 py-3" key={h || "actions"}>
-                    {h}
-                  </th>
+                  <Th key={h || "actions"}>{h}</Th>
                 ))}
               </tr>
-            </thead>
-            <tbody className="divide-y">
+            </TableHead>
+            <TableBody>
               {dayItems.map((row) => (
                 <DayRow
                   key={row.employee.id}
@@ -214,58 +213,44 @@ function AttendancePageInner() {
                   onOpenPhoto={setPhotoPreview}
                 />
               ))}
-              {!dayItems.length && (
-                <tr>
-                  <td colSpan={showOfficeFilter ? 9 : 8} className="px-4 py-10 text-center text-slate-500">
-                    No employees match this filter.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              {!dayItems.length && <TableEmpty colSpan={showOfficeFilter ? 9 : 8}>No employees match this filter.</TableEmpty>}
+            </TableBody>
+          </Table>
         </TableShell>
       ) : (
         <TableShell>
-          <table className="w-full text-left text-sm">
-            <thead className="border-b bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+          <Table>
+            <TableHead>
               <tr>
                 {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Working days", "Present", "Leave", "Late", "No check-in", "No checkout", ""].map((h) => (
-                  <th className="px-4 py-3" key={h || "actions"}>
-                    {h}
-                  </th>
+                  <Th key={h || "actions"}>{h}</Th>
                 ))}
               </tr>
-            </thead>
-            <tbody className="divide-y">
+            </TableHead>
+            <TableBody>
               {monthItems.map((row) => (
-                <tr key={row.employee.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3">
+                <TableRow key={row.employee.id}>
+                  <Td>
                     <div className="font-medium">{employeeName(row.employee)}</div>
                     <div className="text-xs text-slate-500">{row.employee.employeeCode}</div>
-                  </td>
-                  {showOfficeFilter && <td className="px-4 py-3">{row.office?.name ?? "—"}</td>}
-                  <td className="px-4 py-3">{row.workingDays}</td>
-                  <td className="px-4 py-3">{row.presentDays}</td>
-                  <td className="px-4 py-3">{row.leaveDays}</td>
-                  <td className="px-4 py-3">{row.lateDays}</td>
-                  <td className="px-4 py-3 font-semibold text-amber-700">{row.missingCheckInDays}</td>
-                  <td className="px-4 py-3 font-semibold text-red-700">{row.missingCheckOutDays}</td>
-                  <td className="px-4 py-3">
+                  </Td>
+                  {showOfficeFilter && <Td>{row.office?.name ?? "—"}</Td>}
+                  <Td className="tabular-nums">{row.workingDays}</Td>
+                  <Td className="tabular-nums">{row.presentDays}</Td>
+                  <Td className="tabular-nums">{row.leaveDays}</Td>
+                  <Td className="tabular-nums">{row.lateDays}</Td>
+                  <Td className="font-semibold tabular-nums text-amber-700">{row.missingCheckInDays}</Td>
+                  <Td className="font-semibold tabular-nums text-red-700">{row.missingCheckOutDays}</Td>
+                  <Td>
                     <Button size="sm" variant="ghost" onClick={() => router.push(`/employees/${row.employee.id}`)}>
                       Open
                     </Button>
-                  </td>
-                </tr>
+                  </Td>
+                </TableRow>
               ))}
-              {!monthItems.length && (
-                <tr>
-                  <td colSpan={showOfficeFilter ? 9 : 8} className="px-4 py-10 text-center text-slate-500">
-                    No employees match this filter.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              {!monthItems.length && <TableEmpty colSpan={showOfficeFilter ? 9 : 8}>No employees match this filter.</TableEmpty>}
+            </TableBody>
+          </Table>
         </TableShell>
       )}
 
@@ -367,23 +352,37 @@ function DayRow({
   ].filter((photo): photo is AttendancePhotoPreview => photo !== null);
 
   return (
-    <tr className="hover:bg-slate-50">
-      <td className="px-4 py-3">
+    <TableRow>
+      <Td>
         <div className="font-medium">{employeeName(row.employee)}</div>
         <div className="text-xs text-slate-500">{row.employee.employeeCode}</div>
-      </td>
-      {showOffice && <td className="px-4 py-3">{row.office?.name ?? "—"}</td>}
-      <td className="px-4 py-3">
+      </Td>
+      {showOffice && <Td>{row.office?.name ?? "—"}</Td>}
+      <Td>
         <AttendancePhotoStack photos={photos} onOpen={onOpenPhoto} />
-      </td>
-      <td className="px-4 py-3">{formatDateTime(row.timesheet?.actualCheckIn)}</td>
-      <td className="px-4 py-3">{formatDateTime(row.timesheet?.actualCheckOut)}</td>
-      <td className="px-4 py-3">{row.timesheet ? `${row.timesheet.lateMinutes}m` : "—"}</td>
-      <td className="px-4 py-3">{minutesToHours(row.timesheet?.workedMinutes)}</td>
-      <td className="px-4 py-3">
+      </Td>
+      <Td>
+        {row.timesheet?.actualCheckIn ? (
+          formatDateTime(row.timesheet.actualCheckIn)
+        ) : (
+          <span className="text-slate-500">Not checked in</span>
+        )}
+      </Td>
+      <Td>
+        {row.timesheet?.actualCheckOut ? (
+          formatDateTime(row.timesheet.actualCheckOut)
+        ) : row.timesheet?.actualCheckIn ? (
+          <span className="text-amber-700">Missing checkout</span>
+        ) : (
+          <span className="text-slate-500">Not checked in</span>
+        )}
+      </Td>
+      <Td className="tabular-nums">{row.timesheet ? `${row.timesheet.lateMinutes}m` : "—"}</Td>
+      <Td className="tabular-nums">{row.timesheet ? minutesToHours(row.timesheet.workedMinutes) : "—"}</Td>
+      <Td>
         <StatusBadge status={row.attendanceState} />
-      </td>
-      <td className="px-4 py-3">
+      </Td>
+      <Td>
         {row.timesheet ? (
           <Button size="sm" variant="ghost" onClick={onView}>
             View
@@ -391,8 +390,8 @@ function DayRow({
         ) : (
           <span className="text-xs text-slate-400">—</span>
         )}
-      </td>
-    </tr>
+      </Td>
+    </TableRow>
   );
 }
 
