@@ -6,8 +6,8 @@ import { KeyRound, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/auth-provider";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export default function ChangePasswordPage() {
   const { status, user, changePassword } = useAuth();
@@ -78,9 +78,8 @@ export default function ChangePasswordPage() {
           <div className="mt-8 space-y-5">
             <div>
               <Label htmlFor="current">Temporary password</Label>
-              <Input
+              <PasswordInput
                 id="current"
-                type="password"
                 autoComplete="current-password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
@@ -89,9 +88,8 @@ export default function ChangePasswordPage() {
             </div>
             <div>
               <Label htmlFor="new">New password</Label>
-              <Input
+              <PasswordInput
                 id="new"
-                type="password"
                 autoComplete="new-password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -102,9 +100,8 @@ export default function ChangePasswordPage() {
             </div>
             <div>
               <Label htmlFor="confirm">Confirm new password</Label>
-              <Input
+              <PasswordInput
                 id="confirm"
-                type="password"
                 autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
