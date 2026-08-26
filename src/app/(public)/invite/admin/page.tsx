@@ -39,21 +39,24 @@ function AdminInviteInner() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (password !== confirm) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    if (!passwordMeetsRules(password)) {
-      toast.error("Use at least 10 characters with upper, lower, and a number");
-      return;
+    const requiresPassword = invite.data?.requiresPassword ?? true;
+    if (requiresPassword) {
+      if (password !== confirm) {
+        toast.error("Passwords do not match");
+        return;
+      }
+      if (!passwordMeetsRules(password)) {
+        toast.error("Use at least 10 characters with upper, lower, and a number");
+        return;
+      }
     }
     setBusy(true);
     try {
-      await publicInviteApi.acceptAdmin(token, password);
-      toast.success("Password saved. You can sign in now.");
+      const result = await publicInviteApi.acceptAdmin(token, requiresPassword ? password : undefined);
+      toast.success(result.existingAccount ? "Access confirmed. Sign in with your existing password." : "Password saved. You can sign in now.");
       router.replace("/login");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not set password");
+      toast.error(err instanceof Error ? err.message : "Could not complete invite");
     } finally {
       setBusy(false);
     }
@@ -86,6 +89,7 @@ function AdminInviteInner() {
   }
 
   const data = invite.data;
+  const requiresPassword = data.requiresPassword;
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.05fr_.95fr]">
@@ -98,9 +102,13 @@ function AdminInviteInner() {
         </div>
         <div className="max-w-xl">
           <p className="text-sm font-medium uppercase tracking-[.2em] text-blue-300">Invitation</p>
-          <h1 className="mt-4 text-5xl font-semibold leading-tight">Set your password for {data.organization.name}.</h1>
+          <h1 className="mt-4 text-5xl font-semibold leading-tight">
+            {requiresPassword ? `Set your password for ${data.organization.name}.` : `Confirm your access to ${data.organization.name}.`}
+          </h1>
           <p className="mt-5 text-lg leading-8 text-slate-300">
-            After you choose a password, sign in to continue setting up your company.
+            {requiresPassword
+              ? "After you choose a password, sign in to continue setting up your company."
+              : "You already have an account. Confirm this invite, then sign in with your existing password."}
           </p>
         </div>
       </section>
@@ -109,20 +117,26 @@ function AdminInviteInner() {
           <div className="mb-6 inline-flex rounded-xl bg-amber-100 p-3 text-amber-900">
             <KeyRound className="size-5" />
           </div>
-          <h2 className="text-3xl font-semibold tracking-tight">Set password</h2>
+          <h2 className="text-3xl font-semibold tracking-tight">{requiresPassword ? "Set password" : "Confirm access"}</h2>
           <p className="mt-2 text-sm text-slate-500">
             Invited as <span className="font-medium text-slate-700">{data.email}</span>
           </p>
           <div className="mt-8 space-y-5">
-            <div>
-              <Label htmlFor="password">New password</Label>
-              <Input id="password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={10} required />
-              <p className="mt-1 text-xs text-slate-500">At least 10 characters with upper, lower, and a number.</p>
-            </div>
-            <div>
-              <Label htmlFor="confirm">Confirm password</Label>
-              <Input id="confirm" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} minLength={10} required />
-            </div>
+            {requiresPassword ? (
+              <>
+                <div>
+                  <Label htmlFor="password">New password</Label>
+                  <Input id="password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={10} required />
+                  <p className="mt-1 text-xs text-slate-500">At least 10 characters with upper, lower, and a number.</p>
+                </div>
+                <div>
+                  <Label htmlFor="confirm">Confirm password</Label>
+                  <Input id="confirm" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} minLength={10} required />
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-slate-600">This invite adds administrator access to your existing Workforce account.</p>
+            )}
             <Button className="w-full" size="lg" disabled={busy}>
               {busy && <Loader2 className="size-4 animate-spin" />}
               Continue

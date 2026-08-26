@@ -32,7 +32,7 @@ function EmployeeInviteInner() {
     enabled: token.length > 0,
     retry: false
   });
-  const [result, setResult] = useState<{ employeeCode: string; email: string } | null>(null);
+  const [result, setResult] = useState<{ employeeCode: string; email: string; existingAccount?: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
 
   const defaults = useMemo(() => {
@@ -47,15 +47,18 @@ function EmployeeInviteInner() {
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const password = String(f.get("password"));
-    const confirm = String(f.get("confirmPassword"));
-    if (password !== confirm) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    if (!passwordMeetsRules(password)) {
-      toast.error("Use at least 10 characters with upper, lower, and a number");
-      return;
+    const requiresPassword = invite.data?.requiresPassword ?? true;
+    const password = String(f.get("password") ?? "");
+    const confirm = String(f.get("confirmPassword") ?? "");
+    if (requiresPassword) {
+      if (password !== confirm) {
+        toast.error("Passwords do not match");
+        return;
+      }
+      if (!passwordMeetsRules(password)) {
+        toast.error("Use at least 10 characters with upper, lower, and a number");
+        return;
+      }
     }
     setBusy(true);
     try {
@@ -70,10 +73,10 @@ function EmployeeInviteInner() {
         employeeCode: String(f.get("employeeCode") || "") || undefined,
         officeId: invite.data?.office?.id,
         scheduleId: invite.data?.schedule?.id,
-        password
+        ...(requiresPassword ? { password } : {})
       });
       setResult(created);
-      toast.success("Your employee account is ready");
+      toast.success(created.existingAccount ? "Employee profile added to your existing account" : "Your employee account is ready");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not complete your profile");
     } finally {
@@ -108,6 +111,7 @@ function EmployeeInviteInner() {
   }
 
   const data = invite.data;
+  const requiresPassword = data.requiresPassword;
 
   if (result) {
     return (
@@ -118,7 +122,8 @@ function EmployeeInviteInner() {
           </div>
           <h1 className="text-2xl font-semibold">You are set up</h1>
           <p className="mt-2 text-sm text-slate-500">
-            Sign in on the employee app with your email or employee code and the password you just chose.
+            Sign in on the employee app with your email or employee code
+            {result.existingAccount ? " and your existing password." : " and the password you just chose."}
           </p>
           <dl className="mt-6 space-y-3 text-sm">
             <div>
@@ -147,7 +152,11 @@ function EmployeeInviteInner() {
         <div className="max-w-xl">
           <p className="text-sm font-medium uppercase tracking-[.2em] text-blue-300">{data.organization.name}</p>
           <h1 className="mt-4 text-5xl font-semibold leading-tight">Complete your employee profile.</h1>
-          <p className="mt-5 text-lg leading-8 text-slate-300">Enter your details, choose a password, then continue in the employee app.</p>
+          <p className="mt-5 text-lg leading-8 text-slate-300">
+            {requiresPassword
+              ? "Enter your details, choose a password, then continue in the employee app."
+              : "Enter your employee details. You can keep using your existing account password."}
+          </p>
         </div>
       </section>
       <section className="flex items-start justify-center p-6 lg:items-center">
@@ -173,10 +182,18 @@ function EmployeeInviteInner() {
               <Label>Schedule</Label>
               <Input value={data.schedule?.name ?? "Assigned after you join"} readOnly />
             </div>
-            <Field label="Password" name="password" type="password" required />
-            <Field label="Confirm password" name="confirmPassword" type="password" required />
+            {requiresPassword ? (
+              <>
+                <Field label="Password" name="password" type="password" required />
+                <Field label="Confirm password" name="confirmPassword" type="password" required />
+              </>
+            ) : null}
           </div>
-          <p className="mt-3 text-xs text-slate-500">Password needs at least 10 characters with upper, lower, and a number.</p>
+          {requiresPassword ? (
+            <p className="mt-3 text-xs text-slate-500">Password needs at least 10 characters with upper, lower, and a number.</p>
+          ) : (
+            <p className="mt-3 text-xs text-slate-500">This invite adds an employee profile to your existing Workforce account.</p>
+          )}
           <Button className="mt-6 w-full" size="lg" disabled={busy}>
             {busy && <Loader2 className="size-4 animate-spin" />}
             Create my account

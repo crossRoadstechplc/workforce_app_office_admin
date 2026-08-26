@@ -7,6 +7,7 @@ export type InvitePreview = {
   email: string;
   status: string;
   expiresAt: string;
+  requiresPassword: boolean;
   organization: { id: string; name: string; slug: string; isActive: boolean };
   office: { id: string; name: string } | null;
   schedule: { id: string; name: string } | null;
@@ -41,10 +42,10 @@ async function publicFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const publicInviteApi = {
   get: (token: string) => publicFetch<InvitePreview>(`/invites/${encodeURIComponent(token)}`),
-  acceptAdmin: (token: string, password: string) =>
-    publicFetch<{ email: string }>(`/invites/${encodeURIComponent(token)}/accept-admin`, {
+  acceptAdmin: (token: string, password?: string) =>
+    publicFetch<{ email: string; existingAccount?: boolean }>(`/invites/${encodeURIComponent(token)}/accept-admin`, {
       method: "POST",
-      body: JSON.stringify({ password })
+      body: JSON.stringify(password ? { password } : {})
     }),
   acceptEmployee: (
     token: string,
@@ -59,10 +60,10 @@ export const publicInviteApi = {
       employeeCode?: string;
       officeId?: string;
       scheduleId?: string;
-      password: string;
+      password?: string;
     }
   ) =>
-    publicFetch<{ email: string; employeeCode: string }>(`/invites/${encodeURIComponent(token)}/accept-employee`, {
+    publicFetch<{ email: string; employeeCode: string; existingAccount?: boolean }>(`/invites/${encodeURIComponent(token)}/accept-employee`, {
       method: "POST",
       body: JSON.stringify(body)
     })
