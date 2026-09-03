@@ -55,12 +55,30 @@ function writeLastContextKey(contextKey: string) {
   localStorage.setItem(LAST_CONTEXT_STORAGE_KEY, contextKey);
 }
 
-function userFromSession(session: { user: AuthUser; mustChangePassword?: boolean; activeContext?: AuthUser["activeContext"] }): AuthUser {
+function userFromSession(session: {
+  user?: AuthUser | null;
+  mustChangePassword?: boolean;
+  activeContext?: AuthUser["activeContext"];
+}): AuthUser {
+  if (!session.user) {
+    throw new Error("Login response is missing user");
+  }
   return {
     ...session.user,
     mustChangePassword: session.mustChangePassword ?? session.user.mustChangePassword,
     activeContext: session.activeContext ?? session.user.activeContext
   };
+}
+
+function isContextSelectionResponse(
+  data: LoginResponse
+): data is Extract<LoginResponse, { requiresContextSelection: true }> {
+  return Boolean(
+    data &&
+      typeof data === "object" &&
+      "requiresContextSelection" in data &&
+      (data as { requiresContextSelection?: boolean }).requiresContextSelection === true
+  );
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -124,9 +142,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [hydrate]);
 
   const finalizeLoginResponse = async (data: LoginResponse): Promise<MeResponse | null> => {
-    if ("requiresContextSelection" in data && data.requiresContextSelection) {
-      const contexts = filterPortalContexts(data.contexts);
-      if (!hasPortalContext(data.contexts)) throw new Error("Admin access required");
+    if (isContextSelectionResponse(data)) {
+      const contexts = filterPortalContexts(data.contexts ?? []);
+      if (!hasPortalContext(data.contexts ?? [])) throw new Error("Admin access required");
+      if (!data.preAuthToken) throw new Error("Login session expired. Please sign in again.");
       const defaultContextKey =
         contexts.find((item) => item.key === data.defaultContextKey)?.key ??
         contexts.find((item) => item.key === readLastContextKey())?.key ??
@@ -146,7 +165,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return null;
     }
 
+    if (!data.user?.roles) {
+      throw new Error("Login failed. Please try again.");
+    }
     if (!isPortalAdmin(data.user.roles)) throw new Error("Admin access required");
+    if (!data.accessToken) throw new Error("Login failed. Please try again.");
+
     setAccessToken(data.accessToken);
     const sessionUser = userFromSession(data);
     if (data.mustChangePassword) {

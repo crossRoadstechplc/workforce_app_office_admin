@@ -34,7 +34,13 @@ function OfficeAdminsInner() {
   const [officeIds, setOfficeIds] = useState<string[]>([]);
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [delivery, setDelivery] = useState<InviteDeliveryMethod>("SHOW_PASSWORD");
-  const [inviteResult, setInviteResult] = useState<{ emailSent: boolean; inviteId?: string; emailError?: string } | null>(null);
+  const [inviteResult, setInviteResult] = useState<{
+    emailSent: boolean;
+    inviteId?: string;
+    emailError?: string;
+    existingAccount?: boolean;
+    requiresPassword?: boolean;
+  } | null>(null);
   const [editing, setEditing] = useState<OfficeAdminUser | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [editOfficeIds, setEditOfficeIds] = useState<string[]>([]);
@@ -51,9 +57,26 @@ function OfficeAdminsInner() {
       if (res.temporaryPassword) {
         toast.success("Office admin created");
         setTempPassword(res.temporaryPassword);
+      } else if (res.existingAccount && !res.inviteId) {
+        toast.success("Office admin access added to their existing account. They can switch roles at login.");
+        setOpen(false);
+        setEmail("");
+        setOfficeIds([]);
       } else {
-        setInviteResult({ emailSent: !!res.emailSent, inviteId: res.inviteId, emailError: res.emailError });
-        toast.success(res.emailSent ? "Invite email sent" : "Admin created, but the email was not sent");
+        setInviteResult({
+          emailSent: !!res.emailSent,
+          inviteId: res.inviteId,
+          emailError: res.emailError,
+          existingAccount: res.existingAccount,
+          requiresPassword: res.requiresPassword
+        });
+        toast.success(
+          res.emailSent
+            ? res.requiresPassword === false
+              ? "Invite email sent — they confirm access with their existing password"
+              : "Invite email sent"
+            : "Admin created, but the email was not sent"
+        );
       }
       void qc.invalidateQueries({ queryKey: ["office-admins"] });
     },
@@ -151,7 +174,9 @@ function OfficeAdminsInner() {
                 <div className="mt-5 space-y-3 text-sm">
                   <p className="text-slate-600">
                     {inviteResult.emailSent
-                      ? "An invite email was sent. They will set a password from the link, then sign in."
+                      ? inviteResult.requiresPassword === false || inviteResult.existingAccount
+                        ? "An invite email was sent. They confirm access with their existing password, then choose Office Admin at login."
+                        : "An invite email was sent. They will set a password from the link, then sign in."
                       : inviteResult.emailError ?? "The account was created, but the email could not be sent. Configure SMTP and resend."}
                   </p>
                   {!inviteResult.emailSent && inviteResult.inviteId && (

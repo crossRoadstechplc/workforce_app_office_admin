@@ -45,7 +45,15 @@ export const platformApi = {
   orgAdmins: (params?: URLSearchParams) =>
     apiFetch<{ items: PlatformOrgAdmin[]; meta: unknown }>(`/platform/org-admins${params ? `?${params}` : ""}`),
   createOrgAdmin: (body: { organizationId: string; email: string; temporaryPassword?: string; deliveryMethod?: "SHOW_PASSWORD" | "SEND_EMAIL" }) =>
-    apiFetch<{ user: PlatformOrgAdmin; temporaryPassword?: string; emailSent?: boolean; inviteId?: string; emailError?: string }>("/platform/org-admins", {
+    apiFetch<{
+      user: PlatformOrgAdmin;
+      temporaryPassword?: string;
+      emailSent?: boolean;
+      inviteId?: string;
+      emailError?: string;
+      existingAccount?: boolean;
+      requiresPassword?: boolean;
+    }>("/platform/org-admins", {
       method: "POST",
       body: JSON.stringify(body)
     }),

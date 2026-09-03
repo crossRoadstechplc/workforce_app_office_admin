@@ -197,7 +197,7 @@ function EmployeeInviteInner() {
           )}
           <Button className="mt-6 w-full" size="lg" disabled={busy}>
             {busy && <Loader2 className="size-4 animate-spin" />}
-            Create my account
+            {requiresPassword ? "Create my account" : "Continue with existing account"}
           </Button>
         </form>
       </section>
