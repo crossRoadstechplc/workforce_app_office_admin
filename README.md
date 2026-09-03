@@ -10,8 +10,7 @@ Production-oriented Next.js admin application for the workforce backend.
 - Recharts
 - Socket.IO client
 - Vitest + React Testing Library
-- Playwright
-
+  
 ## Implemented modules
 Dashboard, employee management, offices, schedules, attendance, worksheets, leave decisions, reports/CSV export, audit activity, notifications, realtime refresh, authentication/session handling, QA/release safeguards.
 
