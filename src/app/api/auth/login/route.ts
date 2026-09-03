@@ -42,9 +42,40 @@ function sessionResponse(data: {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const response = await backendFetch("/auth/login", { method: "POST", body: JSON.stringify(body) });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) return NextResponse.json(data, { status: response.status });
-  return sessionResponse(data);
+  try {
+    const body = await request.json();
+    // Never forward null optional fields — Zod optional rejects null.
+    const payload: Record<string, unknown> = {
+      login: body.login,
+      password: body.password,
+      deviceId: body.deviceId ?? "admin-web"
+    };
+    if (typeof body.organizationSlug === "string" && body.organizationSlug.trim()) {
+      payload.organizationSlug = body.organizationSlug.trim();
+    }
+    if (typeof body.contextKey === "string" && body.contextKey.trim()) {
+      payload.contextKey = body.contextKey.trim();
+    }
+    if (typeof body.lastContextKey === "string" && body.lastContextKey.trim()) {
+      payload.lastContextKey = body.lastContextKey.trim();
+    }
+
+    const response = await backendFetch("/auth/login", { method: "POST", body: JSON.stringify(payload) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) return NextResponse.json(data, { status: response.status });
+    return sessionResponse(data);
+  } catch (error) {
+    const aborted = error instanceof Error && error.name === "AbortError";
+    return NextResponse.json(
+      {
+        error: {
+          code: aborted ? "BACKEND_TIMEOUT" : "BACKEND_UNREACHABLE",
+          message: aborted
+            ? "Login timed out talking to the API. Check BACKEND_API_BASE_URL and backend health."
+            : "Login could not reach the API. Check BACKEND_API_BASE_URL on the portal host."
+        }
+      },
+      { status: 502 }
+    );
+  }
 }

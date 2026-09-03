@@ -173,6 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = async (loginValue: string, password: string) => {
+    const lastContextKey = readLastContextKey();
     const r = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -180,7 +181,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login: loginValue,
         password,
         deviceId: "admin-web",
-        lastContextKey: readLastContextKey()
+        ...(lastContextKey ? { lastContextKey } : {})
       })
     });
     const data = (await r.json()) as LoginResponse & { message?: string; error?: { message?: string } };
