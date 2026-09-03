@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Bell, ChevronDown, PanelLeft, PanelLeftClose } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dropdown, DropdownContent, DropdownItem, DropdownTrigger } from "@/components/ui/dropdown-menu";
 import { ContextSwitcher } from "@/features/auth/context-switcher";
@@ -29,6 +30,14 @@ export function Header() {
     ? "SaaS control plane"
     : user?.organization?.name ?? user?.offices?.map((o) => o.name).join(", ") ?? "Workforce operations";
 
+  async function handleSwitch(contextKey: string) {
+    try {
+      await switchContext(contextKey);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to switch role");
+    }
+  }
+
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b bg-white/95 px-4 backdrop-blur lg:px-6">
       <div className="flex min-w-0 items-center gap-2">
@@ -45,7 +54,7 @@ export function Header() {
           <ContextSwitcher
             contexts={portalContexts}
             activeContextKey={user?.activeContext?.key}
-            onSwitch={switchContext}
+            onSwitch={handleSwitch}
             switching={contextSwitching}
             compact
           />

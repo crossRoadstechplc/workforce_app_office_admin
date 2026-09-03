@@ -55,30 +55,54 @@ function writeLastContextKey(contextKey: string) {
   localStorage.setItem(LAST_CONTEXT_STORAGE_KEY, contextKey);
 }
 
+function unwrapAuthPayload(raw: unknown): Record<string, unknown> {
+  if (!raw || typeof raw !== "object") return {};
+  const obj = raw as Record<string, unknown>;
+  if (obj.data && typeof obj.data === "object" && !Array.isArray(obj.data)) {
+    const nested = obj.data as Record<string, unknown>;
+    if (
+      nested.accessToken ||
+      nested.requiresContextSelection ||
+      nested.preAuthToken ||
+      nested.user ||
+      nested.contexts
+    ) {
+      return nested;
+    }
+  }
+  return obj;
+}
+
+function isContextSelectionPayload(data: Record<string, unknown>) {
+  if (data.requiresContextSelection === true) return true;
+  // Resilient fallback: pre-auth + contexts means picker, even if the flag is missing.
+  return typeof data.preAuthToken === "string" && Array.isArray(data.contexts) && !data.accessToken;
+}
+
 function userFromSession(session: {
   user?: AuthUser | null;
   mustChangePassword?: boolean;
   activeContext?: AuthUser["activeContext"];
 }): AuthUser {
-  if (!session.user) {
+  if (!session.user || typeof session.user !== "object") {
     throw new Error("Login response is missing user");
   }
   return {
     ...session.user,
+    roles: Array.isArray(session.user.roles) ? session.user.roles : [],
     mustChangePassword: session.mustChangePassword ?? session.user.mustChangePassword,
     activeContext: session.activeContext ?? session.user.activeContext
   };
 }
 
-function isContextSelectionResponse(
-  data: LoginResponse
-): data is Extract<LoginResponse, { requiresContextSelection: true }> {
-  return Boolean(
-    data &&
-      typeof data === "object" &&
-      "requiresContextSelection" in data &&
-      (data as { requiresContextSelection?: boolean }).requiresContextSelection === true
-  );
+function apiErrorMessage(data: Record<string, unknown>, fallback: string) {
+  const error = data.error;
+  if (error && typeof error === "object") {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" && message.trim()) return message;
+  }
+  if (typeof data.message === "string" && data.message.trim()) return data.message;
+  return fallback;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -90,21 +114,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const loadPortalContexts = useCallback(async () => {
-    const result = await apiFetch<{ contexts: LoginContext[] }>("/auth/contexts");
-    const filtered = filterPortalContexts(result.contexts);
-    setPortalContexts(filtered);
-    return filtered;
+    try {
+      const result = await apiFetch<{ contexts: LoginContext[] }>("/auth/contexts");
+      const filtered = filterPortalContexts(result?.contexts ?? []);
+      setPortalContexts(filtered);
+      return filtered;
+    } catch {
+      setPortalContexts([]);
+      return [] as LoginContext[];
+    }
   }, []);
 
   const completeAuthenticatedSession = useCallback(
     async (accessToken: string, activeContextKey?: string | null) => {
+      if (!accessToken) throw new Error("Login failed. Missing access token.");
       setAccessToken(accessToken);
       const me = await apiFetch<MeResponse>("/auth/me");
+      if (!me || !Array.isArray(me.roles)) {
+        throw new Error("Could not load your account after login. Please try again.");
+      }
       if (!isPortalAdmin(me.roles)) throw new Error("Admin access required");
       setUser(me);
-      if (activeContextKey ?? me.activeContext?.key) {
-        writeLastContextKey(activeContextKey ?? me.activeContext!.key);
-      }
+      const contextKey = activeContextKey ?? me.activeContext?.key;
+      if (contextKey) writeLastContextKey(contextKey);
       await loadPortalContexts();
       setPendingContext(null);
       setStatus("authenticated");
@@ -117,18 +149,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const r = await fetch("/api/auth/refresh", { method: "POST", signal: AbortSignal.timeout(12_000) });
       if (!r.ok) throw new Error();
-      const session = await r.json();
-      const sessionUser = userFromSession(session);
+      const session = unwrapAuthPayload(await r.json());
+      const sessionUser = userFromSession(session as { user?: AuthUser; mustChangePassword?: boolean; activeContext?: AuthUser["activeContext"] });
       if (!isPortalAdmin(sessionUser.roles)) throw new Error("Admin access required");
 
-      setAccessToken(session.accessToken);
-      if (session.mustChangePassword) {
+      const accessToken = session.accessToken as string | undefined;
+      if (!accessToken) throw new Error();
+      setAccessToken(accessToken);
+      if (session.mustChangePassword || sessionUser.mustChangePassword) {
         setUser(sessionUser);
         setStatus("mustChangePassword");
         return;
       }
 
-      await completeAuthenticatedSession(session.accessToken, session.activeContext?.key ?? sessionUser.activeContext?.key);
+      await completeAuthenticatedSession(
+        accessToken,
+        (session.activeContext as AuthUser["activeContext"] | undefined)?.key ?? sessionUser.activeContext?.key
+      );
     } catch {
       setAccessToken(null);
       setUser(null);
@@ -141,11 +178,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     void hydrate();
   }, [hydrate]);
 
-  const finalizeLoginResponse = async (data: LoginResponse): Promise<MeResponse | null> => {
-    if (isContextSelectionResponse(data)) {
-      const contexts = filterPortalContexts(data.contexts ?? []);
-      if (!hasPortalContext(data.contexts ?? [])) throw new Error("Admin access required");
-      if (!data.preAuthToken) throw new Error("Login session expired. Please sign in again.");
+  const finalizeLoginResponse = async (raw: unknown): Promise<MeResponse | null> => {
+    const data = unwrapAuthPayload(raw);
+
+    if (isContextSelectionPayload(data)) {
+      const allContexts = Array.isArray(data.contexts) ? (data.contexts as LoginContext[]) : [];
+      const contexts = filterPortalContexts(allContexts);
+      if (!hasPortalContext(allContexts)) {
+        throw new Error("Admin access required. Use the employee app if you only have an employee role.");
+      }
+      const preAuthToken = data.preAuthToken as string | undefined;
+      if (!preAuthToken) throw new Error("Login session expired. Please sign in again.");
+
       const defaultContextKey =
         contexts.find((item) => item.key === data.defaultContextKey)?.key ??
         contexts.find((item) => item.key === readLastContextKey())?.key ??
@@ -153,11 +197,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         null;
 
       if (contexts.length === 1 && contexts[0]) {
-        return selectContextWithToken(contexts[0].key, data.preAuthToken);
+        return selectContextWithToken(contexts[0].key, preAuthToken);
       }
 
       setPendingContext({
-        preAuthToken: data.preAuthToken,
+        preAuthToken,
         contexts,
         defaultContextKey
       });
@@ -165,23 +209,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return null;
     }
 
-    if (!data.user?.roles) {
-      throw new Error("Login failed. Please try again.");
+    const sessionUserRaw = data.user as AuthUser | undefined;
+    if (!sessionUserRaw || !Array.isArray(sessionUserRaw.roles)) {
+      throw new Error(apiErrorMessage(data, "Login failed. Please try again."));
     }
-    if (!isPortalAdmin(data.user.roles)) throw new Error("Admin access required");
-    if (!data.accessToken) throw new Error("Login failed. Please try again.");
+    if (!isPortalAdmin(sessionUserRaw.roles)) throw new Error("Admin access required");
 
-    setAccessToken(data.accessToken);
-    const sessionUser = userFromSession(data);
-    if (data.mustChangePassword) {
+    const accessToken = data.accessToken as string | undefined;
+    if (!accessToken) throw new Error("Login failed. Missing access token.");
+
+    const sessionUser = userFromSession({
+      user: sessionUserRaw,
+      mustChangePassword: Boolean(data.mustChangePassword),
+      activeContext: data.activeContext as AuthUser["activeContext"] | undefined
+    });
+
+    setAccessToken(accessToken);
+    if (data.mustChangePassword || sessionUser.mustChangePassword) {
       setUser(sessionUser);
       setStatus("mustChangePassword");
       router.replace("/change-password");
       return null;
     }
 
-    const me = await completeAuthenticatedSession(data.accessToken, data.activeContext?.key ?? sessionUser.activeContext?.key);
-    router.replace(homePathForRoles(me.roles));
+    const me = await completeAuthenticatedSession(
+      accessToken,
+      (data.activeContext as AuthUser["activeContext"] | undefined)?.key ?? sessionUser.activeContext?.key
+    );
+    router.replace(homePathForRoles(me?.roles));
     return me;
   };
 
@@ -191,9 +246,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ contextKey, preAuthToken, deviceId: "admin-web" })
     });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.message ?? data.error?.message ?? "Context selection failed");
-    return finalizeLoginResponse(data as LoginResponse);
+    const data = unwrapAuthPayload(await r.json());
+    if (!r.ok) throw new Error(apiErrorMessage(data, "Context selection failed"));
+    return finalizeLoginResponse(data);
   };
 
   const login = async (loginValue: string, password: string) => {
@@ -208,9 +263,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...(lastContextKey ? { lastContextKey } : {})
       })
     });
-    const data = (await r.json()) as LoginResponse & { message?: string; error?: { message?: string } };
-    if (!r.ok) throw new Error(data.message ?? data.error?.message ?? "Login failed");
-    await finalizeLoginResponse(data);
+    const data = unwrapAuthPayload(await r.json());
+    if (!r.ok) throw new Error(apiErrorMessage(data, "Login failed"));
+    await finalizeLoginResponse(data as LoginResponse);
   };
 
   const selectContext = async (contextKey: string) => {
@@ -222,15 +277,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (contextKey === user?.activeContext?.key) return;
     setContextSwitching(true);
     try {
+      const token = getAccessToken();
+      if (!token) throw new Error("Authentication required. Please sign in again.");
       const r = await fetch("/api/auth/switch-context", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ contextKey, deviceId: "admin-web" })
       });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.message ?? data.error?.message ?? "Failed to switch context");
-      const me = await completeAuthenticatedSession(data.accessToken, contextKey);
-      router.replace(homePathForRoles(me.roles));
+      const data = unwrapAuthPayload(await r.json());
+      if (!r.ok) throw new Error(apiErrorMessage(data, "Failed to switch context"));
+      const accessToken = data.accessToken as string | undefined;
+      if (!accessToken) throw new Error("Failed to switch context");
+      const me = await completeAuthenticatedSession(accessToken, contextKey);
+      router.replace(homePathForRoles(me?.roles));
     } finally {
       setContextSwitching(false);
     }
@@ -246,11 +308,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
       body: JSON.stringify({ currentPassword, newPassword })
     });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.message ?? data.error?.message ?? "Password change failed");
+    const data = unwrapAuthPayload(await r.json());
+    if (!r.ok) throw new Error(apiErrorMessage(data, "Password change failed"));
 
-    const me = await completeAuthenticatedSession(data.accessToken, user?.activeContext?.key);
-    router.replace(homePathForRoles(me.roles));
+    const accessToken = data.accessToken as string | undefined;
+    if (!accessToken) throw new Error("Password changed, but session could not be refreshed. Please sign in again.");
+    const me = await completeAuthenticatedSession(accessToken, user?.activeContext?.key);
+    router.replace(homePathForRoles(me?.roles));
   };
 
   const cancelContextSelection = () => {

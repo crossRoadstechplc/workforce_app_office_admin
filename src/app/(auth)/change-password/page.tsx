@@ -39,7 +39,7 @@ export default function ChangePasswordPage() {
     }
   }
 
-  if (status === "loading" || status === "unauthenticated" || status === "authenticated") {
+  if (status === "loading" || status === "unauthenticated" || status === "authenticated" || status === "selectContext") {
     return (
       <main className="grid min-h-screen place-items-center">
         <Loader2 className="size-8 animate-spin text-slate-400" />

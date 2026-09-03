@@ -1,35 +1,34 @@
 import { NextResponse } from "next/server";
 import { backendFetch } from "@/lib/api/backend";
 
-function sessionResponse(data: {
-  accessToken?: string;
-  refreshToken?: string;
-  mustChangePassword?: boolean;
-  user?: unknown;
-  activeContext?: unknown;
-  requiresContextSelection?: boolean;
-  preAuthToken?: string;
-  contexts?: unknown;
-  defaultContextKey?: string | null;
-}) {
-  if (data.requiresContextSelection) {
+function sessionResponse(data: Record<string, unknown>) {
+  // Support both a top-level payload and a nested `{ data: ... }` envelope.
+  const payload =
+    data.data && typeof data.data === "object" && !Array.isArray(data.data)
+      ? (data.data as Record<string, unknown>)
+      : data;
+
+  if (
+    payload.requiresContextSelection === true ||
+    (typeof payload.preAuthToken === "string" && Array.isArray(payload.contexts) && !payload.accessToken)
+  ) {
     return NextResponse.json({
       requiresContextSelection: true,
-      preAuthToken: data.preAuthToken,
-      contexts: data.contexts,
-      defaultContextKey: data.defaultContextKey
+      preAuthToken: payload.preAuthToken,
+      contexts: payload.contexts,
+      defaultContextKey: payload.defaultContextKey ?? null
     });
   }
 
   const result = NextResponse.json({
-    accessToken: data.accessToken,
-    mustChangePassword: data.mustChangePassword,
-    user: data.user,
-    activeContext: data.activeContext
+    accessToken: payload.accessToken,
+    mustChangePassword: payload.mustChangePassword,
+    user: payload.user,
+    activeContext: payload.activeContext
   });
 
-  if (data.refreshToken) {
-    result.cookies.set("workforce_refresh", data.refreshToken, {
+  if (typeof payload.refreshToken === "string" && payload.refreshToken) {
+    result.cookies.set("workforce_refresh", payload.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -61,7 +60,7 @@ export async function POST(request: Request) {
     }
 
     const response = await backendFetch("/auth/login", { method: "POST", body: JSON.stringify(payload) });
-    const data = await response.json().catch(() => ({}));
+    const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
     if (!response.ok) return NextResponse.json(data, { status: response.status });
     return sessionResponse(data);
   } catch (error) {
