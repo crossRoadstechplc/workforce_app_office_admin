@@ -20,7 +20,7 @@ import { FilterBar } from "@/components/ui/filter-bar";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { Textarea } from "@/components/ui/textarea";
 import { operationsApi } from "@/features/operations/operations-api";
-import { employeeName, formatDate, formatDateTime } from "@/lib/utils/format";
+import { employeeName, formatDate, formatDateTime, formatLeaveDays } from "@/lib/utils/format";
 import type { LeaveRequest } from "@/types/operations";
 
 export default function LeavePage() {
@@ -156,7 +156,7 @@ function LeavePageInner() {
                 <Td>
                   {formatDate(row.startDate)} – {formatDate(row.endDate)}
                 </Td>
-                <Td className="tabular-nums">{String(row.numberOfDays)}</Td>
+                <Td className="tabular-nums">{formatLeaveDays(row.numberOfDays)}</Td>
                 <Td className="max-w-xs truncate text-slate-600">{row.reason}</Td>
                 <Td>
                   <StatusBadge status={row.status} />
@@ -199,7 +199,7 @@ function LeavePageInner() {
             <div className="mt-5 space-y-5">
               <div className="grid gap-3 sm:grid-cols-3">
                 <Info l="Dates" v={`${formatDate(d.startDate)} – ${formatDate(d.endDate)}`} />
-                <Info l="Days" v={String(d.numberOfDays)} />
+                <Info l="Days" v={formatLeaveDays(d.numberOfDays)} />
                 <Info l="Status" v={d.status} />
               </div>
               <div className="rounded-xl bg-slate-50 p-4">

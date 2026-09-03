@@ -1,7 +1,7 @@
 "use client";
 import { use, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, KeyRound, UserX } from "lucide-react";
+import { ArrowLeft, KeyRound, Pencil, UserX } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { employeeApi } from "@/features/employees/employee-api";
@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { CopyValue } from "@/components/ui/copy-value";
 import { TenantOpsGate } from "@/components/auth/role-gates";
+import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
 import { SupervisorSelect } from "@/components/employees/supervisor-select";
 import { employeeName } from "@/lib/utils/format";
 
@@ -30,6 +31,7 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["employee", employeeId], queryFn: () => employeeApi.get(employeeId) });
   const [action, setAction] = useState<"status" | "password" | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const statusMut = useMutation({
     mutationFn: (reason: string) => employeeApi.changeStatus(employeeId, { employeeStatus: q.data?.status === "ACTIVE" ? "INACTIVE" : "ACTIVE", reason }),
@@ -88,6 +90,10 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setEditOpen(true)}>
+            <Pencil className="size-4" />
+            Edit
+          </Button>
           <Button variant="outline" asChild>
             <Link href={`/performance?employeeId=${e.id}`}>Evaluations</Link>
           </Button>
@@ -115,7 +121,8 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
           <CardContent className="space-y-3">
             <Info label="Email" value={e.user.email} />
             <Info label="Phone" value={e.phone} />
-            <Info label="Department" value={e.department} />
+            <Info label="Department" value={e.department?.name} />
+            <Info label="Evaluation template" value={e.evaluationTemplate?.name} />
           </CardContent>
         </Card>
         <Card>
@@ -148,6 +155,7 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
           </CardContent>
         </Card>
       </div>
+      <EmployeeFormDialog open={editOpen} onOpenChange={setEditOpen} employee={e} />
       <Dialog open={!!action} onOpenChange={(v) => !v && setAction(null)}>
         <DialogContent>
           <DialogTitle>

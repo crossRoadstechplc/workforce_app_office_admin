@@ -97,6 +97,8 @@ export type AttendanceDayRosterRow = {
   employee: Person;
   office?: { id: string; name: string } | null;
   attendanceState: string;
+  correctnessStatus?: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | null;
+  correctnessRequestId?: string | null;
   isWorkingDay: boolean;
   timesheet: {
     id: string;
@@ -112,7 +114,14 @@ export type AttendanceDayRosterRow = {
     checkInPhotoUrl?: string | null;
     checkOutPhotoUrl?: string | null;
   } | null;
-  leave: { id: string; startDate: string; endDate: string } | null;
+  leave: {
+    id: string;
+    status?: string;
+    label?: string;
+    startDate: string;
+    endDate: string;
+    leaveType?: { id: string; name: string } | null;
+  } | null;
   worksheet: { id: string; status: string } | null;
 };
 
@@ -126,7 +135,7 @@ export type AttendanceDayRoster = {
     late: number;
     onLeave: number;
     notCheckedIn: number;
-    missingCheckout: number;
+    correctnessPending: number;
     worksheetsSubmitted: number;
     nonWorkingDay: number;
   };

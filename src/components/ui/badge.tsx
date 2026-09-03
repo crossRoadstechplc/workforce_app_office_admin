@@ -1,35 +1,66 @@
 import { cn } from "@/lib/utils/cn";
-const styles: Record<string,string> = {
-  ACTIVE:"bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  INACTIVE:"bg-slate-100 text-slate-600 ring-slate-500/20",
-  TERMINATED:"bg-red-50 text-red-700 ring-red-600/20",
-  OPEN:"bg-blue-50 text-blue-700 ring-blue-600/20",
-  PRESENT_ON_TIME:"bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  COMPLETED_ON_TIME:"bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  PRESENT_LATE:"bg-amber-50 text-amber-700 ring-amber-600/20",
-  COMPLETED_LATE:"bg-amber-50 text-amber-700 ring-amber-600/20",
-  MISSING_CHECKOUT:"bg-red-50 text-red-700 ring-red-600/20",
-  NOT_CHECKED_IN:"bg-slate-100 text-slate-700 ring-slate-500/20",
-  ON_LEAVE:"bg-violet-50 text-violet-700 ring-violet-600/20",
-  NON_WORKING_DAY:"bg-slate-50 text-slate-500 ring-slate-400/20",
-  NONE:"bg-slate-100 text-slate-600 ring-slate-500/20",
-  MISSING:"bg-amber-50 text-amber-700 ring-amber-600/20",
-  SUBMITTED:"bg-blue-50 text-blue-700 ring-blue-600/20",
-  REVIEWED:"bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  PENDING:"bg-amber-50 text-amber-700 ring-amber-600/20",
-  APPROVED:"bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  REJECTED:"bg-red-50 text-red-700 ring-red-600/20",
-  CANCELLED:"bg-slate-100 text-slate-600 ring-slate-500/20",
-  PAUSED:"bg-amber-50 text-amber-700 ring-amber-600/20",
-  EXPIRED:"bg-red-50 text-red-700 ring-red-600/20",
-  SELF_DRAFT:"bg-sky-50 text-sky-700 ring-sky-600/20",
-  SELF_SUBMITTED:"bg-indigo-50 text-indigo-700 ring-indigo-600/20",
-  EVALUATOR_DRAFT:"bg-amber-50 text-amber-700 ring-amber-600/20",
-  EVALUATOR_SUBMITTED:"bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  FINALIZED:"bg-slate-900 text-white ring-slate-900/20",
-  DRAFT:"bg-slate-100 text-slate-600 ring-slate-500/20",
-  CLOSED:"bg-slate-100 text-slate-600 ring-slate-500/20",
-  BOOKED:"bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  RESCHEDULED:"bg-amber-50 text-amber-700 ring-amber-600/20"
+
+const styles: Record<string, string> = {
+  ACTIVE: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  INACTIVE: "bg-slate-100 text-slate-600 ring-slate-500/20",
+  TERMINATED: "bg-red-50 text-red-700 ring-red-600/20",
+  OPEN: "bg-blue-50 text-blue-700 ring-blue-600/20",
+  PRESENT_ON_TIME: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  COMPLETED_ON_TIME: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  PRESENT_LATE: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  COMPLETED_LATE: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  MISSING_CHECKOUT: "bg-red-50 text-red-700 ring-red-600/20",
+  NOT_CHECKED_IN: "bg-slate-100 text-slate-700 ring-slate-500/20",
+  ON_LEAVE: "bg-violet-50 text-violet-700 ring-violet-600/20",
+  NON_WORKING_DAY: "bg-slate-50 text-slate-500 ring-slate-400/20",
+  NONE: "bg-slate-100 text-slate-600 ring-slate-500/20",
+  MISSING: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  SUBMITTED: "bg-blue-50 text-blue-700 ring-blue-600/20",
+  REVIEWED: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  CORRECTNESS_PENDING: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  CORRECTNESS_APPROVED: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  CORRECTNESS_REJECTED: "bg-red-50 text-red-700 ring-red-600/20",
+  PENDING: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  APPROVED: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  REJECTED: "bg-red-50 text-red-700 ring-red-600/20",
+  CANCELLED: "bg-slate-100 text-slate-600 ring-slate-500/20",
+  PAUSED: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  EXPIRED: "bg-red-50 text-red-700 ring-red-600/20",
+  SELF_DRAFT: "bg-sky-50 text-sky-700 ring-sky-600/20",
+  SELF_SUBMITTED: "bg-indigo-50 text-indigo-700 ring-indigo-600/20",
+  EVALUATOR_DRAFT: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  EVALUATOR_SUBMITTED: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  FINALIZED: "bg-slate-900 text-white ring-slate-900/20",
+  DRAFT: "bg-slate-100 text-slate-600 ring-slate-500/20",
+  CLOSED: "bg-slate-100 text-slate-600 ring-slate-500/20",
+  BOOKED: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  RESCHEDULED: "bg-amber-50 text-amber-700 ring-amber-600/20"
 };
-export function StatusBadge({ status }: { status: string }) { return <span className={cn("inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset", styles[status] ?? "bg-blue-50 text-blue-700 ring-blue-600/20")}>{status.replaceAll("_", " ")}</span>; }
+
+const labels: Record<string, string> = {
+  ON_LEAVE: "Approved leave",
+  NOT_CHECKED_IN: "Missing check-in",
+  NON_WORKING_DAY: "Non-working day",
+  PRESENT_ON_TIME: "Present",
+  PRESENT_LATE: "Late",
+  COMPLETED_ON_TIME: "Completed",
+  COMPLETED_LATE: "Completed late",
+  MISSING_CHECKOUT: "Missing checkout"
+};
+
+export function statusLabel(status: string) {
+  return labels[status] ?? status.replaceAll("_", " ");
+}
+
+export function StatusBadge({ status }: { status: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset",
+        styles[status] ?? "bg-blue-50 text-blue-700 ring-blue-600/20"
+      )}
+    >
+      {statusLabel(status)}
+    </span>
+  );
+}

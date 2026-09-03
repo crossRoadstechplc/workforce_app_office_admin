@@ -10,6 +10,25 @@ export type OfficeSummary = {
   name: string;
 };
 
+export type ContextType = "platform" | "org_admin" | "office_admin" | "employee";
+
+export type ActiveContext = {
+  key: string;
+  type: ContextType;
+  organizationId: string | null;
+  officeIds: string[];
+};
+
+export type LoginContext = {
+  key: string;
+  type: ContextType;
+  label: string;
+  organizationId: string | null;
+  organizationName: string | null;
+  officeIds: string[];
+  officeNames: string[];
+};
+
 export type AuthUser = {
   id: string;
   email: string;
@@ -20,13 +39,30 @@ export type AuthUser = {
   organization?: OrganizationSummary | null;
   officeIds?: string[];
   offices?: OfficeSummary[];
+  employee?: {
+    firstName: string;
+    lastName: string;
+    employeeCode: string;
+    displayName: string;
+  } | null;
+  activeContext?: ActiveContext;
 };
 
-export type LoginResponse = {
-  accessToken: string;
-  mustChangePassword: boolean;
-  user: AuthUser;
-};
+export type LoginResponse =
+  | {
+      accessToken: string;
+      refreshToken?: string;
+      mustChangePassword: boolean;
+      user: AuthUser;
+      activeContext?: ActiveContext;
+      requiresContextSelection?: false;
+    }
+  | {
+      requiresContextSelection: true;
+      preAuthToken: string;
+      contexts: LoginContext[];
+      defaultContextKey: string | null;
+    };
 
 export type MeResponse = {
   id: string;
@@ -38,14 +74,27 @@ export type MeResponse = {
   organization: OrganizationSummary | null;
   officeIds: string[];
   offices: OfficeSummary[];
+  employee?: AuthUser["employee"];
+  activeContext?: ActiveContext;
 };
 
 export const ROLE = {
   SUPER_ADMIN: "SUPER_ADMIN",
   ORG_ADMIN: "ORG_ADMIN",
   OFFICE_ADMIN: "OFFICE_ADMIN",
+  EMPLOYEE: "EMPLOYEE",
   ADMIN: "ADMIN" // legacy alias during transition
 } as const;
+
+export const LAST_CONTEXT_STORAGE_KEY = "workforce_last_context_key";
+
+export function isPortalContextType(type: ContextType) {
+  return type === "platform" || type === "org_admin" || type === "office_admin";
+}
+
+export function filterPortalContexts(contexts: LoginContext[]) {
+  return contexts.filter((item) => isPortalContextType(item.type));
+}
 
 export function isPortalAdmin(roles: string[] | undefined) {
   if (!roles?.length) return false;
@@ -55,6 +104,10 @@ export function isPortalAdmin(roles: string[] | undefined) {
     roles.includes(ROLE.OFFICE_ADMIN) ||
     roles.includes(ROLE.ADMIN)
   );
+}
+
+export function hasPortalContext(contexts: LoginContext[]) {
+  return filterPortalContexts(contexts).length > 0;
 }
 
 export function isSuperAdmin(roles: string[] | undefined) {

@@ -17,6 +17,14 @@ export function minutesToHours(minutes?: number | null) {
   return `${h}h ${m}m`;
 }
 
+/** Formats leave day totals that may be fractional (e.g. 3.5). */
+export function formatLeaveDays(value?: number | string | null) {
+  if (value == null || value === "") return "—";
+  const n = typeof value === "number" ? value : Number(value);
+  if (Number.isNaN(n)) return String(value);
+  return Number.isInteger(n) ? String(n) : n.toFixed(1).replace(/\.0$/, "");
+}
+
 export function employeeName(e?: { firstName?: string; lastName?: string } | null) {
   return e ? `${e.firstName ?? ""} ${e.lastName ?? ""}`.trim() : "—";
 }

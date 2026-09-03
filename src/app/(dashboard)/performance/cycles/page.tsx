@@ -8,7 +8,7 @@ import { Download } from "lucide-react";
 import { CompanyAdminGate } from "@/components/auth/role-gates";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
@@ -95,7 +95,6 @@ function CyclesInner() {
     <div className="space-y-6">
       <PageHeader
         title="Evaluation cycles"
-        description="Open a cycle for any date range. Employees are notified to self-score; office and company admins then evaluate."
         action={<Button onClick={() => setOpen(true)}>New cycle</Button>}
       />
       <p className="text-sm">
@@ -145,7 +144,6 @@ function CyclesInner() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
           <DialogTitle>Open evaluation cycle</DialogTitle>
-          <DialogDescription>Choose any date range. Presets only fill the dates — the cycle stores from and to.</DialogDescription>
           <form
             className="mt-4 space-y-4"
             onSubmit={(e) => {

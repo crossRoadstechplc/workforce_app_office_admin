@@ -8,6 +8,7 @@ import { employeeApi } from "@/features/employees/employee-api";
 import { inviteApi, type InviteRecord } from "@/features/invites/invite-api";
 import { PageHeader } from "@/components/layout/page-header";
 import { CreateEmployeeDialog } from "@/components/employees/create-employee-dialog";
+import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
 import { EmployeeTable } from "@/components/employees/employee-table";
 import { OfficeFilter } from "@/components/ops/office-filter";
 import { Card } from "@/components/ui/card";
@@ -37,6 +38,8 @@ function EmployeesPageInner() {
   const [status, setStatus] = useState("");
   const [officeId, setOfficeId] = useState("");
   const [page, setPage] = useState(1);
+  const [editing, setEditing] = useState<Employee | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
   const deferred = useDeferredValue(search);
 
   const query = useQuery({
@@ -77,6 +80,14 @@ function EmployeesPageInner() {
             : "Register employees, manage access, and review workforce assignments."
         }
         action={<CreateEmployeeDialog />}
+      />
+      <EmployeeFormDialog
+        open={editOpen}
+        onOpenChange={(v) => {
+          setEditOpen(v);
+          if (!v) setEditing(null);
+        }}
+        employee={editing}
       />
       {pendingInvites.length > 0 && (
         <Card className="p-4">
@@ -140,7 +151,13 @@ function EmployeesPageInner() {
           </div>
         ) : data?.items.length ? (
           <>
-            <EmployeeTable data={data.items} />
+            <EmployeeTable
+              data={data.items}
+              onEdit={(employee) => {
+                setEditing(employee);
+                setEditOpen(true);
+              }}
+            />
             <div className="flex items-center justify-between border-t p-4 text-sm">
               <p className="text-slate-500">{data.meta.total} employees</p>
               <div className="flex gap-2">

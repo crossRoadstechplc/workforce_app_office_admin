@@ -21,6 +21,18 @@ export const operationsApi = {
     d<AttendanceDayRoster>(await apiFetch<any>(`/admin/attendance/day-roster?${params}`)),
   attendanceMonthSummary: async (params: URLSearchParams) =>
     d<AttendanceMonthSummary>(await apiFetch<any>(`/admin/attendance/month-summary?${params}`)),
+  attendanceConfig: async () =>
+    d<{ photoRequiredEnabled: boolean; photoRequired: boolean; photosAvailable: boolean }>(
+      await apiFetch<any>("/admin/attendance/config")
+    ),
+  updateAttendanceConfig: async (input: { photoRequiredEnabled: boolean }) =>
+    d<{ photoRequiredEnabled: boolean; photoRequired: boolean; photosAvailable: boolean }>(
+      await apiFetch<any>("/admin/attendance/config", { method: "PATCH", body: JSON.stringify(input) })
+    ),
+  approveCorrectnessRequest: async (id: string, adminNote?: string) =>
+    d<any>(await apiFetch<any>(`/admin/attendance/correctness-requests/${id}/approve`, { method: "POST", body: JSON.stringify({ adminNote }) })),
+  rejectCorrectnessRequest: async (id: string, adminNote?: string) =>
+    d<any>(await apiFetch<any>(`/admin/attendance/correctness-requests/${id}/reject`, { method: "POST", body: JSON.stringify({ adminNote }) })),
   worksheets: async (params: URLSearchParams) => d<any>(await apiFetch<any>(`/admin/worksheets?${params}`)),
   worksheetDayRoster: async (params: URLSearchParams) =>
     d<WorksheetDayRoster>(await apiFetch<any>(`/admin/worksheets/day-roster?${params}`)),

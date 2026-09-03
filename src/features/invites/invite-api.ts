@@ -12,7 +12,7 @@ export type InvitePreview = {
   office: { id: string; name: string } | null;
   schedule: { id: string; name: string } | null;
   offices: string[];
-  payload: { employmentStartDate?: string; jobTitle?: string | null; department?: string | null } | null;
+  payload: { employmentStartDate?: string; jobTitle?: string | null; departmentId?: string | null; evaluationTemplateId?: string | null } | null;
 };
 
 export type InviteRecord = {
@@ -55,7 +55,8 @@ export const publicInviteApi = {
       lastName: string;
       phone?: string;
       jobTitle?: string;
-      department?: string;
+      departmentId?: string;
+      evaluationTemplateId?: string;
       employmentStartDate: string;
       employeeCode?: string;
       officeId?: string;
@@ -80,7 +81,8 @@ export const inviteApi = {
     scheduleId?: string;
     employmentStartDate?: string;
     jobTitle?: string;
-    department?: string;
+    departmentId?: string;
+    evaluationTemplateId?: string;
   }) =>
     apiFetch<{ invite: InviteRecord; emailSent: boolean; inviteId: string; emailError?: string }>("/admin/employees/invites", {
       method: "POST",

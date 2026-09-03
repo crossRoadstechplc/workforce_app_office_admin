@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { KeyRound, Plus, Power } from "lucide-react";
+import { KeyRound, Pencil, Plus, Power } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { InviteDeliveryFields, type InviteDeliveryMethod } from "@/components/in
 import { configurationApi, itemsOf } from "@/features/configuration/configuration-api";
 import { inviteApi } from "@/features/invites/invite-api";
 import { officeAdminApi } from "@/features/office-admins/office-admin-api";
+import type { OfficeAdminUser } from "@/features/office-admins/office-admin-api";
 
 export default function OfficeAdminsPage() {
   return (
@@ -34,6 +35,9 @@ function OfficeAdminsInner() {
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [delivery, setDelivery] = useState<InviteDeliveryMethod>("SHOW_PASSWORD");
   const [inviteResult, setInviteResult] = useState<{ emailSent: boolean; inviteId?: string; emailError?: string } | null>(null);
+  const [editing, setEditing] = useState<OfficeAdminUser | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editOfficeIds, setEditOfficeIds] = useState<string[]>([]);
 
   const officesQ = useQuery({ queryKey: ["offices", "all"], queryFn: () => configurationApi.offices() });
   const adminsQ = useQuery({ queryKey: ["office-admins"], queryFn: () => officeAdminApi.list() });
@@ -83,6 +87,26 @@ function OfficeAdminsInner() {
     },
     onError: (e: Error) => toast.error(e.message)
   });
+
+  const updateOffices = useMutation({
+    mutationFn: () => {
+      if (!editing) throw new Error("No admin selected");
+      return officeAdminApi.updateOffices(editing.id, editOfficeIds);
+    },
+    onSuccess: () => {
+      toast.success("Office assignments updated");
+      setEditOpen(false);
+      setEditing(null);
+      void qc.invalidateQueries({ queryKey: ["office-admins"] });
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
+
+  function editAdmin(admin: OfficeAdminUser) {
+    setEditing(admin);
+    setEditOfficeIds(admin.adminOffices.map((x) => x.office.id));
+    setEditOpen(true);
+  }
 
   if (officesQ.isLoading || adminsQ.isLoading) return <PageSkeleton />;
 
@@ -189,6 +213,46 @@ function OfficeAdminsInner() {
 
       {tempPassword && !open && <CopyValue label="Latest temporary password" value={tempPassword} tone="amber" />}
 
+      <Dialog
+        open={editOpen}
+        onOpenChange={(v) => {
+          setEditOpen(v);
+          if (!v) setEditing(null);
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogTitle>Edit office assignments</DialogTitle>
+          <DialogDescription>
+            {editing ? `Update which offices ${editing.email} can manage.` : "Select offices for this administrator."}
+          </DialogDescription>
+          <div className="mt-5 space-y-1.5">
+            <Label>Assigned offices</Label>
+            <div className="max-h-48 space-y-2 overflow-y-auto rounded-md border p-3">
+              {offices.map((o) => (
+                <label key={o.id} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={editOfficeIds.includes(o.id)}
+                    onChange={(e) => {
+                      setEditOfficeIds((prev) => (e.target.checked ? [...prev, o.id] : prev.filter((id) => id !== o.id)));
+                    }}
+                  />
+                  {o.name}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="mt-6 flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setEditOpen(false)}>
+              Cancel
+            </Button>
+            <Button disabled={updateOffices.isPending || editOfficeIds.length === 0} onClick={() => updateOffices.mutate()}>
+              {updateOffices.isPending ? "Saving..." : "Save changes"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <TableShell>
         <table className="min-w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-500">
@@ -209,6 +273,10 @@ function OfficeAdminsInner() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" onClick={() => editAdmin(a)}>
+                      <Pencil className="size-4" />
+                      Edit
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"

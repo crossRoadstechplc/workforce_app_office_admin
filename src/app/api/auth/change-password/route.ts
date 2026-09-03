@@ -16,7 +16,8 @@ export async function POST(request: Request) {
   const result = NextResponse.json({
     accessToken: data.accessToken,
     mustChangePassword: data.mustChangePassword,
-    user: data.user
+    user: data.user,
+    activeContext: data.activeContext
   });
   result.cookies.set("workforce_refresh", data.refreshToken, {
     httpOnly: true,

@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Bell, ChevronDown, PanelLeft, PanelLeftClose } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dropdown, DropdownContent, DropdownItem, DropdownTrigger } from "@/components/ui/dropdown-menu";
+import { ContextSwitcher } from "@/features/auth/context-switcher";
 import { useAuth } from "@/features/auth/auth-provider";
 import { notificationApi } from "@/features/notifications/notification-api";
 import { roleLabel } from "@/features/navigation/role-nav";
@@ -12,7 +13,7 @@ import { MobileNav } from "./mobile-nav";
 import { useSidebar } from "./sidebar-context";
 
 export function Header() {
-  const { user, logout, isSuperAdmin, isOfficeAdmin } = useAuth();
+  const { user, logout, isSuperAdmin, portalContexts, switchContext, contextSwitching } = useAuth();
   const { collapsed, toggle } = useSidebar();
   const initials = user?.email.slice(0, 2).toUpperCase() ?? "AD";
 
@@ -26,9 +27,7 @@ export function Header() {
 
   const contextLabel = isSuperAdmin
     ? "SaaS control plane"
-    : isOfficeAdmin
-      ? user?.offices?.map((o) => o.name).join(", ") || "Assigned offices"
-      : user?.organization?.name ?? "Workforce operations";
+    : user?.organization?.name ?? user?.offices?.map((o) => o.name).join(", ") ?? "Workforce operations";
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b bg-white/95 px-4 backdrop-blur lg:px-6">
@@ -42,9 +41,18 @@ export function Header() {
         >
           {collapsed ? <PanelLeft className="size-5" /> : <PanelLeftClose className="size-5" />}
         </Button>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-slate-950">{contextLabel}</p>
-          <p className="truncate text-xs text-slate-500">{roleLabel(user?.roles)}</p>
+        <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+          <ContextSwitcher
+            contexts={portalContexts}
+            activeContextKey={user?.activeContext?.key}
+            onSwitch={switchContext}
+            switching={contextSwitching}
+            compact
+          />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-slate-950">{contextLabel}</p>
+            <p className="truncate text-xs text-slate-500">{roleLabel(user?.roles)}</p>
+          </div>
         </div>
       </div>
       <div className="flex items-center gap-1 sm:gap-2">

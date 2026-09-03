@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CopyValue } from "@/components/ui/copy-value";
+import { EmployeeAssignmentSelects } from "@/components/employees/employee-form-dialog";
 import { SupervisorSelect } from "@/components/employees/supervisor-select";
 
 type CreateResult = { temporaryPassword: string; employeeCode: string };
@@ -23,6 +24,8 @@ export function CreateEmployeeDialog() {
   const qc = useQueryClient();
   const offices = useQuery({ queryKey: ["offices", "select"], queryFn: employeeApi.offices, enabled: open });
   const schedules = useQuery({ queryKey: ["schedules", "select"], queryFn: employeeApi.schedules, enabled: open });
+  const departments = useQuery({ queryKey: ["departments", "select"], queryFn: employeeApi.departments, enabled: open });
+  const evaluationTemplates = useQuery({ queryKey: ["evaluation-templates", "select"], queryFn: employeeApi.evaluationTemplates, enabled: open });
   const mutation = useMutation({
     mutationFn: employeeApi.create,
     onSuccess: (r) => {
@@ -62,7 +65,8 @@ export function CreateEmployeeDialog() {
       lastName: String(f.get("lastName")),
       phone: String(f.get("phone") || "") || undefined,
       jobTitle: String(f.get("jobTitle") || "") || undefined,
-      department: String(f.get("department") || "") || undefined,
+      departmentId: String(f.get("departmentId") || "") || undefined,
+      evaluationTemplateId: String(f.get("evaluationTemplateId") || "") || undefined,
       employmentStartDate: String(f.get("employmentStartDate")),
       officeId: String(f.get("officeId") || "") || undefined,
       scheduleId: String(f.get("scheduleId") || "") || undefined,
@@ -79,7 +83,8 @@ export function CreateEmployeeDialog() {
       scheduleId: String(f.get("scheduleId") || "") || undefined,
       employmentStartDate: String(f.get("employmentStartDate") || "") || undefined,
       jobTitle: String(f.get("jobTitle") || "") || undefined,
-      department: String(f.get("department") || "") || undefined
+      departmentId: String(f.get("departmentId") || "") || undefined,
+      evaluationTemplateId: String(f.get("evaluationTemplateId") || "") || undefined
     });
   }
 
@@ -166,9 +171,8 @@ export function CreateEmployeeDialog() {
                 <Field label="Middle name" name="middleName" />
                 <Field label="Phone" name="phone" />
                 <Field label="Job title" name="jobTitle" />
-                <Field label="Department" name="department" />
                 <Field label="Start date" name="employmentStartDate" type="date" required />
-                <OfficeScheduleSelects offices={offices.data} schedules={schedules.data} />
+                <EmployeeAssignmentSelects offices={offices.data} schedules={schedules.data} departments={departments.data} evaluationTemplates={evaluationTemplates.data} />
                 <div className="sm:col-span-2">
                   <SupervisorSelect value="" />
                 </div>
@@ -186,8 +190,7 @@ export function CreateEmployeeDialog() {
                 <Field label="Email" name="email" type="email" required />
                 <Field label="Start date" name="employmentStartDate" type="date" />
                 <Field label="Job title" name="jobTitle" />
-                <Field label="Department" name="department" />
-                <OfficeScheduleSelects offices={offices.data} schedules={schedules.data} />
+                <EmployeeAssignmentSelects offices={offices.data} schedules={schedules.data} departments={departments.data} evaluationTemplates={evaluationTemplates.data} />
                 <p className="text-xs text-slate-500 sm:col-span-2">
                   The employee opens a form from the email, fills the rest of their details, and chooses a password.
                 </p>
@@ -205,41 +208,6 @@ export function CreateEmployeeDialog() {
         )}
       </DialogContent>
     </Dialog>
-  );
-}
-
-function OfficeScheduleSelects({
-  offices,
-  schedules
-}: {
-  offices?: { id: string; name: string }[];
-  schedules?: { id: string; name: string }[];
-}) {
-  return (
-    <>
-      <div>
-        <Label htmlFor="officeId">Office</Label>
-        <select id="officeId" name="officeId" className="h-10 w-full rounded-lg border bg-white px-3 text-sm">
-          <option value="">Unassigned</option>
-          {offices?.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <Label htmlFor="scheduleId">Schedule</Label>
-        <select id="scheduleId" name="scheduleId" className="h-10 w-full rounded-lg border bg-white px-3 text-sm">
-          <option value="">Unassigned</option>
-          {schedules?.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-      </div>
-    </>
   );
 }
 

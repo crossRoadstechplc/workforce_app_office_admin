@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { ContextPicker } from "@/features/auth/context-switcher";
 import { useAuth } from "@/features/auth/auth-provider";
 import { homePathForRoles } from "@/features/navigation/role-nav";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 
 export default function LoginPage() {
-  const { login, status, user } = useAuth();
+  const { login, selectContext, cancelContextSelection, status, user, pendingContext } = useAuth();
   const router = useRouter();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -33,6 +34,61 @@ export default function LoginPage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function chooseContext(contextKey: string) {
+    setBusy(true);
+    try {
+      await selectContext(contextKey);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not continue");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (status === "selectContext" && pendingContext) {
+    return (
+      <main className="grid min-h-screen lg:grid-cols-[1.05fr_.95fr]">
+        <section className="hidden bg-slate-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+          <div className="flex items-center gap-3 text-lg font-semibold">
+            <div className="rounded-lg bg-blue-600 p-2">
+              <ShieldCheck className="size-5" />
+            </div>
+            Workforce Control
+          </div>
+          <div className="max-w-xl">
+            <p className="text-sm font-medium uppercase tracking-[.2em] text-blue-300">Choose your workspace</p>
+            <h1 className="mt-4 text-4xl font-semibold leading-tight">Sign in with the role that matches what you need to do.</h1>
+          </div>
+          <p className="text-sm text-slate-500">You can switch roles any time from the header.</p>
+        </section>
+
+        <section className="flex items-center justify-center p-6">
+          <div className="w-full max-w-md">
+            <Button
+              type="button"
+              variant="ghost"
+              className="mb-4 px-0 text-slate-500"
+              onClick={cancelContextSelection}
+            >
+              <ArrowLeft className="mr-2 size-4" />
+              Back to sign in
+            </Button>
+            <h2 className="text-3xl font-semibold tracking-tight">How are you signing in?</h2>
+            <p className="mt-2 text-sm text-slate-500">Your account has access to more than one admin role.</p>
+            <div className="mt-8">
+              <ContextPicker
+                contexts={pendingContext.contexts}
+                defaultContextKey={pendingContext.defaultContextKey}
+                busy={busy}
+                onSelect={(contextKey) => void chooseContext(contextKey)}
+              />
+            </div>
+          </div>
+        </section>
+      </main>
+    );
   }
 
   return (

@@ -40,7 +40,8 @@ function EmployeeInviteInner() {
     return {
       employmentStartDate: payload?.employmentStartDate ?? "",
       jobTitle: payload?.jobTitle ?? "",
-      department: payload?.department ?? ""
+      departmentId: payload?.departmentId ?? "",
+      evaluationTemplateId: payload?.evaluationTemplateId ?? ""
     };
   }, [invite.data]);
 
@@ -68,7 +69,8 @@ function EmployeeInviteInner() {
         middleName: String(f.get("middleName") || "") || undefined,
         phone: String(f.get("phone") || "") || undefined,
         jobTitle: String(f.get("jobTitle") || "") || undefined,
-        department: String(f.get("department") || "") || undefined,
+        departmentId: defaults.departmentId || undefined,
+        evaluationTemplateId: defaults.evaluationTemplateId || undefined,
         employmentStartDate: String(f.get("employmentStartDate")),
         employeeCode: String(f.get("employeeCode") || "") || undefined,
         officeId: invite.data?.office?.id,
@@ -171,7 +173,6 @@ function EmployeeInviteInner() {
             <Field label="Middle name" name="middleName" />
             <Field label="Phone" name="phone" />
             <Field label="Job title" name="jobTitle" defaultValue={defaults.jobTitle ?? ""} />
-            <Field label="Department" name="department" defaultValue={defaults.department ?? ""} />
             <Field label="Start date" name="employmentStartDate" type="date" required defaultValue={defaults.employmentStartDate} />
             <Field label="Employee code" name="employeeCode" placeholder="Leave blank to auto-generate" />
             <div>

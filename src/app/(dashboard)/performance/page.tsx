@@ -4,7 +4,8 @@ import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { FileBarChart2, Search, Settings2 } from "lucide-react";
+import { FileBarChart2, Plus, Search, Settings2 } from "lucide-react";
+import { NewEvaluationDialog } from "@/components/performance/new-evaluation-dialog";
 import { TenantOpsGate } from "@/components/auth/role-gates";
 import { OfficeFilter } from "@/components/ops/office-filter";
 import { OpsSummaryStrip } from "@/components/ops/ops-summary-strip";
@@ -40,6 +41,7 @@ function PerformanceQueue() {
   const [search, setSearch] = useState("");
   const [myReports, setMyReports] = useState(false);
   const [page, setPage] = useState(1);
+  const [newOpen, setNewOpen] = useState(false);
   const employeeId = searchParams.get("employeeId") ?? "";
 
   const params = useMemo(() => {
@@ -65,24 +67,29 @@ function PerformanceQueue() {
     <div className="space-y-6">
       <PageHeader
         title={isOfficeAdmin ? "Office performance" : "Performance"}
-        description="Internal evaluations by date range. Employees self-score in the app; office and company admins complete evaluator scores here."
         action={
-          !isOfficeAdmin ? (
-            <div className="flex gap-2">
-              <Button variant="outline" asChild>
-                <Link href="/performance/templates">
-                  <Settings2 className="size-4" />
-                  Templates
-                </Link>
-              </Button>
-              <Button asChild>
-                <Link href="/performance/cycles">
-                  <FileBarChart2 className="size-4" />
-                  Cycles
-                </Link>
-              </Button>
-            </div>
-          ) : undefined
+          <div className="flex gap-2">
+            {!isOfficeAdmin ? (
+              <>
+                <Button onClick={() => setNewOpen(true)}>
+                  <Plus className="size-4" />
+                  New evaluation
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href="/performance/templates">
+                    <Settings2 className="size-4" />
+                    Templates
+                  </Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/performance/cycles">
+                    <FileBarChart2 className="size-4" />
+                    Cycles
+                  </Link>
+                </Button>
+              </>
+            ) : null}
+          </div>
         }
       />
 
@@ -154,8 +161,8 @@ function PerformanceQueue() {
                 <td className="px-4 py-3 font-mono text-xs">{row.number}</td>
                 <td className="px-4 py-3">{formatDate(row.cycle.periodStart)} – {formatDate(row.cycle.periodEnd)}</td>
                 <td className="px-4 py-3">{row.employee.supervisor?.name ?? "—"}</td>
-                <td className="px-4 py-3">{row.overallSelf ?? "—"}</td>
-                <td className="px-4 py-3">{row.overallEvaluator ?? "—"}</td>
+                <td className="px-4 py-3">{row.overallSelf == null ? "—" : `${row.overallSelf}/50`}</td>
+                <td className="px-4 py-3">{row.overallEvaluator == null ? "—" : `${row.overallEvaluator}/50`}</td>
                 <td className="px-4 py-3"><StatusBadge status={row.status} /></td>
                 <td className="px-4 py-3">
                   <Button variant="ghost" size="sm" asChild>
@@ -174,6 +181,7 @@ function PerformanceQueue() {
           </tbody>
         </table>
       </TableShell>
+      <NewEvaluationDialog open={newOpen} onOpenChange={setNewOpen} />
       {meta && meta.totalPages > 1 && (
         <div className="flex items-center justify-end gap-2">
           <Button size="sm" variant="ghost" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>

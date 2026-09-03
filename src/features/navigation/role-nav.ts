@@ -76,9 +76,20 @@ const companySections: NavSection[] = [
     items: [{ label: "Dashboard", href: "/dashboard", icon: LayoutDashboard }]
   },
   {
-    title: "Workforce",
+    title: "Company setup",
     items: [
       { label: "Employees", href: "/employees", icon: Users },
+      { label: "Offices", href: "/offices", icon: Building2 },
+      { label: "Schedules", href: "/schedules", icon: BookOpenCheck },
+      { label: "Departments", href: "/departments", icon: Building },
+      { label: "Evaluation templates", href: "/performance/templates", icon: ClipboardCheck },
+      { label: "Office Admins", href: "/office-admins", icon: UserSquare2 },
+      { label: "Private vault", href: "/vault", icon: Lock }
+    ]
+  },
+  {
+    title: "Workforce",
+    items: [
       { label: "Attendance", href: "/attendance", icon: Clock3 },
       { label: "Worksheets", href: "/worksheets", icon: ClipboardList },
       { label: "Leave", href: "/leave", icon: CalendarClock },
@@ -98,15 +109,6 @@ const companySections: NavSection[] = [
     items: [{ label: "Reports", href: "/reports", icon: FileBarChart2 }]
   },
   {
-    title: "Company setup",
-    items: [
-      { label: "Offices", href: "/offices", icon: Building2 },
-      { label: "Schedules", href: "/schedules", icon: BookOpenCheck },
-      { label: "Office Admins", href: "/office-admins", icon: UserSquare2 },
-      { label: "Private vault", href: "/vault", icon: Lock }
-    ]
-  },
-  {
     title: "System",
     items: [
       { label: "Notifications", href: "/notifications", icon: Bell },
@@ -121,7 +123,7 @@ const officeSections: NavSection[] = [
     items: [{ label: "Dashboard", href: "/dashboard", icon: LayoutDashboard }]
   },
   {
-    title: "My offices",
+    title: "Workforce",
     items: [
       { label: "Employees", href: "/employees", icon: Users },
       { label: "Attendance", href: "/attendance", icon: Clock3 },
@@ -153,7 +155,7 @@ export function navSectionsForRoles(roles: string[] | undefined): NavSection[] {
 
 /** Paths each portal role may access (prefix match). */
 const platformPaths = ["/platform", "/organizations", "/org-admins", "/audit", "/notifications"];
-const companyOnlyPaths = ["/offices", "/schedules", "/office-admins", "/performance/templates", "/performance/cycles", "/meetings", "/vault"];
+const companyOnlyPaths = ["/offices", "/schedules", "/departments", "/office-admins", "/performance/templates", "/performance/cycles", "/meetings", "/vault"];
 const tenantOpsPaths = ["/dashboard", "/employees", "/attendance", "/worksheets", "/leave", "/performance", "/reports", "/notifications", "/audit"];
 
 export function isPathAllowed(pathname: string, roles: string[] | undefined): boolean {

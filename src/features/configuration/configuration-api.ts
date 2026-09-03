@@ -1,5 +1,5 @@
 import { apiFetch } from "@/lib/api/api-client";
-import type { Office,Schedule,Paged } from "@/types/configuration";
+import type { Office,Schedule,Department,Paged } from "@/types/configuration";
 const unwrap=<T>(v:any):T=>(v?.data??v) as T;
 export const configurationApi={
  offices:async(params=new URLSearchParams({page:"1",pageSize:"100"}))=>unwrap<Paged<Office>|Office[]>(await apiFetch<any>(`/admin/offices?${params}`)),
@@ -11,6 +11,11 @@ export const configurationApi={
  schedule:async(id:string)=>unwrap<Schedule>(await apiFetch<any>(`/admin/schedules/${id}`)),
  createSchedule:async(input:Partial<Schedule>)=>unwrap<Schedule>(await apiFetch<any>("/admin/schedules",{method:"POST",body:JSON.stringify(input)})),
  updateSchedule:async(id:string,input:Partial<Schedule>)=>unwrap<Schedule>(await apiFetch<any>(`/admin/schedules/${id}`,{method:"PATCH",body:JSON.stringify(input)})),
- scheduleStatus:async(id:string,isActive:boolean,reason:string)=>unwrap<Schedule>(await apiFetch<any>(`/admin/schedules/${id}/status`,{method:"PATCH",body:JSON.stringify({isActive,reason})}))
+ scheduleStatus:async(id:string,isActive:boolean,reason:string)=>unwrap<Schedule>(await apiFetch<any>(`/admin/schedules/${id}/status`,{method:"PATCH",body:JSON.stringify({isActive,reason})})),
+ departments:async(params=new URLSearchParams({page:"1",pageSize:"100"}))=>unwrap<Paged<Department>|Department[]>(await apiFetch<any>(`/admin/departments?${params}`)),
+ department:async(id:string)=>unwrap<Department>(await apiFetch<any>(`/admin/departments/${id}`)),
+ createDepartment:async(input:Partial<Department>)=>unwrap<Department>(await apiFetch<any>("/admin/departments",{method:"POST",body:JSON.stringify(input)})),
+ updateDepartment:async(id:string,input:Partial<Department>)=>unwrap<Department>(await apiFetch<any>(`/admin/departments/${id}`,{method:"PATCH",body:JSON.stringify(input)})),
+ departmentStatus:async(id:string,isActive:boolean,reason:string)=>unwrap<Department>(await apiFetch<any>(`/admin/departments/${id}/status`,{method:"PATCH",body:JSON.stringify({isActive,reason})}))
 };
 export function itemsOf<T>(value:Paged<T>|T[]):T[]{return Array.isArray(value)?value:value.items??[]}
