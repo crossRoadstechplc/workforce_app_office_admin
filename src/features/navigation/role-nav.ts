@@ -17,6 +17,7 @@ import {
   UserCog,
   UserSquare2,
   Lock,
+  ListTodo,
   type LucideIcon
 } from "lucide-react";
 import { isOfficeAdmin, isOrgAdmin, isSuperAdmin, ROLE } from "@/types/auth";
@@ -76,6 +77,16 @@ const companySections: NavSection[] = [
     items: [{ label: "Dashboard", href: "/dashboard", icon: LayoutDashboard }]
   },
   {
+    title: "Workforce",
+    items: [
+      { label: "Attendance", href: "/attendance", icon: Clock3 },
+      { label: "Worksheets", href: "/worksheets", icon: ClipboardList },
+      { label: "Leave", href: "/leave", icon: CalendarClock },
+      { label: "Performance", href: "/performance", icon: ClipboardCheck },
+      { label: "Task Operations", href: "/task-operations", icon: ListTodo }
+    ]
+  },
+  {
     title: "Company setup",
     items: [
       { label: "Employees", href: "/employees", icon: Users },
@@ -84,16 +95,8 @@ const companySections: NavSection[] = [
       { label: "Departments", href: "/departments", icon: Building },
       { label: "Evaluation templates", href: "/performance/templates", icon: ClipboardCheck },
       { label: "Office Admins", href: "/office-admins", icon: UserSquare2 },
-      { label: "Private vault", href: "/vault", icon: Lock }
-    ]
-  },
-  {
-    title: "Workforce",
-    items: [
-      { label: "Attendance", href: "/attendance", icon: Clock3 },
-      { label: "Worksheets", href: "/worksheets", icon: ClipboardList },
-      { label: "Leave", href: "/leave", icon: CalendarClock },
-      { label: "Performance", href: "/performance", icon: ClipboardCheck }
+      { label: "Private vault", href: "/vault", icon: Lock },
+      { label: "Task Operations setup", href: "/task-operations/settings", icon: ListTodo }
     ]
   },
   {
@@ -129,7 +132,8 @@ const officeSections: NavSection[] = [
       { label: "Attendance", href: "/attendance", icon: Clock3 },
       { label: "Worksheets", href: "/worksheets", icon: ClipboardList },
       { label: "Leave", href: "/leave", icon: CalendarClock },
-      { label: "Performance", href: "/performance", icon: ClipboardCheck }
+      { label: "Performance", href: "/performance", icon: ClipboardCheck },
+      { label: "Task Operations", href: "/task-operations", icon: ListTodo }
     ]
   },
   {
@@ -155,8 +159,8 @@ export function navSectionsForRoles(roles: string[] | undefined): NavSection[] {
 
 /** Paths each portal role may access (prefix match). */
 const platformPaths = ["/platform", "/organizations", "/org-admins", "/audit", "/notifications"];
-const companyOnlyPaths = ["/offices", "/schedules", "/departments", "/office-admins", "/performance/templates", "/performance/cycles", "/meetings", "/vault"];
-const tenantOpsPaths = ["/dashboard", "/employees", "/attendance", "/worksheets", "/leave", "/performance", "/reports", "/notifications", "/audit"];
+const companyOnlyPaths = ["/offices", "/schedules", "/departments", "/office-admins", "/performance/templates", "/performance/cycles", "/meetings", "/vault", "/task-operations/settings"];
+const tenantOpsPaths = ["/dashboard", "/employees", "/attendance", "/worksheets", "/leave", "/performance", "/reports", "/notifications", "/audit", "/task-operations"];
 
 export function isPathAllowed(pathname: string, roles: string[] | undefined): boolean {
   const kind = resolvePortalRole(roles);
