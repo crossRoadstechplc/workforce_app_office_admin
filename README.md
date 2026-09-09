@@ -1,6 +1,6 @@
 # Workforce Control — Admin / CEO Portal
 
-Production-oriented Next.js admin application for the workforce backend.
+Production-oriented Next.js admin application for the workforce backe.
 
 ## Stack
 - Next.js App Router + TypeScript
