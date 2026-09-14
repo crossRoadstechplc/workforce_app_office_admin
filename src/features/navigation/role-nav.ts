@@ -77,6 +77,19 @@ const companySections: NavSection[] = [
     items: [{ label: "Dashboard", href: "/dashboard", icon: LayoutDashboard }]
   },
   {
+    title: "Company setup",
+    items: [
+      { label: "Offices", href: "/offices", icon: Building2 },
+      { label: "Schedules", href: "/schedules", icon: BookOpenCheck },
+      { label: "Departments", href: "/departments", icon: Building },
+      { label: "Employees", href: "/employees", icon: Users },
+      { label: "Evaluation templates", href: "/performance/templates", icon: ClipboardCheck },
+      { label: "Office Admins", href: "/office-admins", icon: UserSquare2 },
+      { label: "Private vault", href: "/vault", icon: Lock },
+      { label: "Task Operations setup", href: "/task-operations/settings", icon: ListTodo }
+    ]
+  },
+  {
     title: "Workforce",
     items: [
       { label: "Attendance", href: "/attendance", icon: Clock3 },
@@ -84,19 +97,6 @@ const companySections: NavSection[] = [
       { label: "Leave", href: "/leave", icon: CalendarClock },
       { label: "Performance", href: "/performance", icon: ClipboardCheck },
       { label: "Task Operations", href: "/task-operations", icon: ListTodo }
-    ]
-  },
-  {
-    title: "Company setup",
-    items: [
-      { label: "Employees", href: "/employees", icon: Users },
-      { label: "Offices", href: "/offices", icon: Building2 },
-      { label: "Schedules", href: "/schedules", icon: BookOpenCheck },
-      { label: "Departments", href: "/departments", icon: Building },
-      { label: "Evaluation templates", href: "/performance/templates", icon: ClipboardCheck },
-      { label: "Office Admins", href: "/office-admins", icon: UserSquare2 },
-      { label: "Private vault", href: "/vault", icon: Lock },
-      { label: "Task Operations setup", href: "/task-operations/settings", icon: ListTodo }
     ]
   },
   {

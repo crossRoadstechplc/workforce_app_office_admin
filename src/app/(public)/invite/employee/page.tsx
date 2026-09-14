@@ -3,8 +3,9 @@
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, ShieldCheck, UserPlus } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { EmployeeSetupComplete } from "@/components/invites/employee-setup-complete";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -117,28 +118,11 @@ function EmployeeInviteInner() {
 
   if (result) {
     return (
-      <main className="grid min-h-screen place-items-center p-6">
-        <div className="w-full max-w-md rounded-2xl border bg-white p-8">
-          <div className="mb-4 inline-flex rounded-xl bg-blue-100 p-3 text-blue-800">
-            <UserPlus className="size-5" />
-          </div>
-          <h1 className="text-2xl font-semibold">You are set up</h1>
-          <p className="mt-2 text-sm text-slate-500">
-            Sign in on the employee app with your email or employee code
-            {result.existingAccount ? " and your existing password." : " and the password you just chose."}
-          </p>
-          <dl className="mt-6 space-y-3 text-sm">
-            <div>
-              <dt className="text-slate-500">Email</dt>
-              <dd className="font-medium">{result.email}</dd>
-            </div>
-            <div>
-              <dt className="text-slate-500">Employee code</dt>
-              <dd className="font-mono font-medium">{result.employeeCode}</dd>
-            </div>
-          </dl>
-        </div>
-      </main>
+      <EmployeeSetupComplete
+        email={result.email}
+        employeeCode={result.employeeCode}
+        existingAccount={result.existingAccount}
+      />
     );
   }
 

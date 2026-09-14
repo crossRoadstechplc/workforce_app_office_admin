@@ -4,9 +4,17 @@
 - `NEXT_PUBLIC_API_BASE_URL=https://api.example.com/api/v1`
 - `BACKEND_API_BASE_URL=https://api.example.com/api/v1`
 - `NEXT_PUBLIC_SOCKET_BASE_URL=https://api.example.com`
+- `NEXT_PUBLIC_TASK_TRACKER_URL=https://your-task-tracker.vercel.app`
+- `NEXT_PUBLIC_EMPLOYEE_WEB_URL=https://your-employee-app.web.app`
+- `NEXT_PUBLIC_EMPLOYEE_APP_STORE_URL=https://apps.apple.com/app/idXXXXXXXX` (optional until listed)
+- `NEXT_PUBLIC_EMPLOYEE_PLAY_STORE_URL=https://play.google.com/store/apps/details?id=workforce.app` (optional until listed)
+- `NEXT_PUBLIC_EMPLOYEE_APP_SCHEME=workforce` (must match native URL scheme)
+- `NEXT_PUBLIC_EMPLOYEE_ANDROID_PACKAGE=workforce.app`
 - `NODE_ENV=production`
 
 The API and Socket.IO URLs must use HTTPS in production.
+`NEXT_PUBLIC_TASK_TRACKER_URL` is the public SPX Task Tracker origin (Continue handoff). Redeploy the portal after changing it.
+`NEXT_PUBLIC_EMPLOYEE_*` powers the invite success screen (Open app / Get the app / Continue on web).
 
 ## Quality gate
 ```bash
