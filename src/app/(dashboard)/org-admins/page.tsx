@@ -219,11 +219,16 @@ function OrgAdminsInner() {
           </TableHead>
           <TableBody>
             {admins.map((a) => {
-              const org = a.memberships?.[0]?.organization;
+              const orgs = (a.adminOrganizations?.length ? a.adminOrganizations : a.memberships ?? [])
+                .map((entry) => entry.organization)
+                .filter(Boolean);
+              const orgLabel = orgs.length
+                ? orgs.map((org) => `${org.name} (${org.slug})`).join(", ")
+                : "—";
               return (
                 <TableRow key={a.id}>
                   <Td className="font-medium">{a.email}</Td>
-                  <Td>{org ? `${org.name} (${org.slug})` : "—"}</Td>
+                  <Td>{orgLabel}</Td>
                   <Td>
                     <StatusBadge status={a.status} />
                   </Td>

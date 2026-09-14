@@ -20,6 +20,7 @@ export type PlatformOrgAdmin = {
   mustChangePassword: boolean;
   createdAt?: string;
   memberships: { organization: { id: string; name: string; slug: string; isActive: boolean } }[];
+  adminOrganizations?: { organization: { id: string; name: string; slug: string; isActive: boolean } }[];
   userRoles: { role: { name: string } }[];
 };
 
@@ -63,6 +64,10 @@ export const platformApi = {
     apiFetch<{ userId: string; temporaryPassword: string }>(`/platform/org-admins/${userId}/reset-password`, {
       method: "POST",
       body: JSON.stringify({ reason })
+    }),
+  unassignOrgAdmin: (organizationId: string, userId: string) =>
+    apiFetch<{ userId: string; organizationId: string }>(`/platform/organizations/${organizationId}/admins/${userId}`, {
+      method: "DELETE"
     }),
   itemsOf
 };

@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { operationsApi } from "@/features/operations/operations-api";
 import { employeeName, formatDate, formatDateTime, formatLeaveDays } from "@/lib/utils/format";
 import type { LeaveRequest } from "@/types/operations";
+import { AnnualLeaveSummary } from "@/components/leave/annual-leave-summary";
 
 export default function LeavePage() {
   return (
@@ -139,7 +140,7 @@ function LeavePageInner() {
         <Table>
           <TableHead>
             <tr>
-              {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Type", "Dates", "Days", "Reason", "Status", ""].map((h) => (
+              {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Type", "Dates", "Days", "Remaining", "Reason", "Status", ""].map((h) => (
                 <Th key={h || "actions"}>{h}</Th>
               ))}
             </tr>
@@ -157,6 +158,7 @@ function LeavePageInner() {
                   {formatDate(row.startDate)} – {formatDate(row.endDate)}
                 </Td>
                 <Td className="tabular-nums">{formatLeaveDays(row.numberOfDays)}</Td>
+                <Td className="tabular-nums">{row.annualLeave ? formatLeaveDays(row.annualLeave.available) : "—"}</Td>
                 <Td className="max-w-xs truncate text-slate-600">{row.reason}</Td>
                 <Td>
                   <StatusBadge status={row.status} />
@@ -169,7 +171,7 @@ function LeavePageInner() {
               </TableRow>
             ))}
             {!items.length && (
-              <TableEmpty colSpan={showOfficeFilter ? 8 : 7}>
+              <TableEmpty colSpan={showOfficeFilter ? 9 : 8}>
                 {status === "PENDING" ? "No pending leave requests." : "No leave requests match this filter."}
               </TableEmpty>
             )}
@@ -202,6 +204,7 @@ function LeavePageInner() {
                 <Info l="Days" v={formatLeaveDays(d.numberOfDays)} />
                 <Info l="Status" v={d.status} />
               </div>
+              {d.annualLeave ? <AnnualLeaveSummary balance={d.annualLeave} allocations={d.allocations} /> : null}
               <div className="rounded-xl bg-slate-50 p-4">
                 <div className="text-xs font-semibold uppercase text-slate-500">Employee reason</div>
                 <p className="mt-2 text-sm leading-6">{d.reason}</p>

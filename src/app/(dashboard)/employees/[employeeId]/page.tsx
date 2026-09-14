@@ -17,6 +17,7 @@ import { TenantOpsGate } from "@/components/auth/role-gates";
 import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
 import { SupervisorSelect } from "@/components/employees/supervisor-select";
 import { employeeName } from "@/lib/utils/format";
+import { AnnualLeaveSummary } from "@/components/leave/annual-leave-summary";
 
 export default function EmployeeDetailPage({ params }: { params: Promise<{ employeeId: string }> }) {
   return (
@@ -30,6 +31,10 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
   const { employeeId } = use(params);
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["employee", employeeId], queryFn: () => employeeApi.get(employeeId) });
+  const leaveBalance = useQuery({
+    queryKey: ["employee-leave-balance", employeeId],
+    queryFn: () => employeeApi.leaveBalance(employeeId)
+  });
   const [action, setAction] = useState<"status" | "password" | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -155,6 +160,28 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
           </CardContent>
         </Card>
       </div>
+      <div className="mt-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Annual leave</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {leaveBalance.isLoading ? <Skeleton className="h-40" /> : <AnnualLeaveSummary balance={leaveBalance.data} />}
+            <LeaveAdjustForm
+              busy={false}
+              onSubmit={async (days, note) => {
+                try {
+                  await employeeApi.adjustLeaveBalance(employeeId, { days, note });
+                  toast.success("Leave balance updated");
+                  qc.invalidateQueries({ queryKey: ["employee-leave-balance", employeeId] });
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Could not adjust leave");
+                }
+              }}
+            />
+          </CardContent>
+        </Card>
+      </div>
       <EmployeeFormDialog open={editOpen} onOpenChange={setEditOpen} employee={e} />
       <Dialog open={!!action} onOpenChange={(v) => !v && setAction(null)}>
         <DialogContent>
@@ -190,6 +217,40 @@ function Info({ label, value }: { label: string; value?: string | null }) {
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
       <p className="mt-1 text-sm font-medium">{value || "—"}</p>
     </div>
+  );
+}
+
+function LeaveAdjustForm({ busy, onSubmit }: { busy: boolean; onSubmit: (days: number, note: string) => Promise<void> }) {
+  const [days, setDays] = useState("");
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  return (
+    <form
+      className="grid gap-3 sm:grid-cols-[8rem_1fr_auto] sm:items-end"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        const n = Number(days);
+        if (!Number.isFinite(n) || n === 0) return;
+        setSaving(true);
+        try {
+          await onSubmit(n, note.trim());
+          setDays("");
+          setNote("");
+        } finally {
+          setSaving(false);
+        }
+      }}
+    >
+      <div>
+        <Label htmlFor="leave-days">Adjust days</Label>
+        <Input id="leave-days" className="mt-1.5" value={days} onChange={(e) => setDays(e.target.value)} placeholder="+2 or -1" />
+      </div>
+      <div>
+        <Label htmlFor="leave-note">Reason</Label>
+        <Input id="leave-note" className="mt-1.5" value={note} onChange={(e) => setNote(e.target.value)} minLength={3} required placeholder="Correction note" />
+      </div>
+      <Button disabled={busy || saving || note.trim().length < 3}>Save</Button>
+    </form>
   );
 }
 

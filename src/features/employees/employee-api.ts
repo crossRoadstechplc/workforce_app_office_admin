@@ -1,6 +1,7 @@
 import { apiFetch } from "@/lib/api/api-client";
 import { tenantContextApi } from "@/features/context/tenant-context-api";
 import type { Employee, EmployeeList, Office, Schedule, Department, EvaluationTemplateOption } from "@/types/employee";
+import type { AnnualLeaveBalance } from "@/types/leave-balance";
 
 export type CreateEmployeeInput = {
   email: string;
@@ -38,6 +39,17 @@ export type UpdateEmployeeInput = {
 export const employeeApi = {
   list: (params: URLSearchParams) => apiFetch<EmployeeList>(`/admin/employees?${params}`),
   get: (id: string) => apiFetch<Employee>(`/admin/employees/${id}`),
+  leaveBalance: async (id: string) => {
+    const r = await apiFetch<{ data?: AnnualLeaveBalance } | AnnualLeaveBalance>(`/admin/employees/${id}/leave-balance`);
+    return ((r as { data?: AnnualLeaveBalance }).data ?? r) as AnnualLeaveBalance;
+  },
+  adjustLeaveBalance: async (id: string, input: { days: number; note: string }) => {
+    const r = await apiFetch<{ data?: AnnualLeaveBalance } | AnnualLeaveBalance>(`/admin/employees/${id}/leave-balance/adjust`, {
+      method: "POST",
+      body: JSON.stringify(input)
+    });
+    return ((r as { data?: AnnualLeaveBalance }).data ?? r) as AnnualLeaveBalance;
+  },
   create: (input: CreateEmployeeInput) =>
     apiFetch<{ employee: Employee; temporaryPassword: string }>("/admin/employees", { method: "POST", body: JSON.stringify(input) }),
   update: (id: string, input: UpdateEmployeeInput) =>

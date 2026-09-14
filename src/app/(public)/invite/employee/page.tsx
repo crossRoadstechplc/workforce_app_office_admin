@@ -9,6 +9,7 @@ import { EmployeeSetupComplete } from "@/components/invites/employee-setup-compl
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { passwordMeetsRules, publicInviteApi } from "@/features/invites/invite-api";
 
 export default function EmployeeInvitePage() {
@@ -210,7 +211,18 @@ function Field({
         {label}
         {required ? " *" : ""}
       </Label>
-      <Input id={name} name={name} type={type} required={required} placeholder={placeholder} defaultValue={defaultValue} autoComplete={type === "password" ? "new-password" : undefined} />
+      {type === "password" ? (
+        <PasswordInput
+          id={name}
+          name={name}
+          required={required}
+          placeholder={placeholder}
+          defaultValue={defaultValue}
+          autoComplete="new-password"
+        />
+      ) : (
+        <Input id={name} name={name} type={type} required={required} placeholder={placeholder} defaultValue={defaultValue} />
+      )}
     </div>
   );
 }

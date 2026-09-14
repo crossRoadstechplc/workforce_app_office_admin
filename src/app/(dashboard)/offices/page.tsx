@@ -6,12 +6,14 @@ import { ExternalLink, MapPin, Plus, Power } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/page-header";
 import { CompanyAdminGate } from "@/components/auth/role-gates";
+import { EntityAdminsPanel } from "@/components/admins/entity-admins-panel";
 import { OfficeFormDialog } from "@/components/offices/office-form-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { StatusBadge } from "@/components/ui/badge";
 import { configurationApi, itemsOf } from "@/features/configuration/configuration-api";
+import { officeAdminApi } from "@/features/office-admins/office-admin-api";
 import type { Office } from "@/types/configuration";
 
 export default function OfficesPage() {
@@ -27,6 +29,10 @@ function OfficesPageInner() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Office | null>(null);
   const q = useQuery({ queryKey: ["offices"], queryFn: () => configurationApi.offices() });
+  const adminsQ = useQuery({
+    queryKey: ["office-admins"],
+    queryFn: () => officeAdminApi.list(new URLSearchParams({ page: "1", pageSize: "100" }))
+  });
 
   const status = useMutation({
     mutationFn: ({ o, reason }: { o: Office; reason: string }) => configurationApi.officeStatus(o.id, !o.isActive, reason),
@@ -37,9 +43,10 @@ function OfficesPageInner() {
     onError: (e: Error) => toast.error(e.message)
   });
 
-  if (q.isLoading) return <PageSkeleton />;
+  if (q.isLoading || adminsQ.isLoading) return <PageSkeleton />;
 
   const offices = itemsOf(q.data ?? []);
+  const admins = adminsQ.data?.items ?? [];
 
   function edit(office: Office) {
     setEditing(office);
@@ -110,6 +117,23 @@ function OfficesPageInner() {
                 View on OpenStreetMap
               </a>
             )}
+
+            <EntityAdminsPanel
+              title="Admins of this office"
+              addTitle="Add office administrator"
+              addDescription="They will manage employees and operations for this office only."
+              addLabel="Add admin"
+              admins={admins.filter((admin) => admin.adminOffices.some((entry) => entry.office.id === o.id))}
+              onAdd={async ({ email, deliveryMethod }) => {
+                const res = await officeAdminApi.create({ email, officeIds: [o.id], deliveryMethod });
+                void qc.invalidateQueries({ queryKey: ["office-admins"] });
+                return res;
+              }}
+              onRemove={async (userId) => {
+                await officeAdminApi.unassign(o.id, userId);
+                void qc.invalidateQueries({ queryKey: ["office-admins"] });
+              }}
+            />
 
             <div className="mt-5 border-t pt-4">
               <Button

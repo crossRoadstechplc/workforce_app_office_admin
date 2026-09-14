@@ -41,5 +41,10 @@ export const officeAdminApi = {
     apiFetch<{ temporaryPassword: string }>(`/admin/office-admins/${userId}/reset-password`, {
       method: "POST",
       body: JSON.stringify({ reason })
+    }),
+
+  unassign: (officeId: string, userId: string) =>
+    apiFetch<{ userId: string; officeId: string }>(`/admin/offices/${officeId}/admins/${userId}`, {
+      method: "DELETE"
     })
 };

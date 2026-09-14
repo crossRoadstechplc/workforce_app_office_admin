@@ -6,8 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 import { KeyRound, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { passwordMeetsRules, publicInviteApi } from "@/features/invites/invite-api";
 
 export default function AdminInvitePage() {
@@ -126,12 +126,12 @@ function AdminInviteInner() {
               <>
                 <div>
                   <Label htmlFor="password">New password</Label>
-                  <Input id="password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={10} required />
+                  <PasswordInput id="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={10} required />
                   <p className="mt-1 text-xs text-slate-500">At least 10 characters with upper, lower, and a number.</p>
                 </div>
                 <div>
                   <Label htmlFor="confirm">Confirm password</Label>
-                  <Input id="confirm" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} minLength={10} required />
+                  <PasswordInput id="confirm" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} minLength={10} required />
                 </div>
               </>
             ) : (

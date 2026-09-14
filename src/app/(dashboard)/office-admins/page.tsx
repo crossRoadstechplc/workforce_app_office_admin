@@ -271,7 +271,7 @@ function OfficeAdminsInner() {
             <Button variant="outline" onClick={() => setEditOpen(false)}>
               Cancel
             </Button>
-            <Button disabled={updateOffices.isPending || editOfficeIds.length === 0} onClick={() => updateOffices.mutate()}>
+            <Button disabled={updateOffices.isPending} onClick={() => updateOffices.mutate()}>
               {updateOffices.isPending ? "Saving..." : "Save changes"}
             </Button>
           </div>

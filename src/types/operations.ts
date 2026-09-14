@@ -1,3 +1,5 @@
+import type { AnnualLeaveBalance, LeaveBalanceAllocation } from "@/types/leave-balance";
+
 export type Person = {
   id?: string;
   employeeCode: string;
@@ -30,10 +32,11 @@ export type Timesheet = {
   locations?: Array<{
     type?: string;
     locationType?: string;
-    latitude: number;
-    longitude: number;
-    accuracyMeters: number;
-    distanceFromOfficeMeters: number;
+    source?: "GPS" | "DESKTOP" | string;
+    latitude?: number | null;
+    longitude?: number | null;
+    accuracyMeters?: number | null;
+    distanceFromOfficeMeters?: number | null;
     isInsideRadius: boolean;
     photoUrl?: string | null;
   }>;
@@ -61,7 +64,9 @@ export type LeaveRequest = {
   status: string;
   requestedAt: string;
   employee: Person;
-  leaveType: { id: string; name: string };
+  leaveType: { id: string; name: string; code?: string; tracksBalance?: boolean };
+  annualLeave?: AnnualLeaveBalance | null;
+  allocations?: LeaveBalanceAllocation[];
   decisions?: Array<{ id: string; decision: string; decisionReason?: string | null; decidedAt: string; adminUser?: { email: string } }>;
 };
 

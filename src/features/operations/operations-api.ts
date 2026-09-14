@@ -22,13 +22,19 @@ export const operationsApi = {
   attendanceMonthSummary: async (params: URLSearchParams) =>
     d<AttendanceMonthSummary>(await apiFetch<any>(`/admin/attendance/month-summary?${params}`)),
   attendanceConfig: async () =>
-    d<{ photoRequiredEnabled: boolean; photoRequired: boolean; photosAvailable: boolean }>(
-      await apiFetch<any>("/admin/attendance/config")
-    ),
-  updateAttendanceConfig: async (input: { photoRequiredEnabled: boolean }) =>
-    d<{ photoRequiredEnabled: boolean; photoRequired: boolean; photosAvailable: boolean }>(
-      await apiFetch<any>("/admin/attendance/config", { method: "PATCH", body: JSON.stringify(input) })
-    ),
+    d<{
+      photoRequiredEnabled: boolean;
+      photoRequired: boolean;
+      photosAvailable: boolean;
+      desktopSkipLocationEnabled: boolean;
+    }>(await apiFetch<any>("/admin/attendance/config")),
+  updateAttendanceConfig: async (input: { photoRequiredEnabled?: boolean; desktopSkipLocationEnabled?: boolean }) =>
+    d<{
+      photoRequiredEnabled: boolean;
+      photoRequired: boolean;
+      photosAvailable: boolean;
+      desktopSkipLocationEnabled: boolean;
+    }>(await apiFetch<any>("/admin/attendance/config", { method: "PATCH", body: JSON.stringify(input) })),
   approveCorrectnessRequest: async (id: string, adminNote?: string) =>
     d<any>(await apiFetch<any>(`/admin/attendance/correctness-requests/${id}/approve`, { method: "POST", body: JSON.stringify({ adminNote }) })),
   rejectCorrectnessRequest: async (id: string, adminNote?: string) =>

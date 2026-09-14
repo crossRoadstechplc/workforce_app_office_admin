@@ -12,9 +12,10 @@ import { Label } from "@/components/ui/label";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { StatusBadge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { EntityAdminsPanel } from "@/components/admins/entity-admins-panel";
 import { CopyValue } from "@/components/ui/copy-value";
 import { PlatformGate } from "@/components/auth/role-gates";
-import { platformApi, type CreatedOrganization, type PlatformOrganization } from "@/features/platform/platform-api";
+import { platformApi, type CreatedOrganization, type PlatformOrgAdmin, type PlatformOrganization } from "@/features/platform/platform-api";
 
 const blank = { name: "", slug: "", adminEmail: "", sendInvite: true };
 
@@ -33,6 +34,10 @@ function OrganizationsInner() {
   const [form, setForm] = useState(blank);
   const [createdAdminPassword, setCreatedAdminPassword] = useState<string | null>(null);
   const q = useQuery({ queryKey: ["platform", "organizations"], queryFn: () => platformApi.organizations() });
+  const adminsQ = useQuery({
+    queryKey: ["platform", "org-admins"],
+    queryFn: () => platformApi.orgAdmins(new URLSearchParams({ page: "1", pageSize: "100" }))
+  });
   const save = useMutation({
     mutationFn: async () => {
       const slug = form.slug.trim().toLowerCase();
@@ -79,8 +84,9 @@ function OrganizationsInner() {
     onError: (e: Error) => toast.error(e.message)
   });
 
-  if (q.isLoading) return <PageSkeleton />;
+  if (q.isLoading || adminsQ.isLoading) return <PageSkeleton />;
   const orgs = platformApi.itemsOf<PlatformOrganization>(q.data ?? []);
+  const admins = platformApi.itemsOf<PlatformOrgAdmin>(adminsQ.data ?? []);
 
   function edit(o: PlatformOrganization) {
     setEditing(o);
@@ -210,6 +216,29 @@ function OrganizationsInner() {
                 <dd className="mt-1 font-medium">{o._count?.memberships ?? 0}</dd>
               </div>
             </dl>
+            <EntityAdminsPanel
+              title="Admins of this company"
+              addTitle="Add company administrator"
+              addDescription="They can manage this company, including offices, office admins, and employees."
+              addLabel="Add admin"
+              preventLastRemoval
+              admins={admins.filter((admin) =>
+                (admin.adminOrganizations?.length ? admin.adminOrganizations : admin.memberships).some(
+                  (entry) => entry.organization.id === o.id
+                )
+              )}
+              onAdd={async ({ email, deliveryMethod }) => {
+                const res = await platformApi.createOrgAdmin({ organizationId: o.id, email, deliveryMethod });
+                void qc.invalidateQueries({ queryKey: ["platform", "org-admins"] });
+                void qc.invalidateQueries({ queryKey: ["platform", "dashboard"] });
+                return res;
+              }}
+              onRemove={async (userId) => {
+                await platformApi.unassignOrgAdmin(o.id, userId);
+                void qc.invalidateQueries({ queryKey: ["platform", "org-admins"] });
+                void qc.invalidateQueries({ queryKey: ["platform", "dashboard"] });
+              }}
+            />
             <div className="mt-5 border-t pt-4">
               <Button
                 size="sm"
