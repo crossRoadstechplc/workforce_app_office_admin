@@ -22,7 +22,7 @@ export function NavList({
   const sections = useVisibleNavSections();
 
   return (
-    <nav className={cn("flex-1 overflow-y-auto py-3", collapsed ? "space-y-1 px-2" : "space-y-5 px-3")}>
+    <nav className={cn("min-h-0 flex-1 overflow-y-auto py-3", collapsed ? "space-y-1 px-2" : "space-y-5 px-3")}>
       {sections.map((section) => (
         <div key={section.title}>
           {!collapsed && (
@@ -44,7 +44,7 @@ export function NavList({
                   onClick={onNavigate}
                   className={cn(
                     "group relative flex items-center rounded-lg text-sm font-medium transition",
-                    collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5",
+                    collapsed ? "justify-center px-0 py-2.5" : "min-h-11 gap-3 px-3 py-3 lg:min-h-0 lg:py-2.5",
                     active ? "bg-blue-600 text-white" : "hover:bg-slate-900 hover:text-white"
                   )}
                 >

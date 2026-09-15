@@ -52,9 +52,9 @@ function DashboardFrame({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen min-w-0 bg-[var(--background)]">
       <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col overflow-x-clip">
+      <div className="flex min-w-0 flex-1 flex-col">
         <Header />
-        <main className="min-w-0 flex-1 p-4 md:p-6 xl:p-8">{children}</main>
+        <main className="min-w-0 flex-1 overflow-x-clip p-4 md:p-6 xl:p-8">{children}</main>
       </div>
     </div>
   );

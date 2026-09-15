@@ -39,7 +39,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b bg-white/95 px-4 backdrop-blur lg:px-6">
+    <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b bg-white/95 px-3 backdrop-blur sm:h-16 lg:px-6">
       <div className="flex min-w-0 items-center gap-2">
         <MobileNav />
         <Button
@@ -50,7 +50,7 @@ export function Header() {
         >
           {collapsed ? <PanelLeft className="size-5" /> : <PanelLeftClose className="size-5" />}
         </Button>
-        <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+        <div className="hidden min-w-0 lg:flex lg:flex-col lg:gap-1 xl:flex-row xl:items-center xl:gap-3">
           <ContextSwitcher
             contexts={portalContexts}
             activeContextKey={user?.activeContext?.key}
@@ -63,10 +63,14 @@ export function Header() {
             <p className="truncate text-xs text-slate-500">{roleLabel(user?.roles)}</p>
           </div>
         </div>
+        <div className="min-w-0 lg:hidden">
+          <p className="truncate text-sm font-semibold text-slate-950">{contextLabel}</p>
+          <p className="truncate text-xs text-slate-500">{roleLabel(user?.roles)}</p>
+        </div>
       </div>
-      <div className="flex items-center gap-1 sm:gap-2">
+      <div className="flex shrink-0 items-center gap-0.5 sm:gap-2">
         {!isSuperAdmin && (
-          <Button variant="ghost" asChild aria-label="Notifications" className="relative px-3">
+          <Button variant="ghost" asChild aria-label="Notifications" className="relative size-11 px-0 sm:size-auto sm:px-3">
             <Link href="/notifications">
               <Bell className="size-5" />
               {unread > 0 && (
@@ -79,10 +83,10 @@ export function Header() {
         )}
         <Dropdown>
           <DropdownTrigger asChild>
-            <Button variant="ghost" className="gap-2">
+            <Button variant="ghost" className="gap-2 px-1.5 sm:px-3">
               <span className="grid size-8 place-items-center rounded-full bg-slate-900 text-xs font-bold text-white">{initials}</span>
               <span className="hidden max-w-40 truncate text-sm md:block">{user?.email}</span>
-              <ChevronDown className="size-4" />
+              <ChevronDown className="hidden size-4 sm:block" />
             </Button>
           </DropdownTrigger>
           <DropdownContent align="end">
