@@ -8,6 +8,7 @@ import { useAuth } from "@/features/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
+import { EASY_PASSWORD_HINT } from "@/features/invites/invite-api";
 
 export default function ChangePasswordPage() {
   const { status, user, changePassword } = useAuth();
@@ -26,6 +27,10 @@ export default function ChangePasswordPage() {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       toast.error("New passwords do not match");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error(EASY_PASSWORD_HINT);
       return;
     }
     setBusy(true);
@@ -93,10 +98,10 @@ export default function ChangePasswordPage() {
                 autoComplete="new-password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                minLength={10}
+                minLength={6}
                 required
               />
-              <p className="mt-1 text-xs text-slate-500">At least 10 characters with upper, lower, and a number.</p>
+              <p className="mt-1 text-xs text-slate-500">{EASY_PASSWORD_HINT}</p>
             </div>
             <div>
               <Label htmlFor="confirm">Confirm new password</Label>
@@ -105,7 +110,7 @@ export default function ChangePasswordPage() {
                 autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                minLength={10}
+                minLength={6}
                 required
               />
             </div>

@@ -14,8 +14,9 @@ import { StatusBadge } from "@/components/ui/badge";
 import { TableShell } from "@/components/ui/table-shell";
 import { CompanyAdminGate } from "@/components/auth/role-gates";
 import { InviteDeliveryFields, type InviteDeliveryMethod } from "@/components/invites/invite-delivery-fields";
+import { EasyPasswordField } from "@/components/invites/easy-password-field";
 import { configurationApi, itemsOf } from "@/features/configuration/configuration-api";
-import { inviteApi } from "@/features/invites/invite-api";
+import { inviteApi, passwordMeetsRules, EASY_PASSWORD_HINT } from "@/features/invites/invite-api";
 import { officeAdminApi } from "@/features/office-admins/office-admin-api";
 import type { OfficeAdminUser } from "@/features/office-admins/office-admin-api";
 
@@ -34,6 +35,7 @@ function OfficeAdminsInner() {
   const [officeIds, setOfficeIds] = useState<string[]>([]);
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [delivery, setDelivery] = useState<InviteDeliveryMethod>("SHOW_PASSWORD");
+  const [password, setPassword] = useState("");
   const [inviteResult, setInviteResult] = useState<{
     emailSent: boolean;
     inviteId?: string;
@@ -52,7 +54,18 @@ function OfficeAdminsInner() {
   const admins = adminsQ.data?.items ?? [];
 
   const create = useMutation({
-    mutationFn: () => officeAdminApi.create({ email, officeIds, deliveryMethod: delivery }),
+    mutationFn: () => {
+      const nextPassword = password.trim();
+      if (delivery === "SHOW_PASSWORD" && nextPassword && !passwordMeetsRules(nextPassword)) {
+        throw new Error(EASY_PASSWORD_HINT);
+      }
+      return officeAdminApi.create({
+        email,
+        officeIds,
+        deliveryMethod: delivery,
+        ...(delivery === "SHOW_PASSWORD" && nextPassword ? { temporaryPassword: nextPassword } : {})
+      });
+    },
     onSuccess: (res) => {
       if (res.temporaryPassword) {
         toast.success("Office admin created");
@@ -146,6 +159,7 @@ function OfficeAdminsInner() {
               if (!v) {
                 setTempPassword(null);
                 setInviteResult(null);
+                setPassword("");
               }
             }}
           >
@@ -157,6 +171,7 @@ function OfficeAdminsInner() {
                   setTempPassword(null);
                   setInviteResult(null);
                   setDelivery("SHOW_PASSWORD");
+                  setPassword("");
                 }}
               >
                 <Plus className="size-4" />
@@ -211,6 +226,9 @@ function OfficeAdminsInner() {
                     </div>
                   </div>
                   <InviteDeliveryFields value={delivery} onChange={setDelivery} />
+                  {delivery === "SHOW_PASSWORD" ? (
+                    <EasyPasswordField id="office-admin-password" value={password} onChange={setPassword} optional />
+                  ) : null}
                 </div>
               )}
               <div className="mt-6 flex justify-end gap-2">

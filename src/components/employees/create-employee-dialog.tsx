@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { CopyValue } from "@/components/ui/copy-value";
 import { EmployeeAssignmentSelects } from "@/components/employees/employee-form-dialog";
 import { SupervisorSelect } from "@/components/employees/supervisor-select";
+import { EasyPasswordField } from "@/components/invites/easy-password-field";
+import { passwordMeetsRules, EASY_PASSWORD_HINT } from "@/features/invites/invite-api";
 
 type CreateResult = { temporaryPassword: string; employeeCode: string };
 type InviteResult = { emailSent: boolean; inviteId?: string; emailError?: string; email: string };
@@ -57,6 +59,11 @@ export function CreateEmployeeDialog() {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     const employeeCode = String(f.get("employeeCode") || "").trim();
+    const password = String(f.get("temporaryPassword") || "").trim();
+    if (password && !passwordMeetsRules(password)) {
+      toast.error(EASY_PASSWORD_HINT);
+      return;
+    }
     mutation.mutate({
       email: String(f.get("email")),
       ...(employeeCode ? { employeeCode } : {}),
@@ -70,7 +77,8 @@ export function CreateEmployeeDialog() {
       employmentStartDate: String(f.get("employmentStartDate")),
       officeId: String(f.get("officeId") || "") || undefined,
       scheduleId: String(f.get("scheduleId") || "") || undefined,
-      supervisorId: String(f.get("supervisorId") || "") || undefined
+      supervisorId: String(f.get("supervisorId") || "") || undefined,
+      ...(password ? { temporaryPassword: password } : {})
     });
   }
 
@@ -122,7 +130,7 @@ export function CreateEmployeeDialog() {
             <CopyValue label="Employee code" value={result.employeeCode} />
             <CopyValue label="Temporary password" value={result.temporaryPassword} tone="amber" />
             <p className="text-xs text-slate-500">
-              Login with the employee code. The temporary password is the code plus <span className="font-mono">@Temp1</span>.
+              Share this password with the employee. They can sign in with email or employee code. {EASY_PASSWORD_HINT}
             </p>
             <Button className="w-full" onClick={() => setOpen(false)}>
               Done
@@ -176,6 +184,9 @@ export function CreateEmployeeDialog() {
                 <div className="sm:col-span-2">
                   <SupervisorSelect value="" />
                 </div>
+                <div className="sm:col-span-2">
+                  <EasyPasswordField id="temporaryPassword" name="temporaryPassword" optional />
+                </div>
                 <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
                   <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                     Cancel
@@ -192,7 +203,7 @@ export function CreateEmployeeDialog() {
                 <Field label="Job title" name="jobTitle" />
                 <EmployeeAssignmentSelects offices={offices.data} schedules={schedules.data} departments={departments.data} evaluationTemplates={evaluationTemplates.data} />
                 <p className="text-xs text-slate-500 sm:col-span-2">
-                  The employee opens a form from the email, fills the rest of their details, and chooses a password.
+                  The employee opens a form from the email, fills the rest of their details, and chooses a password of at least 6 characters.
                 </p>
                 <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
                   <Button type="button" variant="outline" onClick={() => setOpen(false)}>

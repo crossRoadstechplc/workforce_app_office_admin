@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
-import { passwordMeetsRules, publicInviteApi } from "@/features/invites/invite-api";
+import { passwordMeetsRules, publicInviteApi, EASY_PASSWORD_HINT } from "@/features/invites/invite-api";
 
 export default function EmployeeInvitePage() {
   return (
@@ -59,7 +59,7 @@ function EmployeeInviteInner() {
         return;
       }
       if (!passwordMeetsRules(password)) {
-        toast.error("Use at least 10 characters with upper, lower, and a number");
+        toast.error(EASY_PASSWORD_HINT);
         return;
       }
     }
@@ -176,7 +176,7 @@ function EmployeeInviteInner() {
             ) : null}
           </div>
           {requiresPassword ? (
-            <p className="mt-3 text-xs text-slate-500">Password needs at least 10 characters with upper, lower, and a number.</p>
+            <p className="mt-3 text-xs text-slate-500">{EASY_PASSWORD_HINT}</p>
           ) : (
             <p className="mt-3 text-xs text-slate-500">This invite adds an employee profile to your existing Workforce account.</p>
           )}
@@ -216,9 +216,10 @@ function Field({
           id={name}
           name={name}
           required={required}
-          placeholder={placeholder}
+          placeholder={placeholder ?? "At least 6 characters"}
           defaultValue={defaultValue}
           autoComplete="new-password"
+          minLength={6}
         />
       ) : (
         <Input id={name} name={name} type={type} required={required} placeholder={placeholder} defaultValue={defaultValue} />

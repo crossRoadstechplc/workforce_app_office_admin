@@ -17,6 +17,16 @@ export function minutesToHours(minutes?: number | null) {
   return `${h}h ${m}m`;
 }
 
+/** Formats late duration as "1H 32min" (or "32min" when under an hour). */
+export function formatLateMinutes(minutes?: number | null) {
+  if (minutes == null || minutes <= 0) return "—";
+  const h = Math.floor(minutes / 60);
+  const m = Math.abs(minutes % 60);
+  if (h > 0 && m > 0) return `${h}H ${m}min`;
+  if (h > 0) return `${h}H`;
+  return `${m}min`;
+}
+
 /** Formats leave day totals that may be fractional (e.g. 3.5). */
 export function formatLeaveDays(value?: number | string | null) {
   if (value == null || value === "") return "—";

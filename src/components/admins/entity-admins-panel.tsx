@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CopyValue } from "@/components/ui/copy-value";
 import { InviteDeliveryFields, type InviteDeliveryMethod } from "@/components/invites/invite-delivery-fields";
-import { inviteApi } from "@/features/invites/invite-api";
+import { EasyPasswordField } from "@/components/invites/easy-password-field";
+import { inviteApi, passwordMeetsRules, EASY_PASSWORD_HINT } from "@/features/invites/invite-api";
 
 export type EntityAdmin = { id: string; email: string; status?: string };
 
@@ -36,7 +37,7 @@ export function EntityAdminsPanel({
   addTitle: string;
   addDescription: string;
   admins: EntityAdmin[];
-  onAdd: (input: { email: string; deliveryMethod: InviteDeliveryMethod }) => Promise<AddAdminResult>;
+  onAdd: (input: { email: string; deliveryMethod: InviteDeliveryMethod; temporaryPassword?: string }) => Promise<AddAdminResult>;
   onRemove: (userId: string) => Promise<void>;
   addLabel?: string;
   preventLastRemoval?: boolean;
@@ -44,6 +45,7 @@ export function EntityAdminsPanel({
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [delivery, setDelivery] = useState<InviteDeliveryMethod>("SHOW_PASSWORD");
+  const [password, setPassword] = useState("");
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [inviteResult, setInviteResult] = useState<{
     emailSent: boolean;
@@ -59,6 +61,7 @@ export function EntityAdminsPanel({
   function resetDialog() {
     setEmail("");
     setDelivery("SHOW_PASSWORD");
+    setPassword("");
     setTempPassword(null);
     setInviteResult(null);
   }
@@ -66,7 +69,16 @@ export function EntityAdminsPanel({
   async function submit() {
     setSaving(true);
     try {
-      const res = await onAdd({ email, deliveryMethod: delivery });
+      const nextPassword = password.trim();
+      if (delivery === "SHOW_PASSWORD" && nextPassword && !passwordMeetsRules(nextPassword)) {
+        toast.error(EASY_PASSWORD_HINT);
+        return;
+      }
+      const res = await onAdd({
+        email,
+        deliveryMethod: delivery,
+        ...(delivery === "SHOW_PASSWORD" && nextPassword ? { temporaryPassword: nextPassword } : {})
+      });
       if (res.temporaryPassword) {
         setTempPassword(res.temporaryPassword);
         toast.success("Admin created");
@@ -171,6 +183,9 @@ export function EntityAdminsPanel({
                   <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <InviteDeliveryFields value={delivery} onChange={setDelivery} />
+                {delivery === "SHOW_PASSWORD" ? (
+                  <EasyPasswordField id="entity-admin-password" value={password} onChange={setPassword} optional />
+                ) : null}
               </div>
             )}
             <div className="mt-6 flex justify-end gap-2">

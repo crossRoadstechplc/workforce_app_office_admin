@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
-import { passwordMeetsRules, publicInviteApi } from "@/features/invites/invite-api";
+import { passwordMeetsRules, publicInviteApi, EASY_PASSWORD_HINT } from "@/features/invites/invite-api";
 
 export default function AdminInvitePage() {
   return (
@@ -46,7 +46,7 @@ function AdminInviteInner() {
         return;
       }
       if (!passwordMeetsRules(password)) {
-        toast.error("Use at least 10 characters with upper, lower, and a number");
+        toast.error(EASY_PASSWORD_HINT);
         return;
       }
     }
@@ -126,12 +126,12 @@ function AdminInviteInner() {
               <>
                 <div>
                   <Label htmlFor="password">New password</Label>
-                  <PasswordInput id="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={10} required />
-                  <p className="mt-1 text-xs text-slate-500">At least 10 characters with upper, lower, and a number.</p>
+                  <PasswordInput id="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
+                  <p className="mt-1 text-xs text-slate-500">{EASY_PASSWORD_HINT}</p>
                 </div>
                 <div>
                   <Label htmlFor="confirm">Confirm password</Label>
-                  <PasswordInput id="confirm" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} minLength={10} required />
+                  <PasswordInput id="confirm" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} minLength={6} required />
                 </div>
               </>
             ) : (

@@ -31,7 +31,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { operationsApi } from "@/features/operations/operations-api";
-import { employeeName, formatDate, formatDateTime, formatLeaveDays, minutesToHours } from "@/lib/utils/format";
+import { employeeName, formatDate, formatDateTime, formatLateMinutes, formatLeaveDays, minutesToHours } from "@/lib/utils/format";
 import type { AttendanceDayRosterRow, Timesheet } from "@/types/operations";
 
 export default function AttendancePage() {
@@ -360,7 +360,7 @@ function AttendancePageInner() {
                 <Stat l="Check in" v={d.actualCheckIn ? formatDateTime(d.actualCheckIn) : "—"} />
                 <Stat l="Checkout" v={d.actualCheckOut ? formatDateTime(d.actualCheckOut) : "—"} />
                 <Stat l="Worked" v={minutesToHours(d.workedMinutes)} />
-                <Stat l="Late" v={d.lateMinutes > 0 ? `${d.lateMinutes} min` : "—"} />
+                <Stat l="Late" v={formatLateMinutes(d.lateMinutes)} />
               </div>
               {d.lateReason && (
                 <div className="rounded-lg bg-amber-50 p-4 text-sm">
@@ -465,7 +465,7 @@ function DayRow({
       <Td>
         {row.timesheet?.actualCheckOut ? formatDateTime(row.timesheet.actualCheckOut) : "—"}
       </Td>
-      <Td className="tabular-nums">{row.timesheet ? (row.timesheet.lateMinutes > 0 ? `${row.timesheet.lateMinutes}m` : "—") : "—"}</Td>
+      <Td className="tabular-nums">{row.timesheet ? formatLateMinutes(row.timesheet.lateMinutes) : "—"}</Td>
       <Td className="tabular-nums">{row.timesheet ? minutesToHours(row.timesheet.workedMinutes) : "—"}</Td>
       <Td>
         <div className="space-y-1">

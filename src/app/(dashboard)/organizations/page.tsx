@@ -227,8 +227,8 @@ function OrganizationsInner() {
                   (entry) => entry.organization.id === o.id
                 )
               )}
-              onAdd={async ({ email, deliveryMethod }) => {
-                const res = await platformApi.createOrgAdmin({ organizationId: o.id, email, deliveryMethod });
+              onAdd={async ({ email, deliveryMethod, temporaryPassword }) => {
+                const res = await platformApi.createOrgAdmin({ organizationId: o.id, email, deliveryMethod, temporaryPassword });
                 void qc.invalidateQueries({ queryKey: ["platform", "org-admins"] });
                 void qc.invalidateQueries({ queryKey: ["platform", "dashboard"] });
                 return res;

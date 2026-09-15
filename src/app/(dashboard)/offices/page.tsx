@@ -124,8 +124,8 @@ function OfficesPageInner() {
               addDescription="They will manage employees and operations for this office only."
               addLabel="Add admin"
               admins={admins.filter((admin) => admin.adminOffices.some((entry) => entry.office.id === o.id))}
-              onAdd={async ({ email, deliveryMethod }) => {
-                const res = await officeAdminApi.create({ email, officeIds: [o.id], deliveryMethod });
+              onAdd={async ({ email, deliveryMethod, temporaryPassword }) => {
+                const res = await officeAdminApi.create({ email, officeIds: [o.id], deliveryMethod, temporaryPassword });
                 void qc.invalidateQueries({ queryKey: ["office-admins"] });
                 return res;
               }}

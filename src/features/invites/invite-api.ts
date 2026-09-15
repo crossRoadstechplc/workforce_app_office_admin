@@ -91,5 +91,7 @@ export const inviteApi = {
 };
 
 export function passwordMeetsRules(password: string) {
-  return password.length >= 10 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password);
+  return password.trim().length >= 6;
 }
+
+export const EASY_PASSWORD_HINT = "At least 6 characters. Letters or numbers are fine — uppercase is not required.";

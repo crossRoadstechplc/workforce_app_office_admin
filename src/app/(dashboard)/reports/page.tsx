@@ -16,7 +16,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { reportApi } from "@/features/reports/report-api";
-import { employeeName, formatDate, formatDateTime, minutesToHours } from "@/lib/utils/format";
+import { employeeName, formatDate, formatDateTime, formatLateMinutes, minutesToHours } from "@/lib/utils/format";
 
 type Kind = "timesheets" | "worksheets" | "leave";
 
@@ -138,7 +138,7 @@ function ReportTable({ kind, items }: { kind: Kind; items: ReportItem[] }) {
                 <Td>{formatDateTime(x.actualCheckIn)}</Td>
                 <Td>{formatDateTime(x.actualCheckOut)}</Td>
                 <Td className="tabular-nums">{minutesToHours(x.workedMinutes)}</Td>
-                <Td className="tabular-nums">{x.lateMinutes}m</Td>
+                <Td className="tabular-nums">{formatLateMinutes(x.lateMinutes)}</Td>
                 <Td>
                   <StatusBadge status={x.status ?? "NONE"} />
                 </Td>

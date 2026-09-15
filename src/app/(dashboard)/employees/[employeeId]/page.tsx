@@ -197,7 +197,7 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
             <div className="mt-5 space-y-4">
               <CopyValue label="Employee code" value={e.employeeCode} />
               <CopyValue label="Temporary password" value={result} tone="amber" />
-              <p className="text-xs text-slate-500">The temporary password is the employee code plus @Temp1.</p>
+              <p className="text-xs text-slate-500">Share this password with the employee. They can change it after login. At least 6 characters — letters or numbers are fine.</p>
               <Button className="w-full" onClick={() => setAction(null)}>
                 Done
               </Button>

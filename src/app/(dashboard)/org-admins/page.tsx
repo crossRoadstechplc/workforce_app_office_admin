@@ -14,6 +14,8 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { PlatformGate } from "@/components/auth/role-gates";
 import { InviteDeliveryFields, type InviteDeliveryMethod } from "@/components/invites/invite-delivery-fields";
+import { EasyPasswordField } from "@/components/invites/easy-password-field";
+import { passwordMeetsRules, EASY_PASSWORD_HINT } from "@/features/invites/invite-api";
 import { platformApi, type PlatformOrgAdmin, type PlatformOrganization } from "@/features/platform/platform-api";
 import { inviteApi } from "@/features/invites/invite-api";
 
@@ -32,6 +34,7 @@ function OrgAdminsInner() {
   const [organizationId, setOrganizationId] = useState("");
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [delivery, setDelivery] = useState<InviteDeliveryMethod>("SHOW_PASSWORD");
+  const [password, setPassword] = useState("");
   const [inviteResult, setInviteResult] = useState<{
     emailSent: boolean;
     inviteId?: string;
@@ -47,7 +50,18 @@ function OrgAdminsInner() {
   const admins = useMemo(() => platformApi.itemsOf<PlatformOrgAdmin>(adminsQ.data ?? []), [adminsQ.data]);
 
   const create = useMutation({
-    mutationFn: () => platformApi.createOrgAdmin({ organizationId, email, deliveryMethod: delivery }),
+    mutationFn: () => {
+      const nextPassword = password.trim();
+      if (delivery === "SHOW_PASSWORD" && nextPassword && !passwordMeetsRules(nextPassword)) {
+        throw new Error(EASY_PASSWORD_HINT);
+      }
+      return platformApi.createOrgAdmin({
+        organizationId,
+        email,
+        deliveryMethod: delivery,
+        ...(delivery === "SHOW_PASSWORD" && nextPassword ? { temporaryPassword: nextPassword } : {})
+      });
+    },
     onSuccess: (res) => {
       if (res.temporaryPassword) {
         toast.success("Org admin created");
@@ -121,6 +135,7 @@ function OrgAdminsInner() {
               if (!v) {
                 setTempPassword(null);
                 setInviteResult(null);
+                setPassword("");
               }
             }}
           >
@@ -132,6 +147,7 @@ function OrgAdminsInner() {
                   setTempPassword(null);
                   setInviteResult(null);
                   setDelivery("SHOW_PASSWORD");
+                  setPassword("");
                 }}
               >
                 <Plus className="size-4" />
@@ -180,6 +196,9 @@ function OrgAdminsInner() {
                     <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                   </div>
                   <InviteDeliveryFields value={delivery} onChange={setDelivery} />
+                  {delivery === "SHOW_PASSWORD" ? (
+                    <EasyPasswordField id="org-admin-password" value={password} onChange={setPassword} optional />
+                  ) : null}
                 </div>
               )}
               <div className="mt-6 flex justify-end gap-2">
