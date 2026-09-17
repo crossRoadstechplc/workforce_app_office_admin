@@ -2,6 +2,7 @@ import { apiFetch } from "@/lib/api/api-client";
 import type {
   AttendanceDayRoster,
   AttendanceMonthSummary,
+  AttendanceRangeSummary,
   LeaveDayRoster,
   LeaveRequest,
   LeaveRequestList,
@@ -21,6 +22,8 @@ export const operationsApi = {
     d<AttendanceDayRoster>(await apiFetch<any>(`/admin/attendance/day-roster?${params}`)),
   attendanceMonthSummary: async (params: URLSearchParams) =>
     d<AttendanceMonthSummary>(await apiFetch<any>(`/admin/attendance/month-summary?${params}`)),
+  attendanceRangeSummary: async (params: URLSearchParams) =>
+    d<AttendanceRangeSummary>(await apiFetch<any>(`/admin/attendance/range-summary?${params}`)),
   attendanceConfig: async () =>
     d<{
       photoRequiredEnabled: boolean;

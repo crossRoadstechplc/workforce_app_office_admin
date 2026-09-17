@@ -172,6 +172,19 @@ export type AttendanceMonthSummary = {
   };
 };
 
+export type AttendanceRangeSummary = {
+  from: string;
+  to: string;
+  items: AttendanceMonthSummaryRow[];
+  counts: {
+    totalEmployees: number;
+    employeesMissingCheckIn: number;
+    employeesMissingCheckOut: number;
+    totalMissingCheckInDays: number;
+    totalMissingCheckOutDays: number;
+  };
+};
+
 export type LeaveDayRosterRow = {
   employee: Person;
   office?: { id: string; name: string } | null;

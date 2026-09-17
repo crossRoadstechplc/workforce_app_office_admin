@@ -49,9 +49,16 @@ function AttendancePageInner() {
   const router = useRouter();
   const qc = useQueryClient();
 
-  const [mode, setMode] = useState<"day" | "month">("day");
+  const [mode, setMode] = useState<"day" | "month" | "range">("day");
   const [date, setDate] = useState(defaultOpsDate);
   const [month, setMonth] = useState(defaultOpsMonth);
+  const [rangeFrom, setRangeFrom] = useState(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    return `${y}-${m}-01`;
+  });
+  const [rangeTo, setRangeTo] = useState(defaultOpsDate);
   const [officeId, setOfficeId] = useState("");
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
@@ -72,6 +79,12 @@ function AttendancePageInner() {
     return p;
   }, [month, officeId]);
 
+  const rangeParams = useMemo(() => {
+    const p = new URLSearchParams({ from: rangeFrom, to: rangeTo });
+    if (officeId) p.set("officeId", officeId);
+    return p;
+  }, [rangeFrom, rangeTo, officeId]);
+
   const dayQuery = useQuery({
     queryKey: ["attendance-day-roster", dayParams.toString()],
     queryFn: () => operationsApi.attendanceDayRoster(dayParams),
@@ -82,6 +95,12 @@ function AttendancePageInner() {
     queryKey: ["attendance-month-summary", monthParams.toString()],
     queryFn: () => operationsApi.attendanceMonthSummary(monthParams),
     enabled: mode === "month"
+  });
+
+  const rangeQuery = useQuery({
+    queryKey: ["attendance-range-summary", rangeParams.toString()],
+    queryFn: () => operationsApi.attendanceRangeSummary(rangeParams),
+    enabled: mode === "range" && rangeFrom <= rangeTo
   });
 
   const configQuery = useQuery({
@@ -117,12 +136,14 @@ function AttendancePageInner() {
     onError: (e: Error) => toast.error(e.message)
   });
 
-  const loading = mode === "day" ? dayQuery.isLoading : monthQuery.isLoading;
+  const periodQuery = mode === "month" ? monthQuery : rangeQuery;
+  const loading = mode === "day" ? dayQuery.isLoading : periodQuery.isLoading;
   if (loading) return <PageSkeleton />;
 
   const dayItems = (dayQuery.data?.items ?? []).filter((row) => matchesSearch(row.employee, search));
-  const monthItems = (monthQuery.data?.items ?? []).filter((row) => matchesSearch(row.employee, search));
+  const periodItems = (periodQuery.data?.items ?? []).filter((row) => matchesSearch(row.employee, search));
   const d = detail.data as Timesheet | undefined;
+  const todayMax = defaultOpsDate();
 
   return (
     <div className="min-w-0 space-y-6">
@@ -131,7 +152,7 @@ function AttendancePageInner() {
         description={
           isOfficeAdmin
             ? `Review daily attendance for ${officeLabel ?? "your assigned offices"}.`
-            : "Full employee roster by day, month exception counts, location evidence, and corrections."
+            : "Full employee roster by day, month, or custom date range — exception counts, location evidence, and corrections."
         }
       />
 
@@ -217,9 +238,36 @@ function AttendancePageInner() {
             <Button type="button" size="sm" className="flex-1" variant={mode === "month" ? "default" : "ghost"} onClick={() => setMode("month")}>
               Month
             </Button>
+            <Button type="button" size="sm" className="flex-1" variant={mode === "range" ? "default" : "ghost"} onClick={() => setMode("range")}>
+              Range
+            </Button>
           </div>
         </div>
-        {mode === "day" ? <DateDayPicker value={date} onChange={setDate} /> : <MonthYearPicker year={month.year} month={month.month} onChange={setMonth} />}
+        {mode === "day" && <DateDayPicker value={date} onChange={setDate} />}
+        {mode === "month" && <MonthYearPicker year={month.year} month={month.month} onChange={setMonth} />}
+        {mode === "range" && (
+          <>
+            <div className="space-y-1.5">
+              <Label>From</Label>
+              <Input
+                type="date"
+                value={rangeFrom}
+                max={rangeTo < todayMax ? rangeTo : todayMax}
+                onChange={(e) => setRangeFrom(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>To</Label>
+              <Input
+                type="date"
+                value={rangeTo}
+                min={rangeFrom}
+                max={todayMax}
+                onChange={(e) => setRangeTo(e.target.value)}
+              />
+            </div>
+          </>
+        )}
         <OfficeFilter visible={showOfficeFilter} value={officeId} onChange={setOfficeId} />
         {mode === "day" && (
           <div className="space-y-1.5">
@@ -266,12 +314,12 @@ function AttendancePageInner() {
         />
       )}
 
-      {mode === "month" && monthQuery.data && (
+      {(mode === "month" || mode === "range") && periodQuery.data && (
         <OpsSummaryStrip
           metrics={[
-            { label: "Employees", value: monthQuery.data.counts.totalEmployees },
-            { label: "Missing check-in days", value: monthQuery.data.counts.totalMissingCheckInDays, tone: "warning" },
-            { label: "Employees missing check-in", value: monthQuery.data.counts.employeesMissingCheckIn }
+            { label: "Employees", value: periodQuery.data.counts.totalEmployees },
+            { label: "Missing check-in days", value: periodQuery.data.counts.totalMissingCheckInDays, tone: "warning" },
+            { label: "Employees missing check-in", value: periodQuery.data.counts.employeesMissingCheckIn }
           ]}
         />
       )}
@@ -317,7 +365,7 @@ function AttendancePageInner() {
               </tr>
             </TableHead>
             <TableBody>
-              {monthItems.map((row) => (
+              {periodItems.map((row) => (
                 <TableRow key={row.employee.id}>
                   <Td>
                     <div className="font-medium">{employeeName(row.employee)}</div>
@@ -336,7 +384,7 @@ function AttendancePageInner() {
                   </Td>
                 </TableRow>
               ))}
-              {!monthItems.length && <TableEmpty colSpan={showOfficeFilter ? 8 : 7}>No employees match this filter.</TableEmpty>}
+              {!periodItems.length && <TableEmpty colSpan={showOfficeFilter ? 8 : 7}>No employees match this filter.</TableEmpty>}
             </TableBody>
           </Table>
         </TableShell>
