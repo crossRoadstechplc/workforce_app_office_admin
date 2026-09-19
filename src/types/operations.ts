@@ -28,7 +28,7 @@ export type Timesheet = {
   employee: Person;
   office?: { id: string; name: string };
   lateReason?: { reasonType: string; reasonDescription?: string | null };
-  worksheet?: { id: string; workDescription: string; status: string } | null;
+  worksheet?: { id: string; status: string; workDescription?: string } | null;
   locations?: Array<{
     type?: string;
     locationType?: string;
@@ -52,7 +52,12 @@ export type Worksheet = {
   reviewedAt?: string | null;
   adminComment?: string | null;
   employee: Person;
-  timesheet?: { id: string; workedMinutes: number; actualCheckIn?: string | null; actualCheckOut?: string | null };
+  timesheet?: { id?: string; workedMinutes: number; status?: string; actualCheckIn?: string | null; actualCheckOut?: string | null };
+};
+
+export type HistoryList<T> = {
+  items: T[];
+  meta: { page: number; pageSize: number; total: number; totalPages: number };
 };
 
 export type LeaveRequest = {
