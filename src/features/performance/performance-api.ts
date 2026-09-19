@@ -27,6 +27,8 @@ export const performanceApi = {
     d<EvaluationCycle>(await apiFetch<unknown>(`/admin/evaluations/cycles/${id}/open`, { method: "POST", body: JSON.stringify(body ?? {}) })),
   closeCycle: async (id: string) =>
     d<EvaluationCycle>(await apiFetch<unknown>(`/admin/evaluations/cycles/${id}/close`, { method: "POST", body: "{}" })),
+  deleteCycle: async (id: string) =>
+    d<{ id: string }>(await apiFetch<unknown>(`/admin/evaluations/cycles/${id}`, { method: "DELETE" })),
   exportCycle: (id: string) => apiDownload(`/admin/evaluations/cycles/${id}/export?format=csv`, "evaluations.csv"),
   templates: async () => d<EvaluationTemplate[]>(await apiFetch<unknown>("/admin/evaluations/templates")),
   createTemplate: async (body: { name: string; description?: string; jobTitleHint?: string; isDefault?: boolean; items: TemplateItem[] }) =>
