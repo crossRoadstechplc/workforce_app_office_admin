@@ -21,9 +21,12 @@ export type InviteRecord = {
   status: string;
   email: string;
   officeId?: string | null;
+  scheduleId?: string | null;
   expiresAt: string;
   organization?: { name: string };
   office?: { name: string } | null;
+  schedule?: { name: string } | null;
+  payload?: { employmentStartDate?: string; jobTitle?: string | null; departmentId?: string | null; evaluationTemplateId?: string | null } | null;
 };
 
 async function publicFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -75,6 +78,23 @@ export const inviteApi = {
     apiFetch<{ items: InviteRecord[]; meta: { total: number } }>(`/admin/invites${params ? `?${params}` : ""}`),
   resend: (id: string) =>
     apiFetch<{ emailSent: boolean; inviteId: string; emailError?: string }>(`/admin/invites/${id}/resend`, { method: "POST" }),
+  cancel: (id: string) => apiFetch<{ invite: InviteRecord }>(`/admin/invites/${id}/cancel`, { method: "POST" }),
+  update: (
+    id: string,
+    body: {
+      email?: string;
+      officeId?: string | null;
+      scheduleId?: string | null;
+      employmentStartDate?: string;
+      jobTitle?: string | null;
+      departmentId?: string | null;
+      evaluationTemplateId?: string | null;
+    }
+  ) =>
+    apiFetch<{ invite: InviteRecord; inviteId: string; emailChanged: boolean; emailSent: boolean; emailError?: string }>(
+      `/admin/invites/${id}`,
+      { method: "PATCH", body: JSON.stringify(body) }
+    ),
   createEmployee: (body: {
     email: string;
     officeId?: string;

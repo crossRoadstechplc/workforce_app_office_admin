@@ -9,6 +9,7 @@ import { inviteApi, type InviteRecord } from "@/features/invites/invite-api";
 import { PageHeader } from "@/components/layout/page-header";
 import { CreateEmployeeDialog } from "@/components/employees/create-employee-dialog";
 import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
+import { EditEmployeeInviteDialog } from "@/components/invites/edit-employee-invite-dialog";
 import { EmployeeTable } from "@/components/employees/employee-table";
 import { OfficeFilter } from "@/components/ops/office-filter";
 import { Card } from "@/components/ui/card";
@@ -40,6 +41,7 @@ function EmployeesPageInner() {
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<Employee | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [editingInvite, setEditingInvite] = useState<InviteRecord | null>(null);
   const deferred = useDeferredValue(search);
 
   const query = useQuery({
@@ -67,6 +69,15 @@ function EmployeesPageInner() {
     onError: (e: Error) => toast.error(e.message)
   });
 
+  const cancelInvite = useMutation({
+    mutationFn: (id: string) => inviteApi.cancel(id),
+    onSuccess: () => {
+      toast.success("Invite cancelled");
+      void qc.invalidateQueries({ queryKey: ["employee-invites"] });
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
+
   const data = query.data as { items: Employee[]; meta: { total: number; totalPages: number } } | undefined;
   const pendingInvites = (invitesQ.data?.items ?? []) as InviteRecord[];
 
@@ -89,6 +100,13 @@ function EmployeesPageInner() {
         }}
         employee={editing}
       />
+      <EditEmployeeInviteDialog
+        invite={editingInvite}
+        open={!!editingInvite}
+        onOpenChange={(v) => {
+          if (!v) setEditingInvite(null);
+        }}
+      />
       {pendingInvites.length > 0 && (
         <Card className="p-4">
           <p className="text-sm font-medium">Pending employee invites</p>
@@ -99,9 +117,27 @@ function EmployeesPageInner() {
                   <span className="font-medium">{invite.email}</span>
                   {invite.office?.name ? <span className="text-slate-500"> · {invite.office.name}</span> : null}
                 </span>
-                <Button size="sm" variant="outline" disabled={resend.isPending} onClick={() => resend.mutate(invite.id)}>
-                  Resend
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setEditingInvite(invite)}>
+                    Edit
+                  </Button>
+                  <Button size="sm" variant="outline" disabled={resend.isPending} onClick={() => resend.mutate(invite.id)}>
+                    Resend
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-red-600 hover:text-red-700"
+                    disabled={cancelInvite.isPending}
+                    onClick={() => {
+                      if (window.confirm(`Cancel the invite for ${invite.email}? The link will stop working.`)) {
+                        cancelInvite.mutate(invite.id);
+                      }
+                    }}
+                  >
+                    Cancel invite
+                  </Button>
+                </div>
               </li>
             ))}
           </ul>
