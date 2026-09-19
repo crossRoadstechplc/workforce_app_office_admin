@@ -18,6 +18,7 @@ import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog"
 import { SupervisorSelect } from "@/components/employees/supervisor-select";
 import { employeeName } from "@/lib/utils/format";
 import { AnnualLeaveSummary } from "@/components/leave/annual-leave-summary";
+import { EmployeeOpsHistory } from "@/components/employees/employee-ops-history";
 
 export default function EmployeeDetailPage({ params }: { params: Promise<{ employeeId: string }> }) {
   return (
@@ -160,12 +161,10 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
           </CardContent>
         </Card>
       </div>
-      <div className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Annual leave</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      <EmployeeOpsHistory
+        employeeId={employeeId}
+        leave={
+          <>
             {leaveBalance.isLoading ? <Skeleton className="h-40" /> : <AnnualLeaveSummary balance={leaveBalance.data} />}
             <LeaveAdjustForm
               busy={false}
@@ -174,14 +173,14 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
                   await employeeApi.adjustLeaveBalance(employeeId, { days, note });
                   toast.success("Leave balance updated");
                   qc.invalidateQueries({ queryKey: ["employee-leave-balance", employeeId] });
-                } catch (e) {
-                  toast.error(e instanceof Error ? e.message : "Could not adjust leave");
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : "Could not adjust leave");
                 }
               }}
             />
-          </CardContent>
-        </Card>
-      </div>
+          </>
+        }
+      />
       <EmployeeFormDialog open={editOpen} onOpenChange={setEditOpen} employee={e} />
       <Dialog open={!!action} onOpenChange={(v) => !v && setAction(null)}>
         <DialogContent>

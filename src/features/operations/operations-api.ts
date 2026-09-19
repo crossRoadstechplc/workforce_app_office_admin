@@ -4,6 +4,7 @@ import type {
   AttendanceMonthSummary,
   AttendanceRangeSummary,
   LeaveDayRoster,
+  HistoryList,
   LeaveRequest,
   LeaveRequestList,
   Timesheet,
@@ -14,7 +15,7 @@ import type {
 const d = <T>(v: any): T => (v?.data ?? v) as T;
 
 export const operationsApi = {
-  timesheets: async (params: URLSearchParams) => d<any>(await apiFetch<any>(`/admin/timesheets?${params}`)),
+  timesheets: async (params: URLSearchParams) => d<HistoryList<Timesheet>>(await apiFetch<any>(`/admin/timesheets?${params}`)),
   timesheet: async (id: string) => d<Timesheet>(await apiFetch<any>(`/admin/timesheets/${id}`)),
   correctTimesheet: async (id: string, input: { actualCheckIn?: string; actualCheckOut?: string; reason: string }) =>
     d<Timesheet>(await apiFetch<any>(`/admin/timesheets/${id}/correct`, { method: "POST", body: JSON.stringify(input) })),
@@ -42,7 +43,7 @@ export const operationsApi = {
     d<any>(await apiFetch<any>(`/admin/attendance/correctness-requests/${id}/approve`, { method: "POST", body: JSON.stringify({ adminNote }) })),
   rejectCorrectnessRequest: async (id: string, adminNote?: string) =>
     d<any>(await apiFetch<any>(`/admin/attendance/correctness-requests/${id}/reject`, { method: "POST", body: JSON.stringify({ adminNote }) })),
-  worksheets: async (params: URLSearchParams) => d<any>(await apiFetch<any>(`/admin/worksheets?${params}`)),
+  worksheets: async (params: URLSearchParams) => d<HistoryList<Worksheet>>(await apiFetch<any>(`/admin/worksheets?${params}`)),
   worksheetDayRoster: async (params: URLSearchParams) =>
     d<WorksheetDayRoster>(await apiFetch<any>(`/admin/worksheets/day-roster?${params}`)),
   worksheet: async (id: string) => d<Worksheet>(await apiFetch<any>(`/admin/worksheets/${id}`)),
