@@ -203,14 +203,31 @@ function CyclesInner() {
     onError: (e: Error) => toast.error(e.message)
   });
 
-  const removeDraft = useMutation({
-    mutationFn: (id: string) => performanceApi.deleteCycle(id),
-    onSuccess: () => {
-      toast.success("Draft deleted");
+  const removeCycle = useMutation({
+    mutationFn: ({ id }: { id: string; wasDraft: boolean }) => performanceApi.deleteCycle(id),
+    onSuccess: (_data, { wasDraft }) => {
+      toast.success(wasDraft ? "Draft deleted" : "Cycle deleted");
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message)
   });
+
+  const confirmDeleteDraft = (cycle: EvaluationCycle) => {
+    if (!window.confirm(`Delete draft "${cycle.name}"? This cannot be undone.`)) return;
+    removeCycle.mutate({ id: cycle.id, wasDraft: true });
+  };
+
+  const confirmDeleteClosed = (cycle: EvaluationCycle) => {
+    const count = cycle.counts?.total ?? 0;
+    if (
+      !window.confirm(
+        `Permanently delete this closed cycle and all ${count} evaluation${count === 1 ? "" : "s"}? Employees will no longer see them. This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    removeCycle.mutate({ id: cycle.id, wasDraft: false });
+  };
 
   const close = useMutation({
     mutationFn: (id: string) => performanceApi.closeCycle(id),
@@ -285,8 +302,8 @@ function CyclesInner() {
                     key={c.id}
                     cycle={c}
                     onOpen={() => { setOfficeId(""); setTemplateId(""); setOpenDraftId(c.id); }}
-                    onDelete={() => removeDraft.mutate(c.id)}
-                    deleting={removeDraft.isPending}
+                    onDelete={() => confirmDeleteDraft(c)}
+                    deleting={removeCycle.isPending}
                   />
                 ))}
               </tbody>
@@ -326,6 +343,16 @@ function CyclesInner() {
                       </Button>
                       {c.status !== "CLOSED" && (
                         <Button variant="ghost" size="sm" onClick={() => close.mutate(c.id)}>Close</Button>
+                      )}
+                      {c.status === "CLOSED" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={removeCycle.isPending}
+                          onClick={() => confirmDeleteClosed(c)}
+                        >
+                          Delete
+                        </Button>
                       )}
                     </div>
                   </td>
