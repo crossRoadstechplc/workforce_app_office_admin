@@ -16,6 +16,7 @@ import {
   type MeResponse
 } from "@/types/auth";
 import { homePathForRoles } from "@/features/navigation/role-nav";
+import { unwrapSessionPayload } from "@/lib/auth/unwrap-session";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated" | "mustChangePassword" | "selectContext";
 
@@ -53,24 +54,6 @@ function readLastContextKey() {
 function writeLastContextKey(contextKey: string) {
   if (typeof window === "undefined") return;
   localStorage.setItem(LAST_CONTEXT_STORAGE_KEY, contextKey);
-}
-
-function unwrapAuthPayload(raw: unknown): Record<string, unknown> {
-  if (!raw || typeof raw !== "object") return {};
-  const obj = raw as Record<string, unknown>;
-  if (obj.data && typeof obj.data === "object" && !Array.isArray(obj.data)) {
-    const nested = obj.data as Record<string, unknown>;
-    if (
-      nested.accessToken ||
-      nested.requiresContextSelection ||
-      nested.preAuthToken ||
-      nested.user ||
-      nested.contexts
-    ) {
-      return nested;
-    }
-  }
-  return obj;
 }
 
 function isContextSelectionPayload(data: Record<string, unknown>) {
@@ -147,9 +130,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const hydrate = useCallback(async () => {
     try {
-      const r = await fetch("/api/auth/refresh", { method: "POST", signal: AbortSignal.timeout(12_000) });
+      const r = await fetch("/api/auth/refresh", {
+        method: "POST",
+        credentials: "include",
+        signal: AbortSignal.timeout(12_000)
+      });
       if (!r.ok) throw new Error();
-      const session = unwrapAuthPayload(await r.json());
+      const session = unwrapSessionPayload(await r.json());
       const sessionUser = userFromSession(session as { user?: AuthUser; mustChangePassword?: boolean; activeContext?: AuthUser["activeContext"] });
       if (!isPortalAdmin(sessionUser.roles)) throw new Error("Admin access required");
 
@@ -179,7 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [hydrate]);
 
   const finalizeLoginResponse = async (raw: unknown): Promise<MeResponse | null> => {
-    const data = unwrapAuthPayload(raw);
+    const data = unwrapSessionPayload(raw);
 
     if (isContextSelectionPayload(data)) {
       const allContexts = Array.isArray(data.contexts) ? (data.contexts as LoginContext[]) : [];
@@ -246,7 +233,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ contextKey, preAuthToken, deviceId: "admin-web" })
     });
-    const data = unwrapAuthPayload(await r.json());
+    const data = unwrapSessionPayload(await r.json());
     if (!r.ok) throw new Error(apiErrorMessage(data, "Context selection failed"));
     return finalizeLoginResponse(data);
   };
@@ -263,7 +250,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...(lastContextKey ? { lastContextKey } : {})
       })
     });
-    const data = unwrapAuthPayload(await r.json());
+    const data = unwrapSessionPayload(await r.json());
     if (!r.ok) throw new Error(apiErrorMessage(data, "Login failed"));
     await finalizeLoginResponse(data as LoginResponse);
   };
@@ -287,7 +274,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         body: JSON.stringify({ contextKey, deviceId: "admin-web" })
       });
-      const data = unwrapAuthPayload(await r.json());
+      const data = unwrapSessionPayload(await r.json());
       if (!r.ok) throw new Error(apiErrorMessage(data, "Failed to switch context"));
       const accessToken = data.accessToken as string | undefined;
       if (!accessToken) throw new Error("Failed to switch context");
@@ -308,7 +295,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
       body: JSON.stringify({ currentPassword, newPassword })
     });
-    const data = unwrapAuthPayload(await r.json());
+    const data = unwrapSessionPayload(await r.json());
     if (!r.ok) throw new Error(apiErrorMessage(data, "Password change failed"));
 
     const accessToken = data.accessToken as string | undefined;

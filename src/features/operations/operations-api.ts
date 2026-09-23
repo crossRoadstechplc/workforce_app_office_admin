@@ -31,13 +31,22 @@ export const operationsApi = {
       photoRequired: boolean;
       photosAvailable: boolean;
       desktopSkipLocationEnabled: boolean;
+      autoCheckoutEnabled: boolean;
+      autoCheckoutTime: string;
     }>(await apiFetch<any>("/admin/attendance/config")),
-  updateAttendanceConfig: async (input: { photoRequiredEnabled?: boolean; desktopSkipLocationEnabled?: boolean }) =>
+  updateAttendanceConfig: async (input: {
+    photoRequiredEnabled?: boolean;
+    desktopSkipLocationEnabled?: boolean;
+    autoCheckoutEnabled?: boolean;
+    autoCheckoutTime?: string;
+  }) =>
     d<{
       photoRequiredEnabled: boolean;
       photoRequired: boolean;
       photosAvailable: boolean;
       desktopSkipLocationEnabled: boolean;
+      autoCheckoutEnabled: boolean;
+      autoCheckoutTime: string;
     }>(await apiFetch<any>("/admin/attendance/config", { method: "PATCH", body: JSON.stringify(input) })),
   approveCorrectnessRequest: async (id: string, adminNote?: string) =>
     d<any>(await apiFetch<any>(`/admin/attendance/correctness-requests/${id}/approve`, { method: "POST", body: JSON.stringify({ adminNote }) })),

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Camera, Monitor, Search } from "lucide-react";
+import { Camera, Clock, Monitor, Search } from "lucide-react";
 import { toast } from "sonner";
 import { TenantOpsGate } from "@/components/auth/role-gates";
 import {
@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { Select } from "@/components/ui/select";
-import { StatusBadge } from "@/components/ui/badge";
+import { CorrectionStatusBadge, StatusBadge } from "@/components/ui/badge";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { operationsApi } from "@/features/operations/operations-api";
@@ -109,8 +109,12 @@ function AttendancePageInner() {
   });
 
   const configMutate = useMutation({
-    mutationFn: (input: { photoRequiredEnabled?: boolean; desktopSkipLocationEnabled?: boolean }) =>
-      operationsApi.updateAttendanceConfig(input),
+    mutationFn: (input: {
+      photoRequiredEnabled?: boolean;
+      desktopSkipLocationEnabled?: boolean;
+      autoCheckoutEnabled?: boolean;
+      autoCheckoutTime?: string;
+    }) => operationsApi.updateAttendanceConfig(input),
     onSuccess: (data) => {
       toast.success("Setting saved");
       qc.setQueryData(["attendance-config"], data);
@@ -224,6 +228,60 @@ function AttendancePageInner() {
                 />
               )}
             </CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between gap-4 py-4">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Clock className="size-4 text-slate-500" />
+                  Automatic checkout
+                </CardTitle>
+                <p className="mt-1 text-sm text-slate-500">
+                  Close open shifts at a set local time when employees forget to check out.
+                </p>
+              </div>
+              {showOfficeFilter ? (
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={configQuery.data.autoCheckoutEnabled}
+                  aria-label="Automatic checkout"
+                  disabled={configMutate.isPending}
+                  onClick={() =>
+                    configMutate.mutate({ autoCheckoutEnabled: !configQuery.data!.autoCheckoutEnabled })
+                  }
+                  className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 ${
+                    configQuery.data.autoCheckoutEnabled ? "bg-blue-600" : "bg-slate-200"
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block size-5 translate-y-0.5 rounded-full bg-white shadow transition-transform ${
+                      configQuery.data.autoCheckoutEnabled ? "translate-x-5" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              ) : (
+                <span
+                  className={`size-2.5 shrink-0 rounded-full ${configQuery.data.autoCheckoutEnabled ? "bg-blue-600" : "bg-slate-300"}`}
+                  aria-label={configQuery.data.autoCheckoutEnabled ? "Enabled" : "Disabled"}
+                />
+              )}
+            </CardHeader>
+            {showOfficeFilter && (
+              <div className="px-6 pb-4">
+                <Label htmlFor="auto-checkout-time">Auto checkout time</Label>
+                <Input
+                  id="auto-checkout-time"
+                  type="time"
+                  className="mt-1.5 max-w-[10rem]"
+                  disabled={!configQuery.data.autoCheckoutEnabled || configMutate.isPending}
+                  value={configQuery.data.autoCheckoutTime}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (!value) return;
+                    configMutate.mutate({ autoCheckoutTime: value });
+                  }}
+                />
+              </div>
+            )}
           </div>
         </Card>
       )}
@@ -308,7 +366,7 @@ function AttendancePageInner() {
             { label: "Employees", value: dayQuery.data.counts.totalEmployees },
             { label: "Checked in", value: dayQuery.data.counts.checkedIn, tone: "success" },
             { label: "Not checked in", value: dayQuery.data.counts.notCheckedIn, tone: "warning" },
-            { label: "Pending requests", value: dayQuery.data.counts.correctnessPending, tone: "warning" },
+            { label: "Pending corrections", value: dayQuery.data.counts.correctnessPending, tone: "warning" },
             { label: "Approved leave", value: dayQuery.data.counts.onLeave }
           ]}
         />
@@ -319,7 +377,9 @@ function AttendancePageInner() {
           metrics={[
             { label: "Employees", value: periodQuery.data.counts.totalEmployees },
             { label: "Missing check-in days", value: periodQuery.data.counts.totalMissingCheckInDays, tone: "warning" },
-            { label: "Employees missing check-in", value: periodQuery.data.counts.employeesMissingCheckIn }
+            { label: "Employees missing check-in", value: periodQuery.data.counts.employeesMissingCheckIn },
+            { label: "Employee checkouts", value: periodQuery.data.counts.totalEmployeeCheckouts },
+            { label: "System checkouts", value: periodQuery.data.counts.totalSystemCheckouts, tone: "warning" }
           ]}
         />
       )}
@@ -329,7 +389,7 @@ function AttendancePageInner() {
           <Table>
             <TableHead>
               <tr>
-                {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Photo", "Check in", "Checkout", "Late", "Worked", "Status", "Correctness", ""].map((h) => (
+                {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Photo", "Check in", "Checkout", "Checkout by", "Late", "Worked", "Status", "Correction", ""].map((h) => (
                   <Th key={h || "actions"}>{h}</Th>
                 ))}
               </tr>
@@ -350,7 +410,7 @@ function AttendancePageInner() {
                   onOpenPhoto={setPhotoPreview}
                 />
               ))}
-              {!dayItems.length && <TableEmpty colSpan={showOfficeFilter ? 10 : 9}>No employees match this filter.</TableEmpty>}
+              {!dayItems.length && <TableEmpty colSpan={showOfficeFilter ? 11 : 10}>No employees match this filter.</TableEmpty>}
             </TableBody>
           </Table>
         </TableShell>
@@ -359,7 +419,7 @@ function AttendancePageInner() {
           <Table>
             <TableHead>
               <tr>
-                {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Working days", "Present", "Leave", "Late", "No check-in", ""].map((h) => (
+                {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Working days", "Present", "Leave", "Late", "No check-in", "Employee checkout", "System checkout", ""].map((h) => (
                   <Th key={h || "actions"}>{h}</Th>
                 ))}
               </tr>
@@ -377,6 +437,8 @@ function AttendancePageInner() {
                   <Td className="tabular-nums">{formatLeaveDays(row.leaveDays)}</Td>
                   <Td className="tabular-nums">{row.lateDays}</Td>
                   <Td className="font-semibold tabular-nums text-amber-700">{row.missingCheckInDays}</Td>
+                  <Td className="tabular-nums">{row.employeeCheckoutDays}</Td>
+                  <Td className="tabular-nums">{row.systemCheckoutDays}</Td>
                   <Td>
                     <Button size="sm" variant="ghost" onClick={() => router.push(`/employees/${row.employee.id}`)}>
                       Open
@@ -384,7 +446,7 @@ function AttendancePageInner() {
                   </Td>
                 </TableRow>
               ))}
-              {!periodItems.length && <TableEmpty colSpan={showOfficeFilter ? 8 : 7}>No employees match this filter.</TableEmpty>}
+              {!periodItems.length && <TableEmpty colSpan={showOfficeFilter ? 11 : 10}>No employees match this filter.</TableEmpty>}
             </TableBody>
           </Table>
         </TableShell>
@@ -407,6 +469,7 @@ function AttendancePageInner() {
               <div className="grid gap-3 sm:grid-cols-4">
                 <Stat l="Check in" v={d.actualCheckIn ? formatDateTime(d.actualCheckIn) : "—"} />
                 <Stat l="Checkout" v={d.actualCheckOut ? formatDateTime(d.actualCheckOut) : "—"} />
+                <Stat l="Checkout by" v={checkOutSourceLabel(d.checkOutSource)} />
                 <Stat l="Worked" v={minutesToHours(d.workedMinutes)} />
                 <Stat l="Late" v={formatLateMinutes(d.lateMinutes)} />
               </div>
@@ -458,7 +521,7 @@ function AttendancePageInner() {
                     disabled={decision.isPending}
                     onClick={() => decision.mutate({ id: selectedCorrectnessRequestId, action: "approve" })}
                   >
-                    Accept
+                    Approve correction
                   </Button>
                 </div>
               )}
@@ -513,6 +576,7 @@ function DayRow({
       <Td>
         {row.timesheet?.actualCheckOut ? formatDateTime(row.timesheet.actualCheckOut) : "—"}
       </Td>
+      <Td>{row.timesheet?.actualCheckOut ? checkOutSourceLabel(row.timesheet.checkOutSource) : "—"}</Td>
       <Td className="tabular-nums">{row.timesheet ? formatLateMinutes(row.timesheet.lateMinutes) : "—"}</Td>
       <Td className="tabular-nums">{row.timesheet ? minutesToHours(row.timesheet.workedMinutes) : "—"}</Td>
       <Td>
@@ -527,7 +591,7 @@ function DayRow({
         </div>
       </Td>
       <Td>
-        {row.correctnessStatus ? <StatusBadge status={row.correctnessStatus} /> : "—"}
+        {row.correctnessStatus ? <CorrectionStatusBadge status={row.correctnessStatus} /> : "—"}
       </Td>
       <Td>
         {row.correctnessStatus === "PENDING" && row.correctnessRequestId ? (
@@ -536,7 +600,7 @@ function DayRow({
               Reject
             </Button>
             <Button size="sm" disabled={deciding} onClick={() => onApprove(row.correctnessRequestId!)}>
-              Accept
+              Approve
             </Button>
           </div>
         ) : row.timesheet || row.correctnessRequestId ? (
@@ -573,4 +637,11 @@ function Stat({ l, v }: { l: string; v: string }) {
       <div className="mt-1 font-semibold">{v}</div>
     </div>
   );
+}
+
+function checkOutSourceLabel(source?: Timesheet["checkOutSource"]) {
+  if (source === "EMPLOYEE") return "Employee";
+  if (source === "SYSTEM") return "Automatic (system)";
+  if (source === "ADMIN") return "Administrator";
+  return "—";
 }

@@ -96,16 +96,22 @@ export function CreateEmployeeDialog() {
     });
   }
 
+  function resetDialog() {
+    setResult(null);
+    setInviteResult(null);
+    setMode("create");
+  }
+
+  function closeDialog() {
+    setOpen(false);
+  }
+
   return (
     <Dialog
       open={open}
       onOpenChange={(v) => {
         setOpen(v);
-        if (!v) {
-          setResult(null);
-          setInviteResult(null);
-          setMode("create");
-        }
+        if (v) resetDialog();
       }}
     >
       <DialogTrigger asChild>
@@ -132,7 +138,7 @@ export function CreateEmployeeDialog() {
             <p className="text-xs text-slate-500">
               Share this password with the employee. They can sign in with email or employee code. {EASY_PASSWORD_HINT}
             </p>
-            <Button className="w-full" onClick={() => setOpen(false)}>
+            <Button className="w-full" onClick={closeDialog}>
               Done
             </Button>
           </div>
@@ -143,7 +149,7 @@ export function CreateEmployeeDialog() {
                 {resend.isPending ? "Resending..." : "Resend invite"}
               </Button>
             ) : null}
-            <Button className="w-full" onClick={() => setOpen(false)}>
+            <Button className="w-full" onClick={closeDialog}>
               Done
             </Button>
           </div>
@@ -188,7 +194,7 @@ export function CreateEmployeeDialog() {
                   <EasyPasswordField id="temporaryPassword" name="temporaryPassword" optional />
                 </div>
                 <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancel
                   </Button>
                   <Button type="submit" disabled={mutation.isPending}>
@@ -206,7 +212,7 @@ export function CreateEmployeeDialog() {
                   The employee opens a form from the email, fills the rest of their details, and chooses a password of at least 6 characters.
                 </p>
                 <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancel
                   </Button>
                   <Button type="submit" disabled={inviteMut.isPending}>

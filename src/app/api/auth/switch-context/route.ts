@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { backendFetch } from "@/lib/api/backend";
+import { setRefreshCookie } from "@/lib/auth/session-cookie";
+import { unwrapSessionPayload } from "@/lib/auth/unwrap-session";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -18,13 +20,8 @@ export async function POST(request: NextRequest) {
     headers: { authorization },
     body: JSON.stringify({ ...body, refreshToken, deviceId: "admin-web" })
   });
-  const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
-  if (!response.ok) return NextResponse.json(data, { status: response.status });
-
-  const payload =
-    data.data && typeof data.data === "object" && !Array.isArray(data.data)
-      ? (data.data as Record<string, unknown>)
-      : data;
+  const payload = unwrapSessionPayload(await response.json().catch(() => ({})));
+  if (!response.ok) return NextResponse.json(payload, { status: response.status });
 
   const result = NextResponse.json({
     accessToken: payload.accessToken,
@@ -33,13 +30,7 @@ export async function POST(request: NextRequest) {
     activeContext: payload.activeContext
   });
   if (typeof payload.refreshToken === "string" && payload.refreshToken) {
-    result.cookies.set("workforce_refresh", payload.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30
-    });
+    setRefreshCookie(result, payload.refreshToken);
   }
   return result;
 }

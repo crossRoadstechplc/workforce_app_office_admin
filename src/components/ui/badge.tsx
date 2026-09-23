@@ -52,6 +52,19 @@ export function statusLabel(status: string) {
   return labels[status] ?? status.replaceAll("_", " ");
 }
 
+export function correctionStatusLabel(status: string) {
+  switch (status) {
+    case "PENDING":
+      return "Correction pending";
+    case "APPROVED":
+      return "Correction approved";
+    case "REJECTED":
+      return "Correction rejected";
+    default:
+      return statusLabel(status);
+  }
+}
+
 export function StatusBadge({ status }: { status: string }) {
   return (
     <span
@@ -61,6 +74,19 @@ export function StatusBadge({ status }: { status: string }) {
       )}
     >
       {statusLabel(status)}
+    </span>
+  );
+}
+
+export function CorrectionStatusBadge({ status }: { status: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset",
+        styles[status] ?? "bg-blue-50 text-blue-700 ring-blue-600/20"
+      )}
+    >
+      {correctionStatusLabel(status)}
     </span>
   );
 }

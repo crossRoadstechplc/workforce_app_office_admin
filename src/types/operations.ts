@@ -25,6 +25,7 @@ export type Timesheet = {
   isMissingCheckout?: boolean;
   isOpen?: boolean;
   isLate?: boolean;
+  checkOutSource?: "EMPLOYEE" | "SYSTEM" | "ADMIN" | null;
   employee: Person;
   office?: { id: string; name: string };
   lateReason?: { reasonType: string; reasonDescription?: string | null };
@@ -120,6 +121,7 @@ export type AttendanceDayRosterRow = {
     isOpen: boolean;
     isLate: boolean;
     isMissingCheckout: boolean;
+    checkOutSource?: "EMPLOYEE" | "SYSTEM" | "ADMIN" | null;
     lateReason?: { reasonType: string; reasonDescription?: string | null } | null;
     checkInPhotoUrl?: string | null;
     checkOutPhotoUrl?: string | null;
@@ -160,6 +162,8 @@ export type AttendanceMonthSummaryRow = {
   lateDays: number;
   missingCheckInDays: number;
   missingCheckOutDays: number;
+  employeeCheckoutDays: number;
+  systemCheckoutDays: number;
 };
 
 export type AttendanceMonthSummary = {
@@ -174,6 +178,8 @@ export type AttendanceMonthSummary = {
     employeesMissingCheckOut: number;
     totalMissingCheckInDays: number;
     totalMissingCheckOutDays: number;
+    totalEmployeeCheckouts: number;
+    totalSystemCheckouts: number;
   };
 };
 
@@ -187,6 +193,8 @@ export type AttendanceRangeSummary = {
     employeesMissingCheckOut: number;
     totalMissingCheckInDays: number;
     totalMissingCheckOutDays: number;
+    totalEmployeeCheckouts: number;
+    totalSystemCheckouts: number;
   };
 };
 

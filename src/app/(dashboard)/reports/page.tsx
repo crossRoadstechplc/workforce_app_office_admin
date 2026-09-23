@@ -27,6 +27,7 @@ type ReportItem = {
   office?: { name?: string };
   actualCheckIn?: string;
   actualCheckOut?: string;
+  checkOutSource?: "EMPLOYEE" | "SYSTEM" | "ADMIN" | null;
   workedMinutes?: number;
   lateMinutes?: number;
   status?: string;
@@ -128,7 +129,7 @@ function ReportTable({ kind, items }: { kind: Kind; items: ReportItem[] }) {
     return (
       <TableShell>
         <Table>
-          <Head labels={["Employee", "Date", "Office", "Check in", "Checkout", "Worked", "Late", "Status"]} />
+          <Head labels={["Employee", "Date", "Office", "Check in", "Checkout", "Checkout by", "Worked", "Late", "Status"]} />
           <TableBody>
             {items.map((x) => (
               <TableRow key={x.id}>
@@ -137,6 +138,7 @@ function ReportTable({ kind, items }: { kind: Kind; items: ReportItem[] }) {
                 <Td>{x.office?.name ?? "—"}</Td>
                 <Td>{formatDateTime(x.actualCheckIn)}</Td>
                 <Td>{formatDateTime(x.actualCheckOut)}</Td>
+                <Td>{checkoutByLabel(x.checkOutSource)}</Td>
                 <Td className="tabular-nums">{minutesToHours(x.workedMinutes)}</Td>
                 <Td className="tabular-nums">{formatLateMinutes(x.lateMinutes)}</Td>
                 <Td>
@@ -144,7 +146,7 @@ function ReportTable({ kind, items }: { kind: Kind; items: ReportItem[] }) {
                 </Td>
               </TableRow>
             ))}
-            {!items.length && <TableEmpty colSpan={8}>No timesheets for this range.</TableEmpty>}
+            {!items.length && <TableEmpty colSpan={9}>No timesheets for this range.</TableEmpty>}
           </TableBody>
         </Table>
       </TableShell>
@@ -211,6 +213,13 @@ function Head({ labels }: { labels: string[] }) {
       </tr>
     </TableHead>
   );
+}
+
+function checkoutByLabel(source?: ReportItem["checkOutSource"]) {
+  if (source === "EMPLOYEE") return "Employee";
+  if (source === "SYSTEM") return "System";
+  if (source === "ADMIN") return "Administrator";
+  return "—";
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

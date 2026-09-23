@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { backendFetch } from "@/lib/api/backend";
+import { setRefreshCookie } from "@/lib/auth/session-cookie";
 
 function sessionResponse(data: Record<string, unknown>) {
   // Support both a top-level payload and a nested `{ data: ... }` envelope.
@@ -28,13 +29,7 @@ function sessionResponse(data: Record<string, unknown>) {
   });
 
   if (typeof payload.refreshToken === "string" && payload.refreshToken) {
-    result.cookies.set("workforce_refresh", payload.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30
-    });
+    setRefreshCookie(result, payload.refreshToken);
   }
 
   return result;
