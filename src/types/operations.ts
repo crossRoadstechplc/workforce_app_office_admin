@@ -82,6 +82,28 @@ export type LeaveRequestList = {
   counts: { total: number; pending: number; approved: number; rejected: number; cancelled: number };
 };
 
+export type AttendanceCorrectnessRequestRow = {
+  id: string;
+  workDate: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+  employeeNote?: string | null;
+  adminNote?: string | null;
+  reviewedAt?: string | null;
+  createdAt: string;
+  timesheetId?: string | null;
+  employee: Person;
+  timesheet?: {
+    id: string;
+    status: string;
+    actualCheckIn?: string | null;
+    actualCheckOut?: string | null;
+    lateMinutes: number;
+    workedMinutes: number;
+    isLate: boolean;
+    isMissingCheckout: boolean;
+  } | null;
+};
+
 export type Notification = {
   id: string;
   type: string;

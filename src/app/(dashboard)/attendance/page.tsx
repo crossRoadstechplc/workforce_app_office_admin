@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Camera, Clock, Monitor, Search } from "lucide-react";
+import { Camera, ChevronDown, Clock, Monitor, Search } from "lucide-react";
 import { toast } from "sonner";
 import { TenantOpsGate } from "@/components/auth/role-gates";
 import {
@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { Select } from "@/components/ui/select";
-import { CorrectionStatusBadge, StatusBadge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/badge";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { operationsApi } from "@/features/operations/operations-api";
@@ -63,7 +63,7 @@ function AttendancePageInner() {
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
   const [selectedTimesheetId, setSelectedTimesheetId] = useState<string | null>(null);
-  const [selectedCorrectnessRequestId, setSelectedCorrectnessRequestId] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<AttendancePhotoPreview[] | null>(null);
 
   const dayParams = useMemo(() => {
@@ -128,18 +128,6 @@ function AttendancePageInner() {
     enabled: !!selectedTimesheetId
   });
 
-  const decision = useMutation({
-    mutationFn: ({ id, action }: { id: string; action: "approve" | "reject" }) =>
-      action === "approve" ? operationsApi.approveCorrectnessRequest(id) : operationsApi.rejectCorrectnessRequest(id),
-    onSuccess: () => {
-      toast.success("Request updated");
-      setSelectedCorrectnessRequestId(null);
-      void qc.invalidateQueries({ queryKey: ["attendance-day-roster"] });
-      void qc.invalidateQueries({ queryKey: ["timesheet", selectedTimesheetId] });
-    },
-    onError: (e: Error) => toast.error(e.message)
-  });
-
   const periodQuery = mode === "month" ? monthQuery : rangeQuery;
   const loading = mode === "day" ? dayQuery.isLoading : periodQuery.isLoading;
   if (loading) return <PageSkeleton />;
@@ -156,13 +144,26 @@ function AttendancePageInner() {
         description={
           isOfficeAdmin
             ? `Review daily attendance for ${officeLabel ?? "your assigned offices"}.`
-            : "Full employee roster by day, month, or custom date range — exception counts, location evidence, and corrections."
+            : "Full employee roster by day, month, or custom date range — exception counts and location evidence."
         }
       />
 
       {configQuery.data && (
         <Card>
-          <div className="divide-y">
+          <button
+            type="button"
+            className="flex w-full items-center justify-between gap-3 px-6 py-4 text-left"
+            onClick={() => setSettingsOpen((v) => !v)}
+            aria-expanded={settingsOpen}
+          >
+            <div>
+              <CardTitle className="text-base">Attendance settings</CardTitle>
+              <p className="mt-1 text-sm text-slate-500">Photos, company PC location, and automatic checkout.</p>
+            </div>
+            <ChevronDown className={`size-5 shrink-0 text-slate-500 transition ${settingsOpen ? "rotate-180" : ""}`} />
+          </button>
+          {settingsOpen && (
+          <div className="divide-y border-t">
             <CardHeader className="flex flex-row items-center justify-between gap-4 py-4">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Camera className="size-4 text-slate-500" />
@@ -283,6 +284,7 @@ function AttendancePageInner() {
               </div>
             )}
           </div>
+          )}
         </Card>
       )}
 
@@ -339,10 +341,7 @@ function AttendancePageInner() {
                 "COMPLETED_LATE",
                 "NOT_CHECKED_IN",
                 "ON_LEAVE",
-                "NON_WORKING_DAY",
-                "CORRECTNESS_PENDING",
-                "CORRECTNESS_APPROVED",
-                "CORRECTNESS_REJECTED"
+                "NON_WORKING_DAY"
               ].map((s) => (
                 <option key={s} value={s}>
                   {s === "ON_LEAVE" ? "Approved leave" : s === "NOT_CHECKED_IN" ? "Missing check-in" : s.replaceAll("_", " ")}
@@ -366,7 +365,6 @@ function AttendancePageInner() {
             { label: "Employees", value: dayQuery.data.counts.totalEmployees },
             { label: "Checked in", value: dayQuery.data.counts.checkedIn, tone: "success" },
             { label: "Not checked in", value: dayQuery.data.counts.notCheckedIn, tone: "warning" },
-            { label: "Pending corrections", value: dayQuery.data.counts.correctnessPending, tone: "warning" },
             { label: "Approved leave", value: dayQuery.data.counts.onLeave }
           ]}
         />
@@ -389,7 +387,7 @@ function AttendancePageInner() {
           <Table>
             <TableHead>
               <tr>
-                {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Photo", "Check in", "Checkout", "Checkout by", "Late", "Worked", "Status", "Correction", ""].map((h) => (
+                {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Photo", "Check in", "Checkout", "Checkout by", "Late", "Worked", "Status", ""].map((h) => (
                   <Th key={h || "actions"}>{h}</Th>
                 ))}
               </tr>
@@ -400,17 +398,13 @@ function AttendancePageInner() {
                   key={row.employee.id}
                   row={row}
                   showOffice={showOfficeFilter}
-                  deciding={decision.isPending}
-                  onApprove={(id) => decision.mutate({ id, action: "approve" })}
-                  onReject={(id) => decision.mutate({ id, action: "reject" })}
                   onView={() => {
                     if (row.timesheet) setSelectedTimesheetId(row.timesheet.id);
-                    setSelectedCorrectnessRequestId(row.correctnessRequestId ?? null);
                   }}
                   onOpenPhoto={setPhotoPreview}
                 />
               ))}
-              {!dayItems.length && <TableEmpty colSpan={showOfficeFilter ? 11 : 10}>No employees match this filter.</TableEmpty>}
+              {!dayItems.length && <TableEmpty colSpan={showOfficeFilter ? 10 : 9}>No employees match this filter.</TableEmpty>}
             </TableBody>
           </Table>
         </TableShell>
@@ -453,12 +447,9 @@ function AttendancePageInner() {
       )}
 
       <Dialog
-        open={!!selectedTimesheetId || !!selectedCorrectnessRequestId}
+        open={!!selectedTimesheetId}
         onOpenChange={(v) => {
-          if (!v) {
-            setSelectedTimesheetId(null);
-            setSelectedCorrectnessRequestId(null);
-          }
+          if (!v) setSelectedTimesheetId(null);
         }}
       >
         <DialogContent className="max-w-3xl">
@@ -508,23 +499,6 @@ function AttendancePageInner() {
                   )}
                 </div>
               </div>
-              {selectedCorrectnessRequestId && (
-                <div className="flex justify-end gap-2 border-t pt-5">
-                  <Button
-                    variant="secondary"
-                    disabled={decision.isPending}
-                    onClick={() => decision.mutate({ id: selectedCorrectnessRequestId, action: "reject" })}
-                  >
-                    Reject
-                  </Button>
-                  <Button
-                    disabled={decision.isPending}
-                    onClick={() => decision.mutate({ id: selectedCorrectnessRequestId, action: "approve" })}
-                  >
-                    Approve correction
-                  </Button>
-                </div>
-              )}
             </div>
           )}
         </DialogContent>
@@ -538,18 +512,12 @@ function DayRow({
   row,
   showOffice,
   onView,
-  onOpenPhoto,
-  onApprove,
-  onReject,
-  deciding
+  onOpenPhoto
 }: {
   row: AttendanceDayRosterRow;
   showOffice: boolean;
   onView: () => void;
   onOpenPhoto: (photos: AttendancePhotoPreview[]) => void;
-  onApprove: (id: string) => void;
-  onReject: (id: string) => void;
-  deciding: boolean;
 }) {
   const photos: AttendancePhotoPreview[] = [
     row.timesheet?.checkInPhotoUrl ? { url: row.timesheet.checkInPhotoUrl, title: "Check-in photo" } : null,
@@ -591,19 +559,7 @@ function DayRow({
         </div>
       </Td>
       <Td>
-        {row.correctnessStatus ? <CorrectionStatusBadge status={row.correctnessStatus} /> : "—"}
-      </Td>
-      <Td>
-        {row.correctnessStatus === "PENDING" && row.correctnessRequestId ? (
-          <div className="flex gap-1">
-            <Button size="sm" variant="secondary" disabled={deciding} onClick={() => onReject(row.correctnessRequestId!)}>
-              Reject
-            </Button>
-            <Button size="sm" disabled={deciding} onClick={() => onApprove(row.correctnessRequestId!)}>
-              Approve
-            </Button>
-          </div>
-        ) : row.timesheet || row.correctnessRequestId ? (
+        {row.timesheet ? (
           <Button size="sm" variant="ghost" onClick={onView}>
             View
           </Button>

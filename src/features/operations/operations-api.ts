@@ -1,5 +1,6 @@
 import { apiFetch } from "@/lib/api/api-client";
 import type {
+  AttendanceCorrectnessRequestRow,
   AttendanceDayRoster,
   AttendanceMonthSummary,
   AttendanceRangeSummary,
@@ -52,6 +53,8 @@ export const operationsApi = {
     d<any>(await apiFetch<any>(`/admin/attendance/correctness-requests/${id}/approve`, { method: "POST", body: JSON.stringify({ adminNote }) })),
   rejectCorrectnessRequest: async (id: string, adminNote?: string) =>
     d<any>(await apiFetch<any>(`/admin/attendance/correctness-requests/${id}/reject`, { method: "POST", body: JSON.stringify({ adminNote }) })),
+  correctnessRequests: async (params: URLSearchParams) =>
+    d<AttendanceCorrectnessRequestRow[]>(await apiFetch<any>(`/admin/attendance/correctness-requests?${params}`)),
   worksheets: async (params: URLSearchParams) => d<HistoryList<Worksheet>>(await apiFetch<any>(`/admin/worksheets?${params}`)),
   worksheetDayRoster: async (params: URLSearchParams) =>
     d<WorksheetDayRoster>(await apiFetch<any>(`/admin/worksheets/day-roster?${params}`)),

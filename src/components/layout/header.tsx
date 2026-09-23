@@ -1,30 +1,20 @@
 "use client";
 
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { Bell, ChevronDown, PanelLeft, PanelLeftClose } from "lucide-react";
+import { ChevronDown, PanelLeft, PanelLeftClose } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dropdown, DropdownContent, DropdownItem, DropdownTrigger } from "@/components/ui/dropdown-menu";
 import { ContextSwitcher } from "@/features/auth/context-switcher";
 import { useAuth } from "@/features/auth/auth-provider";
-import { notificationApi } from "@/features/notifications/notification-api";
 import { roleLabel } from "@/features/navigation/role-nav";
 import { MobileNav } from "./mobile-nav";
+import { NotificationBell } from "./notification-bell";
 import { useSidebar } from "./sidebar-context";
 
 export function Header() {
   const { user, logout, isSuperAdmin, portalContexts, switchContext, contextSwitching } = useAuth();
   const { collapsed, toggle } = useSidebar();
   const initials = user?.email.slice(0, 2).toUpperCase() ?? "AD";
-
-  const q = useQuery({
-    queryKey: ["notifications", "header"],
-    queryFn: () => notificationApi.list(new URLSearchParams({ page: "1", pageSize: "10" })),
-    refetchInterval: 60000,
-    enabled: !isSuperAdmin
-  });
-  const unread = q.data?.unreadCount ?? q.data?.items.filter((x) => !x.isRead).length ?? 0;
 
   const contextLabel = isSuperAdmin
     ? "SaaS control plane"
@@ -69,18 +59,7 @@ export function Header() {
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-0.5 sm:gap-2">
-        {!isSuperAdmin && (
-          <Button variant="ghost" asChild aria-label="Notifications" className="relative size-11 px-0 sm:size-auto sm:px-3">
-            <Link href="/notifications">
-              <Bell className="size-5" />
-              {unread > 0 && (
-                <span className="absolute right-1 top-1 grid min-w-4 place-items-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
-                  {unread > 99 ? "99+" : unread}
-                </span>
-              )}
-            </Link>
-          </Button>
-        )}
+        {!isSuperAdmin && <NotificationBell />}
         <Dropdown>
           <DropdownTrigger asChild>
             <Button variant="ghost" className="gap-2 px-1.5 sm:px-3">

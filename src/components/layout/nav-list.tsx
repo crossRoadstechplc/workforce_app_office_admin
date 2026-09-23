@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 import { useAuth } from "@/features/auth/auth-provider";
 import { navSectionsForRoles } from "@/features/navigation/role-nav";
+import { useLeaveNavBadges } from "@/features/operations/use-leave-nav-badges";
 
 export function useVisibleNavSections() {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ export function NavList({
 }) {
   const path = usePathname();
   const sections = useVisibleNavSections();
+  const leaveBadges = useLeaveNavBadges();
 
   return (
     <nav className={cn("min-h-0 flex-1 overflow-y-auto py-3", collapsed ? "space-y-1 px-2" : "space-y-5 px-3")}>
@@ -44,12 +46,22 @@ export function NavList({
                   onClick={onNavigate}
                   className={cn(
                     "group relative flex items-center rounded-lg text-sm font-medium transition",
-                    collapsed ? "justify-center px-0 py-2.5" : "min-h-11 gap-3 px-3 py-3 lg:min-h-0 lg:py-2.5",
+                    collapsed ? "relative justify-center px-0 py-2.5" : "min-h-11 gap-3 px-3 py-3 lg:min-h-0 lg:py-2.5",
                     active ? "bg-blue-600 text-white" : "hover:bg-slate-900 hover:text-white"
                   )}
                 >
                   <Icon className="size-4 shrink-0" />
                   {!collapsed && <span className="truncate">{item.label}</span>}
+                  {item.href === "/leave" && leaveBadges.total > 0 ? (
+                    <span
+                      className={cn(
+                        "inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white",
+                        collapsed ? "absolute -right-0.5 -top-0.5" : "ml-auto"
+                      )}
+                    >
+                      {leaveBadges.total > 99 ? "99+" : leaveBadges.total}
+                    </span>
+                  ) : null}
                   {collapsed && (
                     <span className="pointer-events-none absolute left-full z-50 ml-3 hidden whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-xs font-medium text-white shadow-lg group-hover:block">
                       {item.label}
