@@ -29,7 +29,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b bg-white/95 px-3 backdrop-blur sm:h-16 lg:px-6">
+    <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b bg-white/95 px-3 backdrop-blur print:hidden sm:h-16 lg:px-6">
       <div className="flex min-w-0 items-center gap-2">
         <MobileNav />
         <Button

@@ -37,6 +37,9 @@ export function notificationHref(n: Notification): string | null {
   if (entity === "MeetingBooking" || type.startsWith("MEETING_")) {
     return "/meetings";
   }
+  if (entity === "ChatConversation" || type === "CHAT_MESSAGE") {
+    return n.relatedEntityId ? `/chat` : "/chat";
+  }
   return null;
 }
 

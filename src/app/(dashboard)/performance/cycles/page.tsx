@@ -138,7 +138,10 @@ function CycleFormFields({
 
 function CyclesInner() {
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: ["evaluation-cycles"], queryFn: () => performanceApi.cycles() });
+  const q = useQuery({
+    queryKey: ["evaluation-cycles"],
+    queryFn: () => performanceApi.cycles(new URLSearchParams({ page: "1", pageSize: "100" }))
+  });
   const templates = useQuery({ queryKey: ["evaluation-templates"], queryFn: performanceApi.templates });
   const offices = useQuery({ queryKey: ["offices", "select"], queryFn: employeeApi.offices });
   const [createOpen, setCreateOpen] = useState(false);

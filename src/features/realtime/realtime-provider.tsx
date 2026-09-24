@@ -27,7 +27,9 @@ const eventKeys: Record<string, string[][]> = {
   "meeting.changed": [["meeting-bookings"]],
   "meeting.booked": [["meeting-bookings"]],
   "meeting.cancelled": [["meeting-bookings"]],
-  "meeting.rescheduled": [["meeting-bookings"]]
+  "meeting.rescheduled": [["meeting-bookings"]],
+  "chat.message.created": [["chat-conversations"], ["chat-messages"]],
+  "chat.conversation.updated": [["chat-conversations"]]
 };
 
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {

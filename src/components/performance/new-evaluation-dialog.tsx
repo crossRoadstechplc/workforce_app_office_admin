@@ -43,8 +43,8 @@ export function NewEvaluationDialog({ open, onOpenChange }: { open: boolean; onO
     }
   });
   const cycles = useQuery({
-    queryKey: ["evaluation-cycles"],
-    queryFn: () => performanceApi.cycles(),
+    queryKey: ["evaluation-cycles", "dropdown"],
+    queryFn: () => performanceApi.cycles(new URLSearchParams({ page: "1", pageSize: "100" })),
     enabled: open
   });
 
@@ -120,7 +120,7 @@ export function NewEvaluationDialog({ open, onOpenChange }: { open: boolean; onO
               <option value="">New cycle</option>
               {openCycles.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} ({c.status})
+                  {c.name} ({c.status === "DRAFT" ? "Draft" : "Open"})
                 </option>
               ))}
             </Select>

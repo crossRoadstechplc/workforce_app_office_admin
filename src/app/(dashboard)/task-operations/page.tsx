@@ -1,15 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import {
   ArrowUpRight,
   CheckCircle2,
   CircleDashed,
   ExternalLink,
-  ListTodo,
   Loader2,
-  Settings2,
   Users,
   FolderKanban,
   AlertTriangle,
@@ -23,7 +20,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
 import { useAuth } from "@/features/auth/auth-provider";
-import { isOrgAdmin as rolesAreOrgAdmin } from "@/types/auth";
 import { cn } from "@/lib/utils/cn";
 
 type TaskSummary = {
@@ -106,7 +102,6 @@ function unwrapSummary(raw: TaskSummary | { data: TaskSummary }): TaskSummary {
 
 export default function TaskOperationsOverviewPage() {
   const { user } = useAuth();
-  const isOrgAdmin = rolesAreOrgAdmin(user?.roles);
   const [summary, setSummary] = useState<TaskSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -178,38 +173,7 @@ export default function TaskOperationsOverviewPage() {
   }
 
   if (!summary?.enabled) {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Task Operations"
-          description="Shared task board for projects, owners, and schedules — linked to your Workforce people."
-        />
-        <Card className="overflow-hidden border-dashed">
-          <CardContent className="flex flex-col gap-6 p-8 md:flex-row md:items-center md:justify-between">
-            <div className="max-w-xl space-y-3">
-              <div className="inline-flex rounded-xl bg-blue-50 p-3 text-blue-700">
-                <ListTodo className="size-6" />
-              </div>
-              <h2 className="text-lg font-semibold text-slate-950">Not enabled for this organization yet</h2>
-              <p className="text-sm leading-6 text-slate-500">
-                Enable Task Operations once to bootstrap staff from your employees, seed roles
-                (Super Admin → Junior Staff), and open the board in a separate tab while you keep
-                working in Workforce.
-              </p>
-            </div>
-            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-              {isOrgAdmin ? (
-                <Button asChild>
-                  <Link href="/task-operations/settings">Enable in setup</Link>
-                </Button>
-              ) : (
-                <p className="text-sm text-slate-500">Ask a company admin to enable Task Operations.</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <ErrorState message="Could not open Task Operations for this organization." onRetry={() => void refresh()} />;
   }
 
   const { counts, roles, staffPreview, overdue, recentTasks, recommendations } = summary;
@@ -225,20 +189,10 @@ export default function TaskOperationsOverviewPage() {
         title="Task Operations"
         description={`Overview for ${user?.organization?.name ?? "your company"}. Stay in Workforce to review, then continue into the board in a new tab.`}
         action={
-          <div className="flex flex-wrap items-center gap-2">
-            {isOrgAdmin ? (
-              <Button asChild variant="outline" size="sm">
-                <Link href="/task-operations/settings">
-                  <Settings2 className="size-4" />
-                  Setup
-                </Link>
-              </Button>
-            ) : null}
-            <Button onClick={() => void openInNewTab()} disabled={opening || !trackerBase}>
-              {opening ? <Loader2 className="size-4 animate-spin" /> : <ExternalLink className="size-4" />}
-              {opening ? "Opening…" : "Continue to Task Operations"}
-            </Button>
-          </div>
+          <Button onClick={() => void openInNewTab()} disabled={opening || !trackerBase}>
+            {opening ? <Loader2 className="size-4 animate-spin" /> : <ExternalLink className="size-4" />}
+            {opening ? "Opening…" : "Continue to Task Operations"}
+          </Button>
         }
       />
 
@@ -248,7 +202,7 @@ export default function TaskOperationsOverviewPage() {
             <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Workspace</p>
             <p className="mt-1 text-base font-semibold text-slate-950">{summary.name}</p>
             <p className="mt-1 text-xs text-slate-500">
-              Enabled {enabledLabel} · {counts.staff} people · revision {summary.revision}
+              Available since {enabledLabel} · {counts.staff} people · revision {summary.revision}
             </p>
           </div>
           <p className="max-w-md text-sm leading-6 text-slate-600">

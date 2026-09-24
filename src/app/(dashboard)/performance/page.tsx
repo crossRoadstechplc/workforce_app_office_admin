@@ -56,7 +56,10 @@ function PerformanceQueue() {
   }, [officeId, status, cycleId, search, myReports, page, employeeId]);
 
   const q = useQuery({ queryKey: ["evaluations", params.toString()], queryFn: () => performanceApi.list(params) });
-  const cycles = useQuery({ queryKey: ["evaluation-cycles"], queryFn: () => performanceApi.cycles() });
+  const cycles = useQuery({
+    queryKey: ["evaluation-cycles", "dropdown"],
+    queryFn: () => performanceApi.cycles(new URLSearchParams({ page: "1", pageSize: "100" }))
+  });
 
   if (q.isLoading) return <PageSkeleton />;
   const items = q.data?.items ?? [];
@@ -112,7 +115,7 @@ function PerformanceQueue() {
             <option value="">All cycles</option>
             {(cycles.data?.items ?? []).map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}
+                {c.name} ({c.status === "DRAFT" ? "Draft" : c.status === "OPEN" ? "Open" : "Closed"})
               </option>
             ))}
           </Select>
