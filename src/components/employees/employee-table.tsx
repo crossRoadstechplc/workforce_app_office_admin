@@ -13,7 +13,7 @@ export function EmployeeTable({ data, onEdit }: { data: Employee[]; onEdit?: (em
   const table = useReactTable({ data, columns: buildColumns(onEdit), getCoreRowModel: getCoreRowModel() });
   return (
     <div className="overflow-x-auto">
-      <Table className="min-w-[850px]">
+      <Table className="min-w-[960px]">
         <TableHead>
           {table.getHeaderGroups().map((h) => (
             <tr key={h.id}>
@@ -52,6 +52,7 @@ function buildColumns(onEdit?: (employee: Employee) => void): ColumnDef<Employee
         </div>
       )
     },
+    { header: "Job title", accessorFn: (r) => r.jobTitle?.trim() || "—" },
     { header: "Department", accessorFn: (r) => r.department?.name ?? "—" },
     { header: "Office", accessorFn: (r) => r.office?.name ?? "Unassigned" },
     { header: "Schedule", accessorFn: (r) => r.schedule?.name ?? "Unassigned" },

@@ -31,6 +31,9 @@ export function notificationHref(n: Notification): string | null {
   if (entity === "Timesheet" || type.includes("CHECK_IN") || type.includes("CHECK_OUT") || type.includes("MISSING_CHECKOUT")) {
     return "/attendance";
   }
+  if (type === "HOLIDAY_ANNOUNCED" || entity === "OrganizationHoliday") {
+    return "/holidays";
+  }
   if (entity === "Evaluation" || type.includes("EVALUATION")) {
     return "/performance";
   }

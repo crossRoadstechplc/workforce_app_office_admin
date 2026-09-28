@@ -52,17 +52,14 @@ export function NewEvaluationDialog({ open, onOpenChange }: { open: boolean; onO
   const deptItems: { id: string; name: string }[] = Array.isArray(departments.data)
     ? departments.data
     : unwrapList<{ id: string; name: string }>(departments.data);
-  const openCycles = (cycles.data?.items ?? []).filter((c) => c.status === "OPEN" || c.status === "DRAFT");
+  const openCycles = (cycles.data?.items ?? []).filter((c) => c.status === "OPEN");
 
   const selectedCycle = useMemo(() => openCycles.find((c) => c.id === cycleId), [openCycles, cycleId]);
 
   const create = useMutation({
     mutationFn: async () => {
       if (!employeeId) throw new Error("Select an employee");
-      if (cycleId && selectedCycle?.status === "OPEN") {
-        return performanceApi.openCycle(cycleId, { employeeIds: [employeeId] });
-      }
-      if (cycleId && selectedCycle?.status === "DRAFT") {
+      if (cycleId && selectedCycle) {
         return performanceApi.openCycle(cycleId, { employeeIds: [employeeId] });
       }
       return performanceApi.createCycle({
@@ -73,8 +70,13 @@ export function NewEvaluationDialog({ open, onOpenChange }: { open: boolean; onO
         open: true
       });
     },
-    onSuccess: () => {
-      toast.success("Evaluation created");
+    onSuccess: (data) => {
+      const n = data && typeof data === "object" && "created" in data ? Number((data as { created?: number }).created ?? 1) : 1;
+      if (cycleId && n === 0) {
+        toast.message("Employee is already in this cycle");
+      } else {
+        toast.success(cycleId ? "Employee assigned to cycle" : "Evaluation created");
+      }
       onOpenChange(false);
       setEmployeeId("");
       void qc.invalidateQueries({ queryKey: ["evaluations"] });
@@ -115,12 +117,12 @@ export function NewEvaluationDialog({ open, onOpenChange }: { open: boolean; onO
             </Select>
           </div>
           <div>
-            <Label>Cycle</Label>
+            <Label>Assign to cycle</Label>
             <Select value={cycleId} onChange={(e) => setCycleId(e.target.value)}>
               <option value="">New cycle</option>
               {openCycles.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} ({c.status === "DRAFT" ? "Draft" : "Open"})
+                  {c.name} (Open)
                 </option>
               ))}
             </Select>
@@ -150,7 +152,9 @@ export function NewEvaluationDialog({ open, onOpenChange }: { open: boolean; onO
           ) : null}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={create.isPending}>{create.isPending ? "Creating…" : "Create"}</Button>
+            <Button type="submit" disabled={create.isPending}>
+              {create.isPending ? (cycleId ? "Assigning…" : "Creating…") : cycleId ? "Assign to cycle" : "Create"}
+            </Button>
           </div>
         </form>
       </DialogContent>

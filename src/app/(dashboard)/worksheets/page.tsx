@@ -112,9 +112,9 @@ function WorksheetsPageInner() {
           <Label>Status</Label>
           <Select value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="">All statuses</option>
-            {["MISSING", "SUBMITTED", "REVIEWED"].map((s) => (
+            {["MISSING", "SUBMITTED", "REVIEWED", "ON_LEAVE", "PUBLIC_HOLIDAY"].map((s) => (
               <option key={s} value={s}>
-                {s.replaceAll("_", " ")}
+                {s === "PUBLIC_HOLIDAY" ? "Holiday" : s === "ON_LEAVE" ? "Approved leave" : s.replaceAll("_", " ")}
               </option>
             ))}
           </Select>

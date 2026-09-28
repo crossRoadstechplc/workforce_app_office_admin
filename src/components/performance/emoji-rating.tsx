@@ -27,13 +27,13 @@ export function EmojiRating({
               disabled={disabled}
               title={`${r.value} — ${r.label}`}
               onClick={() => onChange?.(r.value)}
-              className={`${dim} rounded-2xl text-2xl transition ${
+              className={`${dim} rounded-2xl text-base font-semibold tabular-nums transition ${
                 active
-                  ? "bg-emerald-50 ring-2 ring-emerald-500 shadow-sm"
-                  : "bg-slate-50 hover:bg-slate-100 ring-1 ring-slate-200"
+                  ? "bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500 shadow-sm"
+                  : "bg-slate-50 text-slate-700 hover:bg-slate-100 ring-1 ring-slate-200"
               } disabled:cursor-not-allowed disabled:opacity-60`}
             >
-              {r.emoji}
+              {r.value}
             </button>
           );
         })}

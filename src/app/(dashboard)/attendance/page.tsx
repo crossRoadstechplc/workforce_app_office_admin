@@ -341,10 +341,17 @@ function AttendancePageInner() {
                 "COMPLETED_LATE",
                 "NOT_CHECKED_IN",
                 "ON_LEAVE",
+                "PUBLIC_HOLIDAY",
                 "NON_WORKING_DAY"
               ].map((s) => (
                 <option key={s} value={s}>
-                  {s === "ON_LEAVE" ? "Approved leave" : s === "NOT_CHECKED_IN" ? "Missing check-in" : s.replaceAll("_", " ")}
+                  {s === "ON_LEAVE"
+                    ? "Approved leave"
+                    : s === "PUBLIC_HOLIDAY"
+                      ? "Holiday"
+                      : s === "NOT_CHECKED_IN"
+                        ? "Missing check-in"
+                        : s.replaceAll("_", " ")}
                 </option>
               ))}
             </Select>
@@ -365,7 +372,8 @@ function AttendancePageInner() {
             { label: "Employees", value: dayQuery.data.counts.totalEmployees },
             { label: "Checked in", value: dayQuery.data.counts.checkedIn, tone: "success" },
             { label: "Not checked in", value: dayQuery.data.counts.notCheckedIn, tone: "warning" },
-            { label: "Approved leave", value: dayQuery.data.counts.onLeave }
+            { label: "Approved leave", value: dayQuery.data.counts.onLeave },
+            { label: "Holiday", value: dayQuery.data.counts.onHoliday ?? 0 }
           ]}
         />
       )}
@@ -376,6 +384,7 @@ function AttendancePageInner() {
             { label: "Employees", value: periodQuery.data.counts.totalEmployees },
             { label: "Missing check-in days", value: periodQuery.data.counts.totalMissingCheckInDays, tone: "warning" },
             { label: "Employees missing check-in", value: periodQuery.data.counts.employeesMissingCheckIn },
+            { label: "Holiday days", value: periodQuery.data.counts.totalHolidayDays ?? 0 },
             { label: "Employee checkouts", value: periodQuery.data.counts.totalEmployeeCheckouts },
             { label: "System checkouts", value: periodQuery.data.counts.totalSystemCheckouts, tone: "warning" }
           ]}
@@ -413,7 +422,7 @@ function AttendancePageInner() {
           <Table>
             <TableHead>
               <tr>
-                {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Working days", "Present", "Leave", "Late", "No check-in", "Employee checkout", "System checkout", ""].map((h) => (
+                {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Working days", "Present", "Leave", "Holiday", "Late", "No check-in", "Employee checkout", "System checkout", ""].map((h) => (
                   <Th key={h || "actions"}>{h}</Th>
                 ))}
               </tr>
@@ -429,6 +438,7 @@ function AttendancePageInner() {
                   <Td className="tabular-nums">{row.workingDays}</Td>
                   <Td className="tabular-nums">{row.presentDays}</Td>
                   <Td className="tabular-nums">{formatLeaveDays(row.leaveDays)}</Td>
+                  <Td className="tabular-nums">{row.holidayDays ?? 0}</Td>
                   <Td className="tabular-nums">{row.lateDays}</Td>
                   <Td className="font-semibold tabular-nums text-amber-700">{row.missingCheckInDays}</Td>
                   <Td className="tabular-nums">{row.employeeCheckoutDays}</Td>
@@ -440,7 +450,7 @@ function AttendancePageInner() {
                   </Td>
                 </TableRow>
               ))}
-              {!periodItems.length && <TableEmpty colSpan={showOfficeFilter ? 11 : 10}>No employees match this filter.</TableEmpty>}
+              {!periodItems.length && <TableEmpty colSpan={showOfficeFilter ? 12 : 11}>No employees match this filter.</TableEmpty>}
             </TableBody>
           </Table>
         </TableShell>
@@ -555,6 +565,9 @@ function DayRow({
               {row.leave.label ?? "Approved leave"}
               {row.leave.leaveType?.name ? ` · ${row.leave.leaveType.name}` : ""}
             </div>
+          ) : null}
+          {row.attendanceState === "PUBLIC_HOLIDAY" && row.holiday ? (
+            <div className="text-xs text-sky-700">{row.holiday.label ?? row.holiday.nameEn}</div>
           ) : null}
         </div>
       </Td>

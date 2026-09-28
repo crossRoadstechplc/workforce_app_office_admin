@@ -146,6 +146,7 @@ function CyclesInner() {
   const offices = useQuery({ queryKey: ["offices", "select"], queryFn: employeeApi.offices });
   const [createOpen, setCreateOpen] = useState(false);
   const [openDraftId, setOpenDraftId] = useState<string | null>(null);
+  const [assignCycleId, setAssignCycleId] = useState<string | null>(null);
   const today = new Date().toISOString().slice(0, 10);
   const [from, setFrom] = useState(isoDaysAgo(90));
   const [to, setTo] = useState(today);
@@ -198,9 +199,25 @@ function CyclesInner() {
 
   const openDraft = useMutation({
     mutationFn: (id: string) => performanceApi.openCycle(id, openBody()),
-    onSuccess: () => {
-      toast.success("Cycle opened and evaluations created");
+    onSuccess: (data) => {
+      const n = data.created ?? 0;
+      toast.success(n > 0 ? `Cycle opened — ${n} evaluation${n === 1 ? "" : "s"} created` : "Cycle opened");
       setOpenDraftId(null);
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
+
+  const assignEmployees = useMutation({
+    mutationFn: (id: string) => performanceApi.openCycle(id, openBody()),
+    onSuccess: (data) => {
+      const n = data.created ?? 0;
+      toast.success(
+        n > 0
+          ? `${n} employee${n === 1 ? "" : "s"} assigned to the cycle`
+          : "No new employees to assign — all matching active employees are already in this cycle"
+      );
+      setAssignCycleId(null);
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message)
@@ -344,6 +361,15 @@ function CyclesInner() {
                         <Download className="size-4" />
                         CSV
                       </Button>
+                      {c.status === "OPEN" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => { setOfficeId(""); setTemplateId(""); setAssignCycleId(c.id); }}
+                        >
+                          Add employees
+                        </Button>
+                      )}
                       {c.status !== "CLOSED" && (
                         <Button variant="ghost" size="sm" onClick={() => close.mutate(c.id)}>Close</Button>
                       )}
@@ -416,6 +442,30 @@ function CyclesInner() {
               <Button type="button" variant="outline" onClick={() => setOpenDraftId(null)}>Cancel</Button>
               <Button type="submit" disabled={openDraft.isPending}>
                 {openDraft.isPending ? "Opening…" : "Open cycle"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!assignCycleId} onOpenChange={(v) => { if (!v) setAssignCycleId(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogTitle>Add employees to cycle</DialogTitle>
+          <form
+            className="mt-4 space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (assignCycleId) assignEmployees.mutate(assignCycleId);
+            }}
+          >
+            <p className="text-sm text-slate-600">
+              Assign active employees who are not already in this open cycle. Existing evaluations are left unchanged.
+            </p>
+            <CycleFormFields {...formProps} showNameAndDates={false} />
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setAssignCycleId(null)}>Cancel</Button>
+              <Button type="submit" disabled={assignEmployees.isPending}>
+                {assignEmployees.isPending ? "Assigning…" : "Add employees"}
               </Button>
             </div>
           </form>

@@ -12,6 +12,7 @@ const styles: Record<string, string> = {
   MISSING_CHECKOUT: "bg-red-50 text-red-700 ring-red-600/20",
   NOT_CHECKED_IN: "bg-slate-100 text-slate-700 ring-slate-500/20",
   ON_LEAVE: "bg-violet-50 text-violet-700 ring-violet-600/20",
+  PUBLIC_HOLIDAY: "bg-sky-50 text-sky-700 ring-sky-600/20",
   NON_WORKING_DAY: "bg-slate-50 text-slate-500 ring-slate-400/20",
   NONE: "bg-slate-100 text-slate-600 ring-slate-500/20",
   MISSING: "bg-amber-50 text-amber-700 ring-amber-600/20",
@@ -39,6 +40,7 @@ const styles: Record<string, string> = {
 
 const labels: Record<string, string> = {
   ON_LEAVE: "Approved leave",
+  PUBLIC_HOLIDAY: "Holiday",
   NOT_CHECKED_IN: "Missing check-in",
   NON_WORKING_DAY: "Non-working day",
   PRESENT_ON_TIME: "Present",

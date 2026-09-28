@@ -156,6 +156,13 @@ export type AttendanceDayRosterRow = {
     endDate: string;
     leaveType?: { id: string; name: string } | null;
   } | null;
+  holiday?: {
+    id: string;
+    kenatKey?: string | null;
+    nameEn: string;
+    nameAm?: string | null;
+    label?: string;
+  } | null;
   worksheet: { id: string; status: string } | null;
 };
 
@@ -168,6 +175,7 @@ export type AttendanceDayRoster = {
     checkedOut: number;
     late: number;
     onLeave: number;
+    onHoliday?: number;
     notCheckedIn: number;
     correctnessPending: number;
     worksheetsSubmitted: number;
@@ -181,6 +189,7 @@ export type AttendanceMonthSummaryRow = {
   workingDays: number;
   presentDays: number;
   leaveDays: number;
+  holidayDays?: number;
   lateDays: number;
   missingCheckInDays: number;
   missingCheckOutDays: number;
@@ -202,6 +211,7 @@ export type AttendanceMonthSummary = {
     totalMissingCheckOutDays: number;
     totalEmployeeCheckouts: number;
     totalSystemCheckouts: number;
+    totalHolidayDays?: number;
   };
 };
 
@@ -217,7 +227,96 @@ export type AttendanceRangeSummary = {
     totalMissingCheckOutDays: number;
     totalEmployeeCheckouts: number;
     totalSystemCheckouts: number;
+    totalHolidayDays?: number;
   };
+};
+
+export type CatalogHoliday = {
+  key: string;
+  nameAm: string;
+  nameEn: string;
+  description: string | null;
+  tags: string[];
+  movable: boolean;
+  ethiopian: { year: number; month: number; day: number };
+  gregorian: { year: number; month: number; day: number };
+  gregorianDate: string;
+  applied: boolean;
+  assignedEmployees: number;
+  holidayId: string | null;
+  source?: "KENAT" | "CUSTOM" | string;
+  autoApply?: boolean;
+  autoAppliedAt?: string | Date | null;
+  linkedKenatKey?: string | null;
+};
+
+export type HolidayCatalogResponse = {
+  year: number;
+  items: CatalogHoliday[];
+};
+
+export type HolidayDetail = CatalogHoliday & {
+  holiday: {
+    id: string;
+    kenatKey: string | null;
+    nameEn: string;
+    nameAm: string | null;
+    description: string | null;
+    tags: string[];
+    gregorianDate: string;
+    ethiopian: { year: number; month: number; day: number } | null;
+    source: string;
+    autoApply?: boolean;
+    autoNotify?: boolean;
+    autoMessage?: string | null;
+    autoAppliedAt?: string | Date | null;
+    linkedKenatKey?: string | null;
+  } | null;
+  applications: Array<{
+    id: string;
+    allOffices: boolean;
+    allEmployees: boolean;
+    notifyEmployees: boolean;
+    message: string | null;
+    assignmentCount: number;
+    notifiedCount: number;
+    appliedAt: string;
+    appliedBy: { id: string; email: string };
+  }>;
+};
+
+export type HolidayApplyResult = {
+  holiday: {
+    id: string;
+    kenatKey: string | null;
+    nameEn: string;
+    nameAm: string | null;
+    description: string | null;
+    tags: string[];
+    gregorianDate: string;
+    ethiopian: { year: number; month: number; day: number } | null;
+    source: string;
+    autoApply?: boolean;
+  };
+  application: {
+    id: string;
+    assignmentCount: number;
+    notifiedCount: number;
+    skippedAlreadyAssigned: number;
+    alreadyCheckedIn: number;
+    totalTargeted: number;
+  };
+  catalog: CatalogHoliday;
+};
+
+export type HolidayCustomCreateResult = {
+  holidays: HolidayApplyResult["holiday"][];
+  applications: HolidayApplyResult["application"][];
+};
+
+export type HolidayAutoApplyResult = {
+  holiday: HolidayApplyResult["holiday"];
+  appliedNow: HolidayApplyResult["application"] | null;
 };
 
 export type LeaveDayRosterRow = {

@@ -10,7 +10,12 @@ import type {
   LeaveRequestList,
   Timesheet,
   Worksheet,
-  WorksheetDayRoster
+  WorksheetDayRoster,
+  HolidayCatalogResponse,
+  HolidayDetail,
+  HolidayApplyResult,
+  HolidayCustomCreateResult,
+  HolidayAutoApplyResult
 } from "@/types/operations";
 
 const d = <T>(v: any): T => (v?.data ?? v) as T;
@@ -68,5 +73,46 @@ export const operationsApi = {
   approveLeave: async (id: string, reason?: string) =>
     d<LeaveRequest>(await apiFetch<any>(`/admin/leave-requests/${id}/approve`, { method: "POST", body: JSON.stringify({ reason }) })),
   rejectLeave: async (id: string, reason: string) =>
-    d<LeaveRequest>(await apiFetch<any>(`/admin/leave-requests/${id}/reject`, { method: "POST", body: JSON.stringify({ reason }) }))
+    d<LeaveRequest>(await apiFetch<any>(`/admin/leave-requests/${id}/reject`, { method: "POST", body: JSON.stringify({ reason }) })),
+  holidays: async (params?: URLSearchParams) =>
+    d<HolidayCatalogResponse>(await apiFetch<any>(`/admin/holidays${params ? `?${params}` : ""}`)),
+  holiday: async (key: string, year?: number) => {
+    const p = new URLSearchParams();
+    if (year) p.set("year", String(year));
+    const q = p.toString();
+    return d<HolidayDetail>(await apiFetch<any>(`/admin/holidays/${encodeURIComponent(key)}${q ? `?${q}` : ""}`));
+  },
+  applyHoliday: async (input: {
+    kenatKey?: string;
+    holidayId?: string;
+    year?: number;
+    officeId?: string | null;
+    employeeIds?: string[];
+    notify?: boolean;
+    message?: string | null;
+  }) => d<HolidayApplyResult>(await apiFetch<any>("/admin/holidays/apply", { method: "POST", body: JSON.stringify(input) })),
+  createCustomHoliday: async (input: {
+    nameEn: string;
+    nameAm?: string | null;
+    description?: string | null;
+    gregorianDates: string[];
+    linkedKenatKey?: string | null;
+    officeId?: string | null;
+    employeeIds?: string[];
+    notify?: boolean;
+    message?: string | null;
+    applyNow?: boolean;
+    autoApply?: boolean;
+  }) => d<HolidayCustomCreateResult>(await apiFetch<any>("/admin/holidays/custom", { method: "POST", body: JSON.stringify(input) })),
+  setHolidayAutoApply: async (input: {
+    kenatKey?: string;
+    holidayId?: string;
+    year?: number;
+    autoApply: boolean;
+    notify?: boolean;
+    message?: string | null;
+    officeId?: string | null;
+    employeeIds?: string[];
+  }) => d<HolidayAutoApplyResult>(await apiFetch<any>("/admin/holidays/auto-apply", { method: "POST", body: JSON.stringify(input) })),
+  holidayApplication: async (id: string) => d<any>(await apiFetch<any>(`/admin/holidays/applications/${id}`))
 };

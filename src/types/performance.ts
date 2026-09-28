@@ -27,11 +27,11 @@ export type PeriodSnapshot = {
 };
 
 export const RATING_SCALE = [
-  { value: 1, emoji: "😞", label: "Unsatisfactory" },
-  { value: 2, emoji: "😕", label: "Needs Improvement" },
-  { value: 3, emoji: "🙂", label: "Meets Expectations" },
-  { value: 4, emoji: "😊", label: "Exceeds Expectations" },
-  { value: 5, emoji: "🤩", label: "Outstanding" }
+  { value: 1, label: "Unsatisfactory" },
+  { value: 2, label: "Needs Improvement" },
+  { value: 3, label: "Meets Expectations" },
+  { value: 4, label: "Exceeds Expectations" },
+  { value: 5, label: "Outstanding" }
 ] as const;
 
 export function bandFromTotal(total: number | null | undefined) {
@@ -93,6 +93,8 @@ export type EvaluationCycle = {
   id: string;
   name: string;
   status: EvaluationCycleStatus;
+  /** Present on open/assign responses: how many new evaluations were created */
+  created?: number;
   periodStart: string;
   periodEnd: string;
   selfDueAt?: string | null;

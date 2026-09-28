@@ -93,6 +93,7 @@ const companySections: NavSection[] = [
     title: "Workforce",
     items: [
       { label: "Attendance", href: "/attendance", icon: Clock3 },
+      { label: "Holidays", href: "/holidays", icon: CalendarRange },
       { label: "Worksheets", href: "/worksheets", icon: ClipboardList },
       { label: "Leave", href: "/leave", icon: CalendarClock },
       { label: "Performance", href: "/performance", icon: ClipboardCheck },
@@ -131,6 +132,7 @@ const officeSections: NavSection[] = [
     items: [
       { label: "Employees", href: "/employees", icon: Users },
       { label: "Attendance", href: "/attendance", icon: Clock3 },
+      { label: "Holidays", href: "/holidays", icon: CalendarRange },
       { label: "Worksheets", href: "/worksheets", icon: ClipboardList },
       { label: "Leave", href: "/leave", icon: CalendarClock },
       { label: "Performance", href: "/performance", icon: ClipboardCheck },
@@ -162,7 +164,7 @@ export function navSectionsForRoles(roles: string[] | undefined): NavSection[] {
 /** Paths each portal role may access (prefix match). */
 const platformPaths = ["/platform", "/organizations", "/org-admins", "/audit", "/notifications"];
 const companyOnlyPaths = ["/offices", "/schedules", "/departments", "/office-admins", "/performance/templates", "/performance/cycles", "/meetings", "/vault"];
-const tenantOpsPaths = ["/dashboard", "/employees", "/attendance", "/worksheets", "/leave", "/performance", "/reports", "/notifications", "/audit", "/task-operations", "/chat"];
+const tenantOpsPaths = ["/dashboard", "/employees", "/attendance", "/holidays", "/worksheets", "/leave", "/performance", "/reports", "/notifications", "/audit", "/task-operations", "/chat"];
 
 export function isPathAllowed(pathname: string, roles: string[] | undefined): boolean {
   const kind = resolvePortalRole(roles);

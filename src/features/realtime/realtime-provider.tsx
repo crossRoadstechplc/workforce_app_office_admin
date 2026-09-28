@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { io, type Socket } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
-import { getAccessToken } from "@/lib/auth/token-store";
+import { getAccessToken, onAccessTokenChange } from "@/lib/auth/token-store";
 import { useAuth } from "@/features/auth/auth-provider";
 
 let socket: Socket | null = null;
@@ -38,11 +38,12 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (status !== "authenticated") return;
-    const token = getAccessToken();
-    if (!token) return;
+    if (!getAccessToken()) return;
 
     socket = io(process.env.NEXT_PUBLIC_SOCKET_BASE_URL ?? "http://localhost:4000", {
-      auth: { token },
+      auth: (cb) => {
+        cb({ token: getAccessToken() ?? "" });
+      },
       transports: ["websocket", "polling"]
     });
 
@@ -56,7 +57,23 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       return { event, handler };
     });
 
+    const unsubscribeToken = onAccessTokenChange((token) => {
+      if (!socket) return;
+      if (!token) {
+        socket.disconnect();
+        return;
+      }
+      // Reconnect with fresh JWT after HTTP refresh so handshake does not reuse a stale token.
+      if (!socket.connected) {
+        socket.connect();
+      } else {
+        socket.disconnect();
+        socket.connect();
+      }
+    });
+
     return () => {
+      unsubscribeToken();
       for (const { event, handler } of listeners) {
         socket?.off(event, handler);
       }
