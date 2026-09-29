@@ -1,0 +1,39 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/><style>
+  body { margin:0; background:#e2e8f0; display:grid; place-items:center; min-height:100vh; font-family: Inter, Segoe UI, sans-serif; }
+  .phone { width:390px; height:780px; background:#0f172a; border-radius:36px; padding:14px; box-shadow:0 25px 60px rgba(15,23,42,.35); }
+  .screen { background:#f8fafc; height:100%; border-radius:28px; overflow:hidden; display:flex; flex-direction:column; }
+  .bar { padding:18px 18px 8px; background:#fff; border-bottom:1px solid #e2e8f0; }
+  h1 { margin:0; font-size:22px; } .sub { color:#64748b; font-size:12px; margin-top:4px; }
+  .body { padding:16px; flex:1; }
+  .clock { text-align:center; padding:28px 12px; background:#fff; border-radius:18px; border:1px solid #e2e8f0; }
+  .status { color:#64748b; font-size:13px; } .time { font-size:48px; font-weight:700; margin:10px 0; }
+  .loc { color:#16a34a; font-size:12px; margin-bottom:18px; }
+  .btn { background:#2563eb; color:#fff; border:0; border-radius:12px; padding:12px 18px; font-weight:600; width:100%; }
+  .rows { display:flex; flex-direction:column; gap:8px; }
+  .row { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; font-size:13px; }
+  .tag { background:#dcfce7; color:#166534; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
+  .tag.amber { background:#fef3c7; color:#92400e; }
+  .tabs { display:flex; gap:8px; margin-bottom:12px; }
+  .tabs span { padding:6px 10px; border-radius:999px; background:#e2e8f0; font-size:12px; }
+  .tabs .on { background:#2563eb; color:#fff; }
+  .form label { font-size:12px; color:#64748b; display:block; margin:10px 0 4px; }
+  .field { background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; }
+  .profile { text-align:center; padding-top:24px; }
+  .avatar { width:72px; height:72px; border-radius:999px; background:#2563eb; color:#fff; display:grid; place-items:center; margin:0 auto 12px; font-weight:700; font-size:22px; }
+  .name { font-size:18px; font-weight:700; } .meta { color:#64748b; font-size:13px; margin-top:4px; }
+  .bottom { display:grid; grid-template-columns:repeat(5,1fr); border-top:1px solid #e2e8f0; background:#fff; }
+  .tab { text-align:center; padding:10px 4px; font-size:10px; color:#64748b; }
+  .tab.on { color:#2563eb; font-weight:700; }
+</style></head><body>
+<div class="phone"><div class="screen">
+  <div class="bar"><h1>Login</h1><div class="sub">Email or employee code</div></div>
+  <div class="body">
+          <div class="form">
+            <label>Leave type</label><div class="field">Annual leave</div>
+            <label>Dates</label><div class="field">Oct 2 – Oct 4</div>
+            <button class="btn">Submit request</button>
+          </div></div>
+  <div class="bottom"><div class="tab">Home</div><div class="tab">History</div><div class="tab">Leave</div><div class="tab">Chat</div><div class="tab">More</div></div>
+</div></div>
+</body></html>

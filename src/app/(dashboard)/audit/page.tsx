@@ -1,12 +1,25 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { PortalAdminGate } from "@/components/auth/role-gates";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { reportApi } from "@/features/reports/report-api";
 import { formatDateTime, humanizeKey } from "@/lib/utils/format";
+
+const DEFAULT_PAGE_SIZE = 25;
+
+type AuditRow = {
+  id: string;
+  createdAt: string;
+  actor?: { email?: string } | null;
+  action: string;
+  entityType: string;
+  reason?: string | null;
+};
 
 export default function AuditPage() {
   return (
@@ -17,23 +30,41 @@ export default function AuditPage() {
 }
 
 function AuditPageInner() {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+
   const q = useQuery({ queryKey: ["audit", "recent"], queryFn: reportApi.activity });
   if (q.isLoading) return <PageSkeleton />;
-  const rows = ((q.data as { data?: unknown[] })?.data ?? q.data ?? []) as Array<{
-    id: string;
-    createdAt: string;
-    actor?: { email?: string } | null;
-    action: string;
-    entityType: string;
-    reason?: string | null;
-  }>;
+
+  const rows = ((q.data as { data?: unknown[] })?.data ?? q.data ?? []) as AuditRow[];
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize) || 1);
+  const safePage = Math.min(page, totalPages);
+  const pageRows = rows.slice((safePage - 1) * pageSize, safePage * pageSize);
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Audit activity"
         description="Recent administrative changes and workforce decisions. The current backend exposes the latest 100 audit events."
       />
-      <TableShell>
+      <TableShell
+        footer={
+          total > 0 ? (
+            <TablePagination
+              page={safePage}
+              pageSize={pageSize}
+              total={total}
+              noun="events"
+              onPageChange={setPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setPage(1);
+              }}
+            />
+          ) : null
+        }
+      >
         <Table>
           <TableHead>
             <tr>
@@ -43,7 +74,7 @@ function AuditPageInner() {
             </tr>
           </TableHead>
           <TableBody>
-            {rows.map((x) => (
+            {pageRows.map((x) => (
               <TableRow key={x.id}>
                 <Td className="whitespace-nowrap">{formatDateTime(x.createdAt)}</Td>
                 <Td>{x.actor?.email ?? "System"}</Td>

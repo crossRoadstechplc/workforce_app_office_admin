@@ -1,0 +1,73 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/><style>
+  * { box-sizing: border-box; font-family: Inter, Segoe UI, system-ui, sans-serif; }
+  body { margin:0; background:#f1f5f9; color:#0f172a; }
+  .app { display:flex; min-height:100vh; }
+  .side { width:260px; background:#0b1220; color:#e2e8f0; padding:18px 14px; }
+  .brand { font-weight:700; font-size:15px; display:flex; gap:10px; align-items:center; margin-bottom:4px; }
+  .brand .logo { width:28px; height:28px; border-radius:8px; background:#2563eb; display:grid; place-items:center; font-size:14px; }
+  .sub { color:#94a3b8; font-size:11px; margin:0 0 18px 38px; }
+  .sec { margin:14px 8px 6px; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:#64748b; }
+  .nav { padding:8px 10px; border-radius:8px; font-size:13px; color:#cbd5e1; margin:2px 0; }
+  .nav.active { background:#1e293b; color:#fff; border-left:3px solid #3b82f6; }
+  .main { flex:1; display:flex; flex-direction:column; }
+  .top { height:56px; background:#fff; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; padding:0 24px; }
+  .badge { font-size:11px; font-weight:600; padding:4px 10px; border-radius:999px; background:#dbeafe; color:#1e40af; }
+  .content { padding:28px 32px; }
+  h1 { margin:0; font-size:28px; letter-spacing:-.02em; }
+  .desc { margin:8px 0 18px; color:#64748b; font-size:14px; max-width:720px; }
+  .guide { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:18px 20px; margin-top:8px; }
+  .guide h3 { margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:#2563eb; }
+  .bullet { display:flex; gap:10px; align-items:flex-start; margin:8px 0; font-size:14px; color:#334155; }
+  .dot { width:8px; height:8px; margin-top:6px; border-radius:99px; background:#2563eb; flex:none; }
+  .metrics { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin:16px 0; }
+  .m { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; }
+  .m.green { border-color:#bbf7d0; } .m.amber { border-color:#fde68a; } .m.red { border-color:#fecaca; }
+  .ml { font-size:12px; color:#64748b; } .mv { font-size:26px; font-weight:700; margin-top:6px; }
+  .table { background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; margin-top:14px; }
+  .tr { display:grid; grid-template-columns:2fr 1fr 1fr 1fr 1.4fr; gap:8px; padding:12px 14px; border-top:1px solid #f1f5f9; font-size:13px; }
+  .tr.th { background:#f8fafc; font-weight:600; color:#475569; border-top:0; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:#e2e8f0; font-size:11px; font-weight:600; }
+  .pill.green { background:#dcfce7; color:#166534; } .pill.amber { background:#fef3c7; color:#92400e; }
+  .split { display:grid; grid-template-columns:1.1fr 1fr; gap:14px; margin-top:14px; }
+  .map { background:linear-gradient(135deg,#dbeafe,#eff6ff); border:1px solid #bfdbfe; border-radius:12px; min-height:180px; display:grid; place-items:center; color:#1e40af; font-weight:600; }
+  .listbox { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:8px; }
+  .li { padding:10px 12px; border-radius:8px; font-size:13px; color:#334155; }
+  .li.active { background:#eff6ff; color:#1d4ed8; font-weight:600; }
+  .chatbox { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:10px; }
+  .bubble { max-width:80%; padding:10px 12px; border-radius:12px; font-size:13px; }
+  .bubble.them { background:#f1f5f9; align-self:flex-start; }
+  .bubble.me { background:#2563eb; color:#fff; align-self:flex-end; }
+  .cta { margin-top:14px; display:inline-block; background:#2563eb; color:#fff; padding:10px 16px; border-radius:10px; font-weight:600; font-size:13px; }
+  .path { font-size:11px; color:#94a3b8; }
+</style></head><body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="logo">✓</div>Workforce Control</div>
+    <div class="sub">Company workspace</div>
+    <div class="sec">Overview</div><div class="nav active">Dashboard</div><div class="sec">Company setup</div><div class="nav">Offices</div><div class="nav">Schedules</div><div class="nav">Departments</div><div class="nav">Employees</div><div class="nav">Evaluation templates</div><div class="nav">Office Admins</div><div class="nav">Private vault</div><div class="sec">Workforce</div><div class="nav">Attendance</div><div class="nav">Holidays</div><div class="nav">Worksheets</div><div class="nav">Leave</div><div class="nav">Performance</div><div class="nav">Task Operations</div><div class="nav">Chat</div><div class="sec">Meetings</div><div class="nav">Bookings</div><div class="nav">Rooms</div><div class="nav">Displays</div><div class="sec">Insights</div><div class="nav">Reports</div><div class="sec">System</div><div class="nav">Notifications</div><div class="nav">Audit log</div>
+  </aside>
+  <section class="main">
+    <div class="top">
+      <div class="path">/dashboard</div>
+      <div class="badge">Company admin</div>
+    </div>
+    <div class="content">
+      <h1>Company dashboard</h1>
+      <p class="desc">Organization-wide view of today’s workforce activity.</p>
+      
+          <div class="metrics">
+            <div class="m"><div class="ml">Employees</div><div class="mv">42</div></div>
+            <div class="m green"><div class="ml">Checked in</div><div class="mv">28</div></div>
+            <div class="m amber"><div class="ml">Late</div><div class="mv">3</div></div>
+            <div class="m"><div class="ml">On leave</div><div class="mv">2</div></div>
+            <div class="m red"><div class="ml">Missing checkout</div><div class="mv">1</div></div>
+          </div>
+      <div class="guide">
+        <h3>What you do on this page</h3>
+        <div class="bullet"><span class="dot"></span><span>Employees, checked in, late, on leave, missing checkout</span></div><div class="bullet"><span class="dot"></span><span>Quick pulse before diving into ops</span></div>
+      </div>
+    </div>
+  </section>
+</div>
+</body></html>

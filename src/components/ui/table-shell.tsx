@@ -1,10 +1,19 @@
 import type { ReactNode, TableHTMLAttributes, TdHTMLAttributes, ThHTMLAttributes, HTMLAttributes } from "react";
 import { cn } from "@/lib/utils/cn";
 
-export function TableShell({ children, className }: { children: ReactNode; className?: string }) {
+export function TableShell({
+  children,
+  className,
+  footer
+}: {
+  children: ReactNode;
+  className?: string;
+  footer?: ReactNode;
+}) {
   return (
     <div className={cn("overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)]", className)}>
       <div className="overflow-x-auto">{children}</div>
+      {footer}
     </div>
   );
 }
