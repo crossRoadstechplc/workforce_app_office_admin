@@ -16,7 +16,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { reportApi } from "@/features/reports/report-api";
-import { employeeName, formatDate, formatDateTime, formatLateMinutes, minutesToHours } from "@/lib/utils/format";
+import { employeeName, formatCheckoutDateTime, formatDate, formatDateTime, formatLateMinutes, minutesToHours } from "@/lib/utils/format";
 
 type Kind = "timesheets" | "worksheets" | "leave";
 
@@ -27,6 +27,7 @@ type ReportItem = {
   office?: { name?: string };
   actualCheckIn?: string;
   actualCheckOut?: string;
+  scheduledCheckOut?: string;
   checkOutSource?: "EMPLOYEE" | "SYSTEM" | "ADMIN" | null;
   workedMinutes?: number;
   lateMinutes?: number;
@@ -137,7 +138,7 @@ function ReportTable({ kind, items }: { kind: Kind; items: ReportItem[] }) {
                 <Td>{formatDate(x.workDate)}</Td>
                 <Td>{x.office?.name ?? "—"}</Td>
                 <Td>{formatDateTime(x.actualCheckIn)}</Td>
-                <Td>{formatDateTime(x.actualCheckOut)}</Td>
+                <Td>{formatCheckoutDateTime(x)}</Td>
                 <Td>{checkoutByLabel(x.checkOutSource)}</Td>
                 <Td className="tabular-nums">{minutesToHours(x.workedMinutes)}</Td>
                 <Td className="tabular-nums">{formatLateMinutes(x.lateMinutes)}</Td>

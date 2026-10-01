@@ -15,6 +15,35 @@ export function formatTime(value?: string | Date | null) {
   return new Intl.DateTimeFormat("en-US", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 }
 
+/** For SYSTEM auto-checkout, prefer scheduled end time over the 22:00 trigger timestamp. */
+export function checkoutDisplayAt(timesheet?: {
+  actualCheckOut?: string | Date | null;
+  scheduledCheckOut?: string | Date | null;
+  checkOutSource?: string | null;
+} | null) {
+  if (!timesheet?.actualCheckOut) return null;
+  if (timesheet.checkOutSource === "SYSTEM" && timesheet.scheduledCheckOut) {
+    return timesheet.scheduledCheckOut;
+  }
+  return timesheet.actualCheckOut;
+}
+
+export function formatCheckoutDateTime(timesheet?: {
+  actualCheckOut?: string | Date | null;
+  scheduledCheckOut?: string | Date | null;
+  checkOutSource?: string | null;
+} | null) {
+  return formatDateTime(checkoutDisplayAt(timesheet));
+}
+
+export function formatCheckoutTime(timesheet?: {
+  actualCheckOut?: string | Date | null;
+  scheduledCheckOut?: string | Date | null;
+  checkOutSource?: string | null;
+} | null) {
+  return formatTime(checkoutDisplayAt(timesheet));
+}
+
 export function minutesToHours(minutes?: number | null) {
   if (minutes == null) return "—";
   const h = Math.floor(minutes / 60);

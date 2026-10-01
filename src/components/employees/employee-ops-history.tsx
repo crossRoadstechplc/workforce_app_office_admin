@@ -23,7 +23,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { Textarea } from "@/components/ui/textarea";
 import { operationsApi } from "@/features/operations/operations-api";
-import { formatDate, formatDateTime, formatLateMinutes, formatTime, minutesToHours } from "@/lib/utils/format";
+import { formatDate, formatCheckoutDateTime, formatDateTime, formatLateMinutes, formatCheckoutTime, minutesToHours } from "@/lib/utils/format";
 import type { Timesheet, Worksheet } from "@/types/operations";
 
 const PAGE_SIZE = 10;
@@ -181,7 +181,7 @@ function EmployeeAttendanceHistory({
                     <TableRow key={row.id}>
                       <Td className="whitespace-nowrap">{formatDate(row.workDate)}</Td>
                       <Td className="tabular-nums">{row.actualCheckIn ? formatTime(row.actualCheckIn) : "—"}</Td>
-                      <Td className="tabular-nums">{row.actualCheckOut ? formatTime(row.actualCheckOut) : "—"}</Td>
+                      <Td className="tabular-nums">{row.actualCheckOut ? formatCheckoutTime(row) : "—"}</Td>
                       <Td className="tabular-nums">{minutesToHours(row.workedMinutes)}</Td>
                       <Td className="tabular-nums">{formatLateMinutes(row.lateMinutes)}</Td>
                       <Td>
@@ -379,7 +379,7 @@ function TimesheetDetailDialog({ timesheetId, onClose }: { timesheetId: string |
             <div className="mt-5 space-y-5">
               <div className="grid gap-3 sm:grid-cols-4">
                 <Stat label="Check in" value={d.actualCheckIn ? formatDateTime(d.actualCheckIn) : "—"} />
-                <Stat label="Checkout" value={d.actualCheckOut ? formatDateTime(d.actualCheckOut) : "—"} />
+                <Stat label="Checkout" value={formatCheckoutDateTime(d)} />
                 <Stat label="Worked" value={minutesToHours(d.workedMinutes)} />
                 <Stat label="Late" value={formatLateMinutes(d.lateMinutes)} />
               </div>

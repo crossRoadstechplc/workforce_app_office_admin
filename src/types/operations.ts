@@ -138,6 +138,7 @@ export type AttendanceDayRosterRow = {
     status: string;
     actualCheckIn?: string | null;
     actualCheckOut?: string | null;
+    scheduledCheckOut?: string | null;
     lateMinutes: number;
     workedMinutes: number;
     isOpen: boolean;

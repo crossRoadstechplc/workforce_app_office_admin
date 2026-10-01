@@ -22,7 +22,7 @@ import { FilterBar } from "@/components/ui/filter-bar";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { Textarea } from "@/components/ui/textarea";
 import { operationsApi } from "@/features/operations/operations-api";
-import { employeeName, formatDate, formatDateTime, formatLateMinutes, formatLeaveDays, minutesToHours } from "@/lib/utils/format";
+import { employeeName, formatDate, formatDateTime, formatCheckoutDateTime, formatLateMinutes, formatLeaveDays, minutesToHours } from "@/lib/utils/format";
 import type { LeaveRequest } from "@/types/operations";
 import { AnnualLeaveSummary } from "@/components/leave/annual-leave-summary";
 
@@ -477,7 +477,7 @@ function LeavePageInner() {
                   />
                   <Info
                     l="Check out"
-                    v={selectedCorrection.timesheet.actualCheckOut ? formatDateTime(selectedCorrection.timesheet.actualCheckOut) : "—"}
+                    v={formatCheckoutDateTime(selectedCorrection.timesheet)}
                   />
                   <Info l="Late" v={formatLateMinutes(selectedCorrection.timesheet.lateMinutes)} />
                 </div>
