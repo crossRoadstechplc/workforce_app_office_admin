@@ -41,7 +41,7 @@ function HolidaysPageInner() {
     const now = new Date();
     return now.getMonth() >= 8 ? now.getFullYear() - 7 : now.getFullYear() - 8;
   });
-  const [filter, setFilter] = useState("public");
+  const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [applyOpen, setApplyOpen] = useState(false);
@@ -129,13 +129,13 @@ function HolidaysPageInner() {
         <div className="space-y-1.5">
           <Label>Filter</Label>
           <Select value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <option value="all">All</option>
             <option value="public">Public</option>
             <option value="christian">Christian</option>
             <option value="muslim">Muslim</option>
             <option value="religious">Religious</option>
             <option value="cultural">Cultural</option>
             <option value="custom">Custom</option>
-            <option value="all">All</option>
           </Select>
         </div>
         <div className="relative min-w-0 flex-1">
@@ -172,7 +172,7 @@ function HolidaysPageInner() {
                   <Td className="tabular-nums">
                     {row.ethiopian?.year
                       ? `${row.ethiopian.day}/${row.ethiopian.month}/${row.ethiopian.year}`
-                      : "—"}
+                      : ""}
                   </Td>
                   <Td>
                     <div className="flex flex-wrap gap-1">
@@ -335,7 +335,7 @@ function ApplyHolidayDialog({
     return `${e.firstName} ${e.lastName} ${e.employeeCode}`.toLowerCase().includes(q);
   });
 
-  const defaultMessage = holiday ? `${holiday.nameEn} — no work on this day. Enjoy the holiday.` : "";
+  const defaultMessage = holiday ? `${holiday.nameEn} - no work on this day. Enjoy the holiday.` : "";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -347,7 +347,7 @@ function ApplyHolidayDialog({
         <DialogDescription>
           {isCustom
             ? "Apply this custom rest day to mark attendance as Holiday for the selected employees."
-            : "Holidays are not applied by default. Choose office and employees, then apply — or use Auto on the list."}
+            : "Holidays are not applied by default. Choose office and employees, then apply - or use Auto on the list."}
         </DialogDescription>
 
         {detailLoading || !holiday ? (
@@ -498,8 +498,8 @@ function CreateCustomHolidayDialog({
   });
 
   const defaultMessage = nameEn.trim()
-    ? `${nameEn.trim()} — no work on this day. Enjoy the holiday.`
-    : "Custom rest day — no work on this day.";
+    ? `${nameEn.trim()} - no work on this day. Enjoy the holiday.`
+    : "Custom rest day - no work on this day.";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -509,7 +509,7 @@ function CreateCustomHolidayDialog({
           Add custom rest day
         </DialogTitle>
         <DialogDescription>
-          Not a public holiday — a company rest day you name and approve (e.g. extra day after a holiday). Click days on the calendar to add multiple dates.
+          Not a public holiday - a company rest day you name and approve (e.g. extra day after a holiday). Click days on the calendar to add multiple dates.
         </DialogDescription>
 
         <div className="space-y-4">

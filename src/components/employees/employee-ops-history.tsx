@@ -180,8 +180,8 @@ function EmployeeAttendanceHistory({
                   {items.map((row) => (
                     <TableRow key={row.id}>
                       <Td className="whitespace-nowrap">{formatDate(row.workDate)}</Td>
-                      <Td className="tabular-nums">{row.actualCheckIn ? formatTime(row.actualCheckIn) : "—"}</Td>
-                      <Td className="tabular-nums">{row.actualCheckOut ? formatCheckoutTime(row) : "—"}</Td>
+                      <Td className="tabular-nums">{row.actualCheckIn ? formatTime(row.actualCheckIn) : ""}</Td>
+                      <Td className="tabular-nums">{row.actualCheckOut ? formatCheckoutTime(row) : ""}</Td>
                       <Td className="tabular-nums">{minutesToHours(row.workedMinutes)}</Td>
                       <Td className="tabular-nums">{formatLateMinutes(row.lateMinutes)}</Td>
                       <Td>
@@ -287,7 +287,7 @@ function EmployeeWorksheetHistory({
                     <TableRow key={row.id}>
                       <Td className="whitespace-nowrap">{formatDate(row.workDate)}</Td>
                       <Td className="tabular-nums">{minutesToHours(row.timesheet?.workedMinutes)}</Td>
-                      <Td className="max-w-md truncate text-slate-600">{row.workDescription || "—"}</Td>
+                      <Td className="max-w-md truncate text-slate-600">{row.workDescription || ""}</Td>
                       <Td>
                         <StatusBadge status={row.status} />
                       </Td>
@@ -378,7 +378,7 @@ function TimesheetDetailDialog({ timesheetId, onClose }: { timesheetId: string |
           {d && (
             <div className="mt-5 space-y-5">
               <div className="grid gap-3 sm:grid-cols-4">
-                <Stat label="Check in" value={d.actualCheckIn ? formatDateTime(d.actualCheckIn) : "—"} />
+                <Stat label="Check in" value={d.actualCheckIn ? formatDateTime(d.actualCheckIn) : ""} />
                 <Stat label="Checkout" value={formatCheckoutDateTime(d)} />
                 <Stat label="Worked" value={minutesToHours(d.workedMinutes)} />
                 <Stat label="Late" value={formatLateMinutes(d.lateMinutes)} />
@@ -386,7 +386,7 @@ function TimesheetDetailDialog({ timesheetId, onClose }: { timesheetId: string |
               {d.lateReason && (
                 <div className="rounded-lg bg-amber-50 p-4 text-sm">
                   <b>Late reason:</b> {d.lateReason.reasonType}
-                  {d.lateReason.reasonDescription ? ` — ${d.lateReason.reasonDescription}` : ""}
+                  {d.lateReason.reasonDescription ? ` - ${d.lateReason.reasonDescription}` : ""}
                 </div>
               )}
               <div>
@@ -403,7 +403,7 @@ function TimesheetDetailDialog({ timesheetId, onClose }: { timesheetId: string |
                             <div className="mt-1 text-slate-500">
                               {location.source === "DESKTOP"
                                 ? "Company PC (no GPS)"
-                                : `${location.distanceFromOfficeMeters ?? "—"}m from office · accuracy ${location.accuracyMeters ?? "—"}m`}
+                                : `${location.distanceFromOfficeMeters ?? ""}m from office · accuracy ${location.accuracyMeters ?? ""}m`}
                             </div>
                           </div>
                         </div>
@@ -420,7 +420,7 @@ function TimesheetDetailDialog({ timesheetId, onClose }: { timesheetId: string |
                   <ul className="space-y-2 text-sm text-slate-600">
                     {d.corrections.map((correction) => (
                       <li key={correction.id}>
-                        {formatDateTime(correction.createdAt)} — {correction.reason}
+                        {formatDateTime(correction.createdAt)} - {correction.reason}
                       </li>
                     ))}
                   </ul>

@@ -52,8 +52,8 @@ function buildColumns(onEdit?: (employee: Employee) => void): ColumnDef<Employee
         </div>
       )
     },
-    { header: "Job title", accessorFn: (r) => r.jobTitle?.trim() || "—" },
-    { header: "Department", accessorFn: (r) => r.department?.name ?? "—" },
+    { header: "Job title", accessorFn: (r) => r.jobTitle?.trim() || "" },
+    { header: "Department", accessorFn: (r) => r.department?.name ?? "" },
     { header: "Office", accessorFn: (r) => r.office?.name ?? "Unassigned" },
     { header: "Schedule", accessorFn: (r) => r.schedule?.name ?? "Unassigned" },
     { header: "Status", cell: ({ row }) => <StatusBadge status={row.original.status} /> },

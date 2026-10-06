@@ -67,7 +67,7 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
   if (q.isLoading) return <Skeleton className="h-[500px]" />;
   if (!q.data) return <p>Employee not found.</p>;
   const e = q.data;
-  const supervisorName = e.supervisor ? employeeName(e.supervisor) : "—";
+  const supervisorName = e.supervisor ? employeeName(e.supervisor) : "";
 
   return (
     <>
@@ -196,7 +196,7 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
             <div className="mt-5 space-y-4">
               <CopyValue label="Employee code" value={e.employeeCode} />
               <CopyValue label="Temporary password" value={result} tone="amber" />
-              <p className="text-xs text-slate-500">Share this password with the employee. They can change it after login. At least 6 characters — letters or numbers are fine.</p>
+              <p className="text-xs text-slate-500">Share this password with the employee. They can change it after login. At least 6 characters - letters or numbers are fine.</p>
               <Button className="w-full" onClick={() => setAction(null)}>
                 Done
               </Button>
@@ -214,7 +214,7 @@ function Info({ label, value }: { label: string; value?: string | null }) {
   return (
     <div>
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="mt-1 text-sm font-medium">{value || "—"}</p>
+      <p className="mt-1 text-sm font-medium">{value || ""}</p>
     </div>
   );
 }

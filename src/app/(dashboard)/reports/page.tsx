@@ -16,7 +16,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { reportApi } from "@/features/reports/report-api";
-import { employeeName, formatCheckoutDateTime, formatDate, formatDateTime, formatLateMinutes, minutesToHours } from "@/lib/utils/format";
+import { employeeName, formatCheckoutDateTime, formatDate, formatDateRange, formatDateTime, formatLateMinutes, minutesToHours } from "@/lib/utils/format";
 
 type Kind = "timesheets" | "worksheets" | "leave";
 
@@ -136,7 +136,7 @@ function ReportTable({ kind, items }: { kind: Kind; items: ReportItem[] }) {
               <TableRow key={x.id}>
                 <Td>{employeeName(x.employee)}</Td>
                 <Td>{formatDate(x.workDate)}</Td>
-                <Td>{x.office?.name ?? "—"}</Td>
+                <Td>{x.office?.name ?? ""}</Td>
                 <Td>{formatDateTime(x.actualCheckIn)}</Td>
                 <Td>{formatCheckoutDateTime(x)}</Td>
                 <Td>{checkoutByLabel(x.checkOutSource)}</Td>
@@ -188,13 +188,13 @@ function ReportTable({ kind, items }: { kind: Kind; items: ReportItem[] }) {
               <Td>{employeeName(x.employee)}</Td>
               <Td>{x.leaveType?.name}</Td>
               <Td>
-                {formatDate(x.startDate)} – {formatDate(x.endDate)}
+                {formatDateRange(x.startDate, x.endDate)}
               </Td>
               <Td className="tabular-nums">{String(x.numberOfDays)}</Td>
               <Td>
                 <StatusBadge status={x.status ?? "NONE"} />
               </Td>
-              <Td>{x.decisions?.[0]?.decisionReason ?? "—"}</Td>
+              <Td>{x.decisions?.[0]?.decisionReason ?? ""}</Td>
             </TableRow>
           ))}
           {!items.length && <TableEmpty colSpan={6}>No leave records for this range.</TableEmpty>}
@@ -220,7 +220,7 @@ function checkoutByLabel(source?: ReportItem["checkOutSource"]) {
   if (source === "EMPLOYEE") return "Employee";
   if (source === "SYSTEM") return "System";
   if (source === "ADMIN") return "Administrator";
-  return "—";
+  return "";
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

@@ -80,7 +80,7 @@ function AuditPageInner() {
                 <Td>{x.actor?.email ?? "System"}</Td>
                 <Td className="font-medium">{humanizeKey(String(x.action))}</Td>
                 <Td className="text-slate-500">{humanizeKey(x.entityType)}</Td>
-                <Td className="max-w-md text-slate-600">{x.reason ?? "—"}</Td>
+                <Td className="max-w-md text-slate-600">{x.reason ?? ""}</Td>
               </TableRow>
             ))}
             {!rows.length && <TableEmpty colSpan={5}>No audit events yet.</TableEmpty>}

@@ -25,7 +25,7 @@ export function EmojiRating({
               key={r.value}
               type="button"
               disabled={disabled}
-              title={`${r.value} — ${r.label}`}
+              title={`${r.value} - ${r.label}`}
               onClick={() => onChange?.(r.value)}
               className={`${dim} rounded-2xl text-base font-semibold tabular-nums transition ${
                 active
@@ -40,7 +40,7 @@ export function EmojiRating({
       </div>
       {selected ? (
         <p className="text-xs font-medium text-slate-600">
-          {selected.value} — {selected.label}
+          {selected.value} - {selected.label}
         </p>
       ) : null}
     </div>

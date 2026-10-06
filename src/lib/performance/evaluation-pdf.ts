@@ -1,4 +1,4 @@
-import { employeeName, formatDate } from "@/lib/utils/format";
+import { employeeName, formatDate, formatDateRange } from "@/lib/utils/format";
 import { bandFromTotal, isSystemScore, type Evaluation } from "@/types/performance";
 import type { jsPDF as JsPdfType } from "jspdf";
 
@@ -10,7 +10,7 @@ const CONTENT_W = PAGE_W - MARGIN * 2;
 type Doc = JsPdfType;
 
 function scoreLabel(score: number | null | undefined) {
-  if (score == null || !Number.isFinite(score)) return "—";
+  if (score == null || !Number.isFinite(score)) return "";
   const labels: Record<number, string> = {
     1: "Unsatisfactory",
     2: "Needs Imp.",
@@ -71,8 +71,8 @@ function kvRow(
 
   doc.setFont("helvetica", "normal");
   doc.setTextColor(15, 23, 42);
-  const leftLines = doc.splitTextToSize(leftValue || "—", colW - labelW - 4);
-  const rightLines = doc.splitTextToSize(rightValue || "—", colW - labelW - 4);
+  const leftLines = doc.splitTextToSize(leftValue || "", colW - labelW - 4);
+  const rightLines = doc.splitTextToSize(rightValue || "", colW - labelW - 4);
   doc.text(leftLines, MARGIN + labelW, y);
   doc.text(rightLines, MARGIN + colW + labelW, y);
   return y + Math.max(leftLines.length, rightLines.length) * 4.2 + 2;
@@ -82,7 +82,7 @@ export async function buildEvaluationPdf(ev: Evaluation): Promise<Blob> {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const manager = ev.employee.supervisor;
-  const managerName = manager?.name ?? ev.evaluator?.email ?? "—";
+  const managerName = manager?.name ?? ev.evaluator?.email ?? "";
   const overall = ev.overallEvaluator;
   const band = bandFromTotal(overall);
 
@@ -101,8 +101,8 @@ export async function buildEvaluationPdf(ev: Evaluation): Promise<Blob> {
   y += 10;
 
   y = sectionTitle(doc, "1. Personal details", y);
-  y = kvRow(doc, y, "Employee", employeeName(ev.employee), "Position", ev.employee.jobTitle || "—");
-  y = kvRow(doc, y, "Department", ev.employee.department || "—", "Office", ev.employee.office?.name || "—");
+  y = kvRow(doc, y, "Employee", employeeName(ev.employee), "Position", ev.employee.jobTitle || "");
+  y = kvRow(doc, y, "Department", ev.employee.department || "", "Office", ev.employee.office?.name || "");
   y = kvRow(
     doc,
     y,
@@ -117,7 +117,7 @@ export async function buildEvaluationPdf(ev: Evaluation): Promise<Blob> {
     "Cycle",
     ev.cycle.name,
     "Review period",
-    `${formatDate(ev.cycle.periodStart)} – ${formatDate(ev.cycle.periodEnd)}`
+    formatDateRange(ev.cycle.periodStart, ev.cycle.periodEnd)
   );
   y += 4;
 
@@ -156,7 +156,7 @@ export async function buildEvaluationPdf(ev: Evaluation): Promise<Blob> {
     const evaluatorScore = isSystemScore(row) ? row.systemScore : row.evaluatorScore;
     const comment = isSystemScore(row)
       ? "System attendance score"
-      : (row.evaluatorComment || "—").trim();
+      : (row.evaluatorComment || "").trim();
     const question = row.prompt?.trim().replace(/\s+/g, " ") || "";
     const labelLines = doc.splitTextToSize(row.label, widths.comp - 2);
     const questionLines = question ? doc.splitTextToSize(question, widths.comp - 2) : [];
@@ -204,15 +204,15 @@ export async function buildEvaluationPdf(ev: Evaluation): Promise<Blob> {
   doc.text("Overall band", MARGIN + 115, y + 4);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(15, 23, 42);
-  doc.text(ev.overallSelf == null ? "—" : `${ev.overallSelf} / 50`, MARGIN + 22, y + 4);
-  doc.text(overall == null ? "—" : `${overall} / 50`, MARGIN + 82, y + 4);
-  doc.text(band?.label ?? "—", MARGIN + 142, y + 4);
+  doc.text(ev.overallSelf == null ? "" : `${ev.overallSelf} / 50`, MARGIN + 22, y + 4);
+  doc.text(overall == null ? "" : `${overall} / 50`, MARGIN + 82, y + 4);
+  doc.text(band?.label ?? "", MARGIN + 142, y + 4);
   y += 16;
 
   y = sectionTitle(doc, "3. Manager narrative", y);
 
   const noteBlock = (title: string, body: string) => {
-    const lines = doc.splitTextToSize(body.trim() || "—", CONTENT_W - 6);
+    const lines = doc.splitTextToSize(body.trim() || "", CONTENT_W - 6);
     const h = 8 + lines.length * 4.2;
     y = ensureSpace(doc, y, h + 2);
     doc.setDrawColor(226, 232, 240);

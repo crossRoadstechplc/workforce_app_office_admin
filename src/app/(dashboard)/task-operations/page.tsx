@@ -207,7 +207,7 @@ export default function TaskOperationsOverviewPage() {
           </div>
           <p className="max-w-md text-sm leading-6 text-slate-600">
             Workforce stays open. Continue opens the full board in another browser tab with your
-            current session — no second password.
+            current session - no second password.
           </p>
         </div>
         {openError ? <p className="mt-3 text-sm text-red-600">{openError}</p> : null}
@@ -266,7 +266,7 @@ export default function TaskOperationsOverviewPage() {
               </div>
             ))}
             <Button className="mt-2 w-full" onClick={() => void openInNewTab()} disabled={opening || !trackerBase}>
-              {opening ? "Preparing session…" : "Continue — open board in new tab"}
+              {opening ? "Preparing session…" : "Continue - open board in new tab"}
             </Button>
           </CardContent>
         </Card>
@@ -347,7 +347,7 @@ export default function TaskOperationsOverviewPage() {
           </CardHeader>
           <CardContent>
             {recentTasks.length === 0 ? (
-              <p className="text-sm text-slate-500">No tasks yet — continue to the board to create the first ones.</p>
+              <p className="text-sm text-slate-500">No tasks yet - continue to the board to create the first ones.</p>
             ) : (
               <ul className="space-y-2">
                 {recentTasks.map((task) => (

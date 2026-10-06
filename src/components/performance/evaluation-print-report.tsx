@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { employeeName, formatDate } from "@/lib/utils/format";
+import { employeeName, formatDate, formatDateRange } from "@/lib/utils/format";
 import {
   bandFromTotal,
   isSystemScore,
@@ -10,7 +10,7 @@ import {
 } from "@/types/performance";
 
 function scoreDisplay(score: number | null | undefined) {
-  if (score == null || !Number.isFinite(score)) return "—";
+  if (score == null || !Number.isFinite(score)) return "";
   const match = [
     [1, "Unsatisfactory"],
     [2, "Needs Imp."],
@@ -66,7 +66,7 @@ export function EvaluationPrintReport({
   const ev = evaluation;
   const band = bandFromTotal(overall);
   const manager = ev.employee.supervisor;
-  const managerName = manager?.name ?? ev.evaluator?.email ?? "—";
+  const managerName = manager?.name ?? ev.evaluator?.email ?? "";
   const managerTitle = manager?.jobTitle?.trim() || "Manager / Evaluator";
 
   return (
@@ -85,13 +85,13 @@ export function EvaluationPrintReport({
                 <th>Employee</th>
                 <td>{employeeName(ev.employee)}</td>
                 <th>Position</th>
-                <td>{ev.employee.jobTitle || "—"}</td>
+                <td>{ev.employee.jobTitle || ""}</td>
               </tr>
               <tr>
                 <th>Department</th>
-                <td>{ev.employee.department || "—"}</td>
+                <td>{ev.employee.department || ""}</td>
                 <th>Office</th>
-                <td>{ev.employee.office?.name || "—"}</td>
+                <td>{ev.employee.office?.name || ""}</td>
               </tr>
               <tr>
                 <th>Manager</th>
@@ -107,7 +107,7 @@ export function EvaluationPrintReport({
                 <td>{ev.cycle.name}</td>
                 <th>Review period</th>
                 <td>
-                  {formatDate(ev.cycle.periodStart)} – {formatDate(ev.cycle.periodEnd)}
+                  {formatDateRange(ev.cycle.periodStart, ev.cycle.periodEnd)}
                 </td>
               </tr>
             </tbody>
@@ -134,7 +134,7 @@ export function EvaluationPrintReport({
                 const evaluatorScore = scoreValue(row, draft);
                 const comment = isSystemScore(row)
                   ? "System attendance score"
-                  : (draft?.evaluatorComment || row.evaluatorComment || "—").trim();
+                  : (draft?.evaluatorComment || row.evaluatorComment || "").trim();
                 const question = row.prompt?.trim().replace(/\s+/g, " ") || null;
                 return (
                   <tr key={row.itemKey}>
@@ -155,11 +155,11 @@ export function EvaluationPrintReport({
             <tbody>
               <tr>
                 <th>Self total</th>
-                <td>{ev.overallSelf == null ? "—" : `${ev.overallSelf} / 50`}</td>
+                <td>{ev.overallSelf == null ? "" : `${ev.overallSelf} / 50`}</td>
                 <th>Manager total</th>
-                <td>{overall == null ? "—" : `${overall} / 50`}</td>
+                <td>{overall == null ? "" : `${overall} / 50`}</td>
                 <th>Overall band</th>
-                <td>{band?.label ?? "—"}</td>
+                <td>{band?.label ?? ""}</td>
               </tr>
             </tbody>
           </table>
@@ -169,11 +169,11 @@ export function EvaluationPrintReport({
           <h2>3. Manager narrative</h2>
           <div className="print-note">
             <h3>Key strengths</h3>
-            <p>{focus.trim() || "—"}</p>
+            <p>{focus.trim() || ""}</p>
           </div>
           <div className="print-note">
             <h3>Development notes</h3>
-            <p>{plan.trim() || "—"}</p>
+            <p>{plan.trim() || ""}</p>
           </div>
         </section>
       </div>

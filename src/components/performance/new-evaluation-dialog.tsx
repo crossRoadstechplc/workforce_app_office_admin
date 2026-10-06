@@ -147,7 +147,7 @@ export function NewEvaluationDialog({ open, onOpenChange }: { open: boolean; onO
           )}
           {selectedCycle ? (
             <p className="text-sm text-slate-500">
-              {selectedCycle.periodStart} – {selectedCycle.periodEnd}
+              {selectedCycle.periodStart} to {selectedCycle.periodEnd}
             </p>
           ) : null}
           <div className="flex justify-end gap-2">

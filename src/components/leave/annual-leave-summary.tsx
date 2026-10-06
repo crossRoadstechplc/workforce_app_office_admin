@@ -1,6 +1,6 @@
 "use client";
 
-import { formatDate, formatLeaveDays } from "@/lib/utils/format";
+import { formatDate, formatDateRange, formatLeaveDays } from "@/lib/utils/format";
 import type { AnnualLeaveBalance, LeaveBalanceAllocation } from "@/types/leave-balance";
 
 export function AnnualLeaveSummary({
@@ -51,7 +51,7 @@ export function AnnualLeaveSummary({
               {openBuckets.map((bucket) => (
                 <tr key={bucket.id} className="border-t">
                   <td className="px-3 py-2">
-                    {formatDate(bucket.periodStart)} – {formatDate(bucket.periodEnd)}
+                    {formatDateRange(bucket.periodStart, bucket.periodEnd)}
                     {bucket.kind === "CARRY" ? <span className="ml-1 text-amber-700">carry</span> : null}
                   </td>
                   <td className="px-3 py-2 tabular-nums">{formatLeaveDays(bucket.granted)}</td>

@@ -1,10 +1,10 @@
-import { getAccessToken, setAccessToken } from "@/lib/auth/token-store";
-import { unwrapSessionPayload } from "@/lib/auth/unwrap-session";
+import { getAccessToken } from "@/lib/auth/token-store";
+import { refreshSession } from "@/lib/auth/refresh-session";
 export class ApiError extends Error { constructor(public status:number, public code:string, message:string, public details?:unknown){ super(message); } }
-let refreshPromise: Promise<string|null> | null = null;
 async function refreshToken() {
-  if (!refreshPromise) refreshPromise = fetch("/api/auth/refresh", { method:"POST", credentials:"include" }).then(async r => { if(!r.ok) return null; const payload=unwrapSessionPayload(await r.json()); const token=payload.accessToken; if(typeof token!=="string"||!token) return null; setAccessToken(token); return token; }).finally(()=>{refreshPromise=null;});
-  return refreshPromise;
+  const session = await refreshSession();
+  const token = session?.accessToken;
+  return typeof token === "string" && token ? token : null;
 }
 function formatApiError(err: { code?: string; message?: string; details?: unknown }) {
   const base = err.message || "Request failed";

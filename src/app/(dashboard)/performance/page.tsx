@@ -21,7 +21,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { TableShell } from "@/components/ui/table-shell";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { performanceApi } from "@/features/performance/performance-api";
-import { employeeName, formatDate } from "@/lib/utils/format";
+import { employeeName, formatDate, formatDateRange } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 
 export default function PerformancePage() {
@@ -238,13 +238,13 @@ function PerformanceQueue() {
                   </td>
                   <td className="px-4 py-3">
                     <b>{employeeName(row.employee)}</b>
-                    <div className="text-xs text-slate-500">{row.employee.employeeCode} · {row.employee.jobTitle ?? "—"}</div>
+                    <div className="text-xs text-slate-500">{row.employee.employeeCode} · {row.employee.jobTitle ?? ""}</div>
                   </td>
                   <td className="px-4 py-3 font-mono text-xs">{row.number}</td>
-                  <td className="px-4 py-3">{formatDate(row.cycle.periodStart)} – {formatDate(row.cycle.periodEnd)}</td>
-                  <td className="px-4 py-3">{row.employee.supervisor?.name ?? "—"}</td>
-                  <td className="px-4 py-3">{row.overallSelf == null ? "—" : `${row.overallSelf}/50`}</td>
-                  <td className="px-4 py-3">{row.overallEvaluator == null ? "—" : `${row.overallEvaluator}/50`}</td>
+                  <td className="px-4 py-3">{formatDateRange(row.cycle.periodStart, row.cycle.periodEnd)}</td>
+                  <td className="px-4 py-3">{row.employee.supervisor?.name ?? ""}</td>
+                  <td className="px-4 py-3">{row.overallSelf == null ? "" : `${row.overallSelf}/50`}</td>
+                  <td className="px-4 py-3">{row.overallEvaluator == null ? "" : `${row.overallEvaluator}/50`}</td>
                   <td className="px-4 py-3"><StatusBadge status={row.status} /></td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">

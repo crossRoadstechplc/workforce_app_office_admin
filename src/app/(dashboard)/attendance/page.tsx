@@ -144,7 +144,7 @@ function AttendancePageInner() {
         description={
           isOfficeAdmin
             ? `Review daily attendance for ${officeLabel ?? "your assigned offices"}.`
-            : "Full employee roster by day, month, or custom date range — exception counts and location evidence."
+            : "Full employee roster by day, month, or custom date range - exception counts and location evidence."
         }
       />
 
@@ -434,7 +434,7 @@ function AttendancePageInner() {
                     <div className="font-medium">{employeeName(row.employee)}</div>
                     <div className="text-xs text-slate-500">{row.employee.employeeCode}</div>
                   </Td>
-                  {showOfficeFilter && <Td>{row.office?.name ?? "—"}</Td>}
+                  {showOfficeFilter && <Td>{row.office?.name ?? ""}</Td>}
                   <Td className="tabular-nums">{row.workingDays}</Td>
                   <Td className="tabular-nums">{row.presentDays}</Td>
                   <Td className="tabular-nums">{formatLeaveDays(row.leaveDays)}</Td>
@@ -468,7 +468,7 @@ function AttendancePageInner() {
           {d && (
             <div className="mt-5 space-y-5">
               <div className="grid gap-3 sm:grid-cols-4">
-                <Stat l="Check in" v={d.actualCheckIn ? formatDateTime(d.actualCheckIn) : "—"} />
+                <Stat l="Check in" v={d.actualCheckIn ? formatDateTime(d.actualCheckIn) : ""} />
                 <Stat l="Checkout" v={formatCheckoutDateTime(d)} />
                 <Stat l="Checkout by" v={checkOutSourceLabel(d.checkOutSource)} />
                 <Stat l="Worked" v={minutesToHours(d.workedMinutes)} />
@@ -477,7 +477,7 @@ function AttendancePageInner() {
               {d.lateReason && (
                 <div className="rounded-lg bg-amber-50 p-4 text-sm">
                   <b>Late reason:</b> {d.lateReason.reasonType}
-                  {d.lateReason.reasonDescription ? ` — ${d.lateReason.reasonDescription}` : ""}
+                  {d.lateReason.reasonDescription ? ` - ${d.lateReason.reasonDescription}` : ""}
                 </div>
               )}
               <div>
@@ -498,7 +498,7 @@ function AttendancePageInner() {
                             <div className="mt-1 text-slate-500">
                               {l.source === "DESKTOP"
                                 ? "Company PC (no GPS)"
-                                : `${l.distanceFromOfficeMeters ?? "—"}m from office · accuracy ${l.accuracyMeters ?? "—"}m`}
+                                : `${l.distanceFromOfficeMeters ?? ""}m from office · accuracy ${l.accuracyMeters ?? ""}m`}
                             </div>
                           </div>
                         </div>
@@ -540,7 +540,7 @@ function DayRow({
         <div className="font-medium">{employeeName(row.employee)}</div>
         <div className="text-xs text-slate-500">{row.employee.employeeCode}</div>
       </Td>
-      {showOffice && <Td>{row.office?.name ?? "—"}</Td>}
+      {showOffice && <Td>{row.office?.name ?? ""}</Td>}
       <Td>
         <AttendancePhotoStack photos={photos} onOpen={onOpenPhoto} />
       </Td>
@@ -552,11 +552,11 @@ function DayRow({
         )}
       </Td>
       <Td>
-        {row.timesheet?.actualCheckOut ? formatCheckoutDateTime(row.timesheet) : "—"}
+        {row.timesheet?.actualCheckOut ? formatCheckoutDateTime(row.timesheet) : ""}
       </Td>
-      <Td>{row.timesheet?.actualCheckOut ? checkOutSourceLabel(row.timesheet.checkOutSource) : "—"}</Td>
-      <Td className="tabular-nums">{row.timesheet ? formatLateMinutes(row.timesheet.lateMinutes) : "—"}</Td>
-      <Td className="tabular-nums">{row.timesheet ? minutesToHours(row.timesheet.workedMinutes) : "—"}</Td>
+      <Td>{row.timesheet?.actualCheckOut ? checkOutSourceLabel(row.timesheet.checkOutSource) : ""}</Td>
+      <Td className="tabular-nums">{row.timesheet ? formatLateMinutes(row.timesheet.lateMinutes) : ""}</Td>
+      <Td className="tabular-nums">{row.timesheet ? minutesToHours(row.timesheet.workedMinutes) : ""}</Td>
       <Td>
         <div className="space-y-1">
           <StatusBadge status={row.attendanceState} />
@@ -577,7 +577,7 @@ function DayRow({
             View
           </Button>
         ) : (
-          <span className="text-xs text-slate-400">—</span>
+          <span className="text-xs text-slate-400"><//span>
         )}
       </Td>
     </TableRow>
@@ -612,5 +612,5 @@ function checkOutSourceLabel(source?: Timesheet["checkOutSource"]) {
   if (source === "EMPLOYEE") return "Employee";
   if (source === "SYSTEM") return "Automatic (system)";
   if (source === "ADMIN") return "Administrator";
-  return "—";
+  return "";
 }

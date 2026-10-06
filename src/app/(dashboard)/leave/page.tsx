@@ -22,7 +22,7 @@ import { FilterBar } from "@/components/ui/filter-bar";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { Textarea } from "@/components/ui/textarea";
 import { operationsApi } from "@/features/operations/operations-api";
-import { employeeName, formatDate, formatDateTime, formatCheckoutDateTime, formatLateMinutes, formatLeaveDays, minutesToHours } from "@/lib/utils/format";
+import { employeeName, formatDate, formatDateTime, formatDateRange, formatCheckoutDateTime, formatLateMinutes, formatLeaveDays, formatLeaveSession, minutesToHours } from "@/lib/utils/format";
 import type { LeaveRequest } from "@/types/operations";
 import { AnnualLeaveSummary } from "@/components/leave/annual-leave-summary";
 
@@ -309,13 +309,16 @@ function LeavePageInner() {
                       <b>{employeeName(row.employee)}</b>
                       <div className="text-xs text-slate-500">{row.employee.employeeCode}</div>
                     </Td>
-                    {showOfficeFilter && <Td>{row.employee.office?.name ?? "—"}</Td>}
+                    {showOfficeFilter && <Td>{row.employee.office?.name ?? "-"}</Td>}
                     <Td>{row.leaveType.name}</Td>
                     <Td>
-                      {formatDate(row.startDate)} – {formatDate(row.endDate)}
+                      {formatDateRange(row.startDate, row.endDate)}
+                      {row.days?.some((d) => d.session !== "FULL") ? (
+                        <div className="mt-1 text-xs text-slate-500">Includes half day</div>
+                      ) : null}
                     </Td>
                     <Td className="tabular-nums">{formatLeaveDays(row.numberOfDays)}</Td>
-                    <Td className="tabular-nums">{row.annualLeave ? formatLeaveDays(row.annualLeave.available) : "—"}</Td>
+                    <Td className="tabular-nums">{row.annualLeave ? formatLeaveDays(row.annualLeave.available) : "-"}</Td>
                     <Td className="max-w-xs truncate text-slate-600">{row.reason}</Td>
                     <Td>
                       <StatusBadge status={row.status} />
@@ -364,9 +367,9 @@ function LeavePageInner() {
                     <b>{employeeName(row.employee)}</b>
                     <div className="text-xs text-slate-500">{row.employee.employeeCode}</div>
                   </Td>
-                  {showOfficeFilter && <Td>{row.employee.office?.name ?? "—"}</Td>}
+                  {showOfficeFilter && <Td>{row.employee.office?.name ?? "-"}</Td>}
                   <Td>{formatDate(row.workDate)}</Td>
-                  <Td className="max-w-xs truncate text-slate-600">{row.employeeNote ?? "—"}</Td>
+                  <Td className="max-w-xs truncate text-slate-600">{row.employeeNote ?? "-"}</Td>
                   <Td className="text-sm text-slate-600">
                     {row.timesheet?.actualCheckIn
                       ? `${formatDateTime(row.timesheet.actualCheckIn)} · ${minutesToHours(row.timesheet.workedMinutes)}`
@@ -399,10 +402,31 @@ function LeavePageInner() {
           {leaveDetailData && (
             <div className="mt-5 space-y-5">
               <div className="grid gap-3 sm:grid-cols-3">
-                <Info l="Dates" v={`${formatDate(leaveDetailData.startDate)} – ${formatDate(leaveDetailData.endDate)}`} />
+                <Info l="Dates" v={formatDateRange(leaveDetailData.startDate, leaveDetailData.endDate)} />
                 <Info l="Days" v={formatLeaveDays(leaveDetailData.numberOfDays)} />
                 <Info l="Status" v={leaveDetailData.status} />
               </div>
+              {leaveDetailData.days?.length ? (
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold">Day breakdown</h3>
+                  <div className="space-y-2">
+                    {leaveDetailData.days.map((day) => (
+                      <div
+                        key={`${day.date}-${day.session}`}
+                        className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
+                      >
+                        <span>{formatDate(day.date)}</span>
+                        <span className="font-medium text-slate-700">
+                          {formatLeaveSession(day.session)}
+                          <span className="ml-2 tabular-nums text-slate-500">
+                            ({formatLeaveDays(day.dayFraction)})
+                          </span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               {leaveDetailData.annualLeave ? (
                 <AnnualLeaveSummary balance={leaveDetailData.annualLeave} allocations={leaveDetailData.allocations} />
               ) : null}
@@ -473,7 +497,7 @@ function LeavePageInner() {
                 <div className="grid gap-3 sm:grid-cols-3">
                   <Info
                     l="Check in"
-                    v={selectedCorrection.timesheet.actualCheckIn ? formatDateTime(selectedCorrection.timesheet.actualCheckIn) : "—"}
+                    v={selectedCorrection.timesheet.actualCheckIn ? formatDateTime(selectedCorrection.timesheet.actualCheckIn) : "-"}
                   />
                   <Info
                     l="Check out"

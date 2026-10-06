@@ -179,7 +179,7 @@ function CredentialsPanel({ onLocked }: { onLocked: () => void }) {
                   <Td>
                     <StatusBadge status={row.type} />
                   </Td>
-                  <Td className="text-slate-600">{row.email || row.username || "—"}</Td>
+                  <Td className="text-slate-600">{row.email || row.username || ""}</Td>
                   <Td>
                     <MaskedSecret credentialId={row.id} masked={row.secretMasked} />
                   </Td>
@@ -248,12 +248,12 @@ function SubscriptionsPanel({ onLocked }: { onLocked: () => void }) {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card className="p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">This month</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-950">{stats ? `${stats.thisMonthTotal}` : "—"}</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-950">{stats ? `${stats.thisMonthTotal}` : ""}</p>
           <p className="text-sm text-slate-500">{stats?.yearMonth}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Active</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-950">{stats?.activeCount ?? "—"}</p>
+          <p className="mt-1 text-2xl font-semibold text-slate-950">{stats?.activeCount ?? ""}</p>
           <p className="text-sm text-slate-500">{stats?.thisMonthSeats ?? 0} seats this month</p>
         </Card>
         <Card className="p-4">

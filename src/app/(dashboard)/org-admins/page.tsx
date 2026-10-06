@@ -80,7 +80,7 @@ function OrgAdminsInner() {
         toast.success(
           res.emailSent
             ? res.requiresPassword === false
-              ? "Invite email sent — they confirm access with their existing password"
+              ? "Invite email sent - they confirm access with their existing password"
               : "Invite email sent"
             : "Admin created, but the email was not sent"
         );
@@ -243,7 +243,7 @@ function OrgAdminsInner() {
                 .filter(Boolean);
               const orgLabel = orgs.length
                 ? orgs.map((org) => `${org.name} (${org.slug})`).join(", ")
-                : "—";
+                : "";
               return (
                 <TableRow key={a.id}>
                   <Td className="font-medium">{a.email}</Td>

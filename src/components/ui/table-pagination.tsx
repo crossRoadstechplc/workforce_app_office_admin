@@ -79,7 +79,8 @@ export function TablePagination({
           ) : (
             <>
               Showing <span className="font-medium text-slate-900">{from}</span>
-              –<span className="font-medium text-slate-900">{to}</span> of{" "}
+              {" to "}
+              <span className="font-medium text-slate-900">{to}</span> of{" "}
               <span className="font-medium text-slate-900">{total}</span> {noun}
             </>
           )}

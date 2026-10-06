@@ -17,7 +17,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { TableShell } from "@/components/ui/table-shell";
 import { performanceApi } from "@/features/performance/performance-api";
 import { employeeApi } from "@/features/employees/employee-api";
-import { formatDate } from "@/lib/utils/format";
+import { formatDate, formatDateRange } from "@/lib/utils/format";
 import type { EvaluationCycle } from "@/types/performance";
 
 export default function CyclesPage() {
@@ -201,7 +201,7 @@ function CyclesInner() {
     mutationFn: (id: string) => performanceApi.openCycle(id, openBody()),
     onSuccess: (data) => {
       const n = data.created ?? 0;
-      toast.success(n > 0 ? `Cycle opened — ${n} evaluation${n === 1 ? "" : "s"} created` : "Cycle opened");
+      toast.success(n > 0 ? `Cycle opened - ${n} evaluation${n === 1 ? "" : "s"} created` : "Cycle opened");
       setOpenDraftId(null);
       invalidate();
     },
@@ -215,7 +215,7 @@ function CyclesInner() {
       toast.success(
         n > 0
           ? `${n} employee${n === 1 ? "" : "s"} assigned to the cycle`
-          : "No new employees to assign — all matching active employees are already in this cycle"
+          : "No new employees to assign - all matching active employees are already in this cycle"
       );
       setAssignCycleId(null);
       invalidate();
@@ -347,11 +347,11 @@ function CyclesInner() {
               {active.map((c) => (
                 <tr key={c.id}>
                   <td className="px-4 py-3 font-medium">{c.name}</td>
-                  <td className="px-4 py-3">{formatDate(c.periodStart)} – {formatDate(c.periodEnd)}</td>
+                  <td className="px-4 py-3">{formatDateRange(c.periodStart, c.periodEnd)}</td>
                   <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
-                  <td className="px-4 py-3">{c.counts?.awaitingSelf ?? "—"}</td>
-                  <td className="px-4 py-3">{c.counts?.awaitingEvaluator ?? "—"}</td>
-                  <td className="px-4 py-3">{c.counts?.done ?? "—"}</td>
+                  <td className="px-4 py-3">{c.counts?.awaitingSelf ?? ""}</td>
+                  <td className="px-4 py-3">{c.counts?.awaitingEvaluator ?? ""}</td>
+                  <td className="px-4 py-3">{c.counts?.done ?? ""}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
                       <Button variant="ghost" size="sm" asChild>
@@ -489,7 +489,7 @@ function DraftRow({
   return (
     <tr>
       <td className="px-4 py-3 font-medium">{cycle.name}</td>
-      <td className="px-4 py-3">{formatDate(cycle.periodStart)} – {formatDate(cycle.periodEnd)}</td>
+      <td className="px-4 py-3">{formatDateRange(cycle.periodStart, cycle.periodEnd)}</td>
       <td className="px-4 py-3"><StatusBadge status={cycle.status} /></td>
       <td className="px-4 py-3">
         <div className="flex gap-2">

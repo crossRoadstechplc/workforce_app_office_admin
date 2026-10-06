@@ -86,7 +86,7 @@ function OfficeAdminsInner() {
         toast.success(
           res.emailSent
             ? res.requiresPassword === false
-              ? "Invite email sent — they confirm access with their existing password"
+              ? "Invite email sent - they confirm access with their existing password"
               : "Invite email sent"
             : "Admin created, but the email was not sent"
         );
@@ -150,7 +150,7 @@ function OfficeAdminsInner() {
     <div className="space-y-6">
       <PageHeader
         title="Office administrators"
-        description="Assign admins to one or more offices. They manage employees and operations for those locations only — not company-wide office setup."
+        description="Assign admins to one or more offices. They manage employees and operations for those locations only - not company-wide office setup."
         action={
           <Dialog
             open={open}
@@ -310,7 +310,7 @@ function OfficeAdminsInner() {
             {admins.map((a) => (
               <tr key={a.id} className="border-t">
                 <td className="px-4 py-3 font-medium">{a.email}</td>
-                <td className="px-4 py-3">{a.adminOffices.map((x) => x.office.name).join(", ") || "—"}</td>
+                <td className="px-4 py-3">{a.adminOffices.map((x) => x.office.name).join(", ") || ""}</td>
                 <td className="px-4 py-3">
                   <StatusBadge status={a.status} />
                 </td>

@@ -19,7 +19,7 @@ export function AttendancePhotoThumb({
   onOpen: (photos: AttendancePhotoPreview[]) => void;
 }) {
   if (!url) {
-    return <span className="text-xs text-slate-400">—</span>;
+    return <span className="text-xs text-slate-400"><//span>;
   }
 
   return (
@@ -47,7 +47,7 @@ export function AttendancePhotoStack({
   onOpen: (photos: AttendancePhotoPreview[]) => void;
 }) {
   if (!photos.length) {
-    return <span className="text-xs text-slate-400">—</span>;
+    return <span className="text-xs text-slate-400"><//span>;
   }
 
   return (

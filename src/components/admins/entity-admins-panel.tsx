@@ -97,7 +97,7 @@ export function EntityAdminsPanel({
         toast.success(
           res.emailSent
             ? res.requiresPassword === false
-              ? "Invite email sent — they confirm access with their existing password"
+              ? "Invite email sent - they confirm access with their existing password"
               : "Invite email sent"
             : "Admin created, but the email was not sent"
         );

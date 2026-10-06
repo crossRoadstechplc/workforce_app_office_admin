@@ -144,7 +144,7 @@ function WorksheetsPageInner() {
                   <b>{employeeName(row.employee)}</b>
                   <div className="text-xs text-slate-500">{row.employee.employeeCode}</div>
                 </Td>
-                {showOfficeFilter && <Td>{row.office?.name ?? "—"}</Td>}
+                {showOfficeFilter && <Td>{row.office?.name ?? ""}</Td>}
                 <Td className="tabular-nums">
                   {row.timesheet ? (
                     minutesToHours(row.timesheet.workedMinutes)
@@ -153,7 +153,7 @@ function WorksheetsPageInner() {
                   )}
                 </Td>
                 <Td className="max-w-md truncate text-slate-600">
-                  {row.worksheet?.workDescription ?? (row.timesheet ? "—" : <span className="text-slate-500">Not checked in</span>)}
+                  {row.worksheet?.workDescription ?? (row.timesheet ? "" : <span className="text-slate-500">Not checked in</span>)}
                 </Td>
                 <Td>
                   <StatusBadge status={row.worksheetState} />
@@ -164,7 +164,7 @@ function WorksheetsPageInner() {
                       Review
                     </Button>
                   ) : (
-                    <span className="text-xs text-slate-400">—</span>
+                    <span className="text-xs text-slate-400"><//span>
                   )}
                 </Td>
               </TableRow>

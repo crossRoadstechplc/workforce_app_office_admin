@@ -94,7 +94,7 @@ function RoomsInner() {
     <div className="space-y-6">
       <PageHeader
         title="Meeting rooms"
-        description="Each room belongs to one office. Employees and office admins book free slots from the app — no approval step."
+        description="Each room belongs to one office. Employees and office admins book free slots from the app - no approval step."
         action={
           <Button onClick={startCreate}>
             <Plus className="size-4" />

@@ -61,6 +61,15 @@ export type HistoryList<T> = {
   meta: { page: number; pageSize: number; total: number; totalPages: number };
 };
 
+export type LeaveDaySession = "FULL" | "MORNING" | "AFTERNOON";
+
+export type LeaveRequestDay = {
+  id?: string;
+  date: string;
+  session: LeaveDaySession;
+  dayFraction: number | string;
+};
+
 export type LeaveRequest = {
   id: string;
   startDate: string;
@@ -71,6 +80,7 @@ export type LeaveRequest = {
   requestedAt: string;
   employee: Person;
   leaveType: { id: string; name: string; code?: string; tracksBalance?: boolean };
+  days?: LeaveRequestDay[];
   annualLeave?: AnnualLeaveBalance | null;
   allocations?: LeaveBalanceAllocation[];
   decisions?: Array<{ id: string; decision: string; decisionReason?: string | null; decidedAt: string; adminUser?: { email: string } }>;
@@ -156,6 +166,7 @@ export type AttendanceDayRosterRow = {
     startDate: string;
     endDate: string;
     leaveType?: { id: string; name: string } | null;
+    daySession?: LeaveDaySession;
   } | null;
   holiday?: {
     id: string;
@@ -332,6 +343,8 @@ export type LeaveDayRosterRow = {
     numberOfDays: number | string;
     reason: string;
     leaveType: { id: string; name: string };
+    daySession?: LeaveDaySession;
+    dayFraction?: number | string | null;
   } | null;
 };
 

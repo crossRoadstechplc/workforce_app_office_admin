@@ -114,4 +114,4 @@ export function passwordMeetsRules(password: string) {
   return password.trim().length >= 6;
 }
 
-export const EASY_PASSWORD_HINT = "At least 6 characters. Letters or numbers are fine — uppercase is not required.";
+export const EASY_PASSWORD_HINT = "At least 6 characters. Letters or numbers are fine - uppercase is not required.";

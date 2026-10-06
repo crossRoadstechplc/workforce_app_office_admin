@@ -222,7 +222,7 @@ function GlanceRow({
         </span>
         {label}
       </span>
-      <span className="font-semibold tabular-nums text-slate-950">{value ?? "—"}</span>
+      <span className="font-semibold tabular-nums text-slate-950">{value ?? ""}</span>
     </div>
   );
 }

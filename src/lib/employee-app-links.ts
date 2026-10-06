@@ -17,7 +17,7 @@ export function employeeAppLinkConfig() {
     webBaseUrl: trimUrl(process.env.NEXT_PUBLIC_EMPLOYEE_WEB_URL),
     appStoreUrl: trimUrl(process.env.NEXT_PUBLIC_EMPLOYEE_APP_STORE_URL),
     playStoreUrl: trimUrl(process.env.NEXT_PUBLIC_EMPLOYEE_PLAY_STORE_URL),
-    /** Custom scheme without :// — default workforce */
+    /** Custom scheme without :// - default workforce */
     deepLinkScheme: (process.env.NEXT_PUBLIC_EMPLOYEE_APP_SCHEME ?? "workforce").trim() || "workforce",
     androidPackage: (process.env.NEXT_PUBLIC_EMPLOYEE_ANDROID_PACKAGE ?? "workforce.app").trim() || "workforce.app"
   };

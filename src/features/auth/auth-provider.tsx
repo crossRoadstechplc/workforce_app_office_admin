@@ -1,8 +1,9 @@
 "use client";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api/api-client";
 import { setAccessToken, getAccessToken } from "@/lib/auth/token-store";
+import { refreshSession } from "@/lib/auth/refresh-session";
 import {
   filterPortalContexts,
   hasPortalContext,
@@ -95,6 +96,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [pendingContext, setPendingContext] = useState<PendingContextSelection | null>(null);
   const [contextSwitching, setContextSwitching] = useState(false);
   const router = useRouter();
+  // Tracks whether a session has already been established (via login or a
+  // prior hydrate) so a late-resolving, now-stale hydrate() call can never
+  // downgrade a session that's already authenticated.
+  const sessionEstablishedRef = useRef(false);
 
   const loadPortalContexts = useCallback(async () => {
     try {
@@ -123,6 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await loadPortalContexts();
       setPendingContext(null);
       setStatus("authenticated");
+      sessionEstablishedRef.current = true;
       return me;
     },
     [loadPortalContexts]
@@ -130,13 +136,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const hydrate = useCallback(async () => {
     try {
-      const r = await fetch("/api/auth/refresh", {
-        method: "POST",
-        credentials: "include",
-        signal: AbortSignal.timeout(12_000)
-      });
-      if (!r.ok) throw new Error();
-      const session = unwrapSessionPayload(await r.json());
+      const session = await refreshSession();
+      if (!session) throw new Error();
       const sessionUser = userFromSession(session as { user?: AuthUser; mustChangePassword?: boolean; activeContext?: AuthUser["activeContext"] });
       if (!isPortalAdmin(sessionUser.roles)) throw new Error("Admin access required");
 
@@ -146,6 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session.mustChangePassword || sessionUser.mustChangePassword) {
         setUser(sessionUser);
         setStatus("mustChangePassword");
+        sessionEstablishedRef.current = true;
         return;
       }
 
@@ -154,6 +156,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         (session.activeContext as AuthUser["activeContext"] | undefined)?.key ?? sessionUser.activeContext?.key
       );
     } catch {
+      // A login (or an earlier hydrate) may have already established a real
+      // session while this call was in flight - never stomp on that.
+      if (sessionEstablishedRef.current) return;
       setAccessToken(null);
       setUser(null);
       setPortalContexts([]);

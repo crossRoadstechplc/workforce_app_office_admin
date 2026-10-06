@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { EmojiRating } from "@/components/performance/emoji-rating";
 import { EvaluationPrintReport, useCleanPrintTitle } from "@/components/performance/evaluation-print-report";
 import { performanceApi } from "@/features/performance/performance-api";
-import { employeeName, formatDate } from "@/lib/utils/format";
+import { employeeName, formatDate, formatDateRange } from "@/lib/utils/format";
 import { bandFromTotal, isSystemScore, type EvaluationScore } from "@/types/performance";
 
 export default function EvaluationDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -143,10 +143,10 @@ function EvaluationWorkspace({ params }: { params: Promise<{ id: string }> }) {
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Employee performance evaluation</p>
             <h1 className="mt-1 text-2xl font-semibold">{employeeName(ev.employee)}</h1>
             <p className="mt-1 text-sm text-slate-500">
-              {ev.employee.jobTitle ?? "—"} · {ev.employee.department ?? "—"} · {ev.number}
+              {ev.employee.jobTitle ?? ""} · {ev.employee.department ?? ""} · {ev.number}
             </p>
             <p className="text-sm text-slate-500">
-              Period {formatDate(ev.cycle.periodStart)} – {formatDate(ev.cycle.periodEnd)} · {ev.cycle.name}
+              Period {formatDateRange(ev.cycle.periodStart, ev.cycle.periodEnd)} · {ev.cycle.name}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -171,19 +171,19 @@ function EvaluationWorkspace({ params }: { params: Promise<{ id: string }> }) {
           <Card>
             <CardHeader><CardTitle>Attendance (system)</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-2 gap-2 text-sm">
-              <Row k="Expected days" v={String(snap?.expectedDays ?? "—")} />
+              <Row k="Expected days" v={String(snap?.expectedDays ?? "")} />
               <Row k="Attended" v={String(snap?.attendanceDays ?? 0)} />
               <Row k="Late days" v={String(snap?.lateDays ?? 0)} />
               <Row k="Approved leave" v={String(snap?.approvedLeaveDays ?? 0)} />
               <Row k="Unexcused absent" v={String(snap?.unexcusedAbsentDays ?? 0)} />
-              <Row k="System rating" v={snap?.systemAttendanceScore != null ? `${snap.systemAttendanceScore} / 5` : "—"} />
+              <Row k="System rating" v={snap?.systemAttendanceScore != null ? `${snap.systemAttendanceScore} / 5` : ""} />
             </CardContent>
           </Card>
           <Card>
             <CardHeader><CardTitle>Total</CardTitle></CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <Row k="Self" v={ev.overallSelf == null ? "—" : `${ev.overallSelf} / 50`} />
-              <Row k="Evaluator" v={overall == null ? "—" : `${overall} / 50`} />
+              <Row k="Self" v={ev.overallSelf == null ? "" : `${ev.overallSelf} / 50`} />
+              <Row k="Evaluator" v={overall == null ? "" : `${overall} / 50`} />
               {band ? <Row k="Overall performance" v={band.label} /> : null}
               <Row k="Cycle" v={ev.cycle.name} />
             </CardContent>
@@ -226,7 +226,7 @@ function EvaluationWorkspace({ params }: { params: Promise<{ id: string }> }) {
         <div className="fixed inset-x-0 bottom-0 z-20 border-t bg-white/95 px-4 py-3 backdrop-blur">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
             <div className="text-sm">
-              Official total <b>{overall ?? "—"} / 50</b>
+              Official total <b>{overall ?? ""} / 50</b>
               {band ? <span className="ml-2 text-slate-500">{band.label}</span> : null}
             </div>
             <div className="flex gap-2">
@@ -309,7 +309,7 @@ function Row({ k, v }: { k: string; v?: string | null }) {
   return (
     <div>
       <div className="text-xs text-slate-500">{k}</div>
-      <div className="font-medium">{v || "—"}</div>
+      <div className="font-medium">{v || ""}</div>
     </div>
   );
 }

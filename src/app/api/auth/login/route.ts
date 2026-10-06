@@ -38,7 +38,7 @@ function sessionResponse(data: Record<string, unknown>) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    // Never forward null optional fields — Zod optional rejects null.
+    // Never forward null optional fields - Zod optional rejects null.
     const payload: Record<string, unknown> = {
       login: body.login,
       password: body.password,

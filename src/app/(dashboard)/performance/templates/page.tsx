@@ -63,7 +63,7 @@ function TemplatesInner() {
             <CardHeader className="flex flex-row items-start justify-between gap-2">
               <div>
                 <CardTitle>{t.name}</CardTitle>
-                <p className="mt-1 text-sm text-slate-500">{t.description || "—"}</p>
+                <p className="mt-1 text-sm text-slate-500">{t.description || ""}</p>
               </div>
               <div className="flex gap-2">
                 {t.isDefault ? <StatusBadge status="ACTIVE" /> : null}

@@ -293,7 +293,7 @@ function SchedulesPageInner() {
                       <h2 className="font-semibold">{s.name}</h2>
                       <StatusBadge status={s.isActive ? "ACTIVE" : "INACTIVE"} />
                     </div>
-                    <p className="mt-1 text-sm text-slate-500">{s.lateGraceMinutes} min grace · {s.timezone ?? "—"}</p>
+                    <p className="mt-1 text-sm text-slate-500">{s.lateGraceMinutes} min grace · {s.timezone ?? ""}</p>
                   </div>
                 </div>
                 <Button size="sm" variant="outline" onClick={() => edit(s)}>

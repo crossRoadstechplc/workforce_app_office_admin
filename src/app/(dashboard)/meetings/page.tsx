@@ -92,7 +92,7 @@ function QueueInner() {
     <div className="space-y-6">
       <PageHeader
         title="Meeting bookings"
-        description="Live queue from employees and office admins. Change times or rooms — there is no approve or reject."
+        description="Live queue from employees and office admins. Change times or rooms - there is no approve or reject."
         action={
           <Button variant="outline" asChild>
             <Link href="/meetings/rooms">Manage rooms</Link>
@@ -194,7 +194,7 @@ function QueueInner() {
       <Dialog open={!!editing} onOpenChange={(v) => { if (!v) setEditing(null); }}>
         <DialogContent>
           <DialogTitle>Change booking time</DialogTitle>
-          <DialogDescription>Move the meeting to a free slot. This is not an approval — the booking stays confirmed.</DialogDescription>
+          <DialogDescription>Move the meeting to a free slot. This is not an approval - the booking stays confirmed.</DialogDescription>
           <form
             className="mt-4 space-y-3"
             onSubmit={(e) => {
