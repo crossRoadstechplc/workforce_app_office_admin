@@ -299,4 +299,87 @@ button { cursor: pointer; }
     font-size: 7pt;
     color: #555;
   }
+
+  .attendance-print-report {
+    display: block !important;
+    box-sizing: border-box;
+    width: 100%;
+    color: #111;
+    font-family: Calibri, "Segoe UI", Arial, Helvetica, sans-serif;
+    font-size: 9pt;
+    line-height: 1.25;
+  }
+
+  .attendance-print-report .att-print-header {
+    border-bottom: 1.25pt solid #111;
+    margin-bottom: 8pt;
+    padding-bottom: 6pt;
+  }
+
+  .attendance-print-report .att-print-eyebrow {
+    margin: 0 0 2pt;
+    font-size: 7.5pt;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #555;
+  }
+
+  .attendance-print-report h1 {
+    margin: 0 0 6pt;
+    font-size: 14pt;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .attendance-print-report .att-print-meta {
+    display: grid;
+    gap: 3pt;
+    font-size: 9pt;
+  }
+
+  .attendance-print-report .att-print-meta-label {
+    display: inline-block;
+    min-width: 52pt;
+    font-weight: 700;
+    color: #333;
+  }
+
+  .attendance-print-report .att-print-meta-label::after {
+    content: ": ";
+  }
+
+  .attendance-print-report .att-print-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .attendance-print-report .att-print-table th,
+  .attendance-print-report .att-print-table td {
+    border: 0.45pt solid #999;
+    padding: 3.5pt 4pt;
+    vertical-align: top;
+    font-size: 8.5pt;
+    word-wrap: break-word;
+  }
+
+  .attendance-print-report .att-print-table thead th {
+    background: #eee;
+    font-weight: 700;
+    text-align: left;
+    color: #222;
+  }
+
+  .attendance-print-report .att-print-table td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .attendance-print-report .att-print-footer {
+    margin-top: 8pt;
+    font-size: 7.5pt;
+    color: #555;
+  }
 }

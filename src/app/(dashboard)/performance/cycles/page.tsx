@@ -54,6 +54,7 @@ type CycleFormProps = {
   presets: { label: string; from: string }[];
   today: string;
   showNameAndDates?: boolean;
+  showAssignment?: boolean;
 };
 
 function CycleFormFields({
@@ -75,7 +76,8 @@ function CycleFormFields({
   templates,
   presets,
   today,
-  showNameAndDates = true
+  showNameAndDates = true,
+  showAssignment = true
 }: CycleFormProps) {
   return (
     <>
@@ -114,24 +116,28 @@ function CycleFormFields({
           </div>
         </>
       )}
-      <div>
-        <Label>Office</Label>
-        <Select value={officeId} onChange={(e) => setOfficeId(e.target.value)}>
-          <option value="">All active employees</option>
-          {offices.map((o) => (
-            <option key={o.id} value={o.id}>{o.name}</option>
-          ))}
-        </Select>
-      </div>
-      <div>
-        <Label>Template override</Label>
-        <Select value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
-          <option value="">Match job title, else default</option>
-          {templates.map((t) => (
-            <option key={t.id} value={t.id}>{t.name}</option>
-          ))}
-        </Select>
-      </div>
+      {showAssignment && (
+        <>
+          <div>
+            <Label>Office</Label>
+            <Select value={officeId} onChange={(e) => setOfficeId(e.target.value)}>
+              <option value="">All active employees</option>
+              {offices.map((o) => (
+                <option key={o.id} value={o.id}>{o.name}</option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label>Template override</Label>
+            <Select value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
+              <option value="">Match job title, else default</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </Select>
+          </div>
+        </>
+      )}
     </>
   );
 }
@@ -146,6 +152,7 @@ function CyclesInner() {
   const offices = useQuery({ queryKey: ["offices", "select"], queryFn: employeeApi.offices });
   const [createOpen, setCreateOpen] = useState(false);
   const [openDraftId, setOpenDraftId] = useState<string | null>(null);
+  const [editDraftId, setEditDraftId] = useState<string | null>(null);
   const [assignCycleId, setAssignCycleId] = useState<string | null>(null);
   const today = new Date().toISOString().slice(0, 10);
   const [from, setFrom] = useState(isoDaysAgo(90));
@@ -161,15 +168,48 @@ function CyclesInner() {
     void qc.invalidateQueries({ queryKey: ["evaluations"] });
   };
 
+  const toDateInput = (value?: string | null) => {
+    if (!value) return "";
+    return value.slice(0, 10);
+  };
+
+  const fillFormFromCycle = (cycle: EvaluationCycle) => {
+    setName(cycle.name);
+    setFrom(toDateInput(cycle.periodStart));
+    setTo(toDateInput(cycle.periodEnd));
+    setSelfDue(toDateInput(cycle.selfDueAt));
+    setEvalDue(toDateInput(cycle.evaluatorDueAt));
+    setOfficeId("");
+    setTemplateId("");
+  };
+
+  const resetCreateForm = () => {
+    setName("Q review");
+    setFrom(isoDaysAgo(90));
+    setTo(today);
+    setSelfDue("");
+    setEvalDue("");
+    setOfficeId("");
+    setTemplateId("");
+  };
+
   const cycleBody = (open: boolean) => ({
     name,
     periodStart: from,
     periodEnd: to,
     officeId: officeId || undefined,
     templateId: templateId || undefined,
-    selfDueAt: selfDue ? new Date(selfDue).toISOString() : undefined,
-    evaluatorDueAt: evalDue ? new Date(evalDue).toISOString() : undefined,
+    selfDueAt: selfDue ? new Date(selfDue).toISOString() : null,
+    evaluatorDueAt: evalDue ? new Date(evalDue).toISOString() : null,
     open
+  });
+
+  const updateBody = () => ({
+    name,
+    periodStart: from,
+    periodEnd: to,
+    selfDueAt: selfDue ? new Date(selfDue).toISOString() : null,
+    evaluatorDueAt: evalDue ? new Date(evalDue).toISOString() : null
   });
 
   const openBody = () => ({
@@ -203,6 +243,16 @@ function CyclesInner() {
       const n = data.created ?? 0;
       toast.success(n > 0 ? `Cycle opened - ${n} evaluation${n === 1 ? "" : "s"} created` : "Cycle opened");
       setOpenDraftId(null);
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
+
+  const updateDraft = useMutation({
+    mutationFn: (id: string) => performanceApi.updateCycle(id, updateBody()),
+    onSuccess: () => {
+      toast.success("Draft cycle updated");
+      setEditDraftId(null);
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message)
@@ -298,7 +348,7 @@ function CyclesInner() {
     <div className="space-y-6">
       <PageHeader
         title="Evaluation cycles"
-        action={<Button onClick={() => setCreateOpen(true)}>New cycle</Button>}
+        action={<Button onClick={() => { resetCreateForm(); setCreateOpen(true); }}>New cycle</Button>}
       />
       <p className="text-sm">
         <Link href="/performance" className="text-blue-700 hover:underline">Back to queue</Link>
@@ -321,6 +371,7 @@ function CyclesInner() {
                   <DraftRow
                     key={c.id}
                     cycle={c}
+                    onEdit={() => { fillFormFromCycle(c); setEditDraftId(c.id); }}
                     onOpen={() => { setOfficeId(""); setTemplateId(""); setOpenDraftId(c.id); }}
                     onDelete={() => confirmDeleteDraft(c)}
                     deleting={removeCycle.isPending}
@@ -424,6 +475,30 @@ function CyclesInner() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!editDraftId} onOpenChange={(v) => { if (!v) setEditDraftId(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogTitle>Edit draft cycle</DialogTitle>
+          <form
+            className="mt-4 space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (editDraftId) updateDraft.mutate(editDraftId);
+            }}
+          >
+            <p className="text-sm text-slate-600">
+              Update the name, review period, and due dates for this draft. Office and template are chosen when you open it.
+            </p>
+            <CycleFormFields {...formProps} showNameAndDates showAssignment={false} />
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setEditDraftId(null)}>Cancel</Button>
+              <Button type="submit" disabled={updateDraft.isPending || !name.trim() || !from || !to}>
+                {updateDraft.isPending ? "Saving…" : "Save changes"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!openDraftId} onOpenChange={(v) => { if (!v) setOpenDraftId(null); }}>
         <DialogContent className="max-w-lg">
           <DialogTitle>Open draft cycle</DialogTitle>
@@ -477,11 +552,13 @@ function CyclesInner() {
 
 function DraftRow({
   cycle,
+  onEdit,
   onOpen,
   onDelete,
   deleting
 }: {
   cycle: EvaluationCycle;
+  onEdit: () => void;
   onOpen: () => void;
   onDelete: () => void;
   deleting: boolean;
@@ -493,6 +570,7 @@ function DraftRow({
       <td className="px-4 py-3"><StatusBadge status={cycle.status} /></td>
       <td className="px-4 py-3">
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={onEdit}>Edit</Button>
           <Button variant="default" size="sm" onClick={onOpen}>Open</Button>
           <Button variant="ghost" size="sm" disabled={deleting} onClick={onDelete}>Delete</Button>
         </div>

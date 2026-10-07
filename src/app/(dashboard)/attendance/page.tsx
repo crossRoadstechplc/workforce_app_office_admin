@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Camera, ChevronDown, Clock, Monitor, Search } from "lucide-react";
+import { Camera, ChevronDown, Clock, Monitor, Printer, Search } from "lucide-react";
 import { toast } from "sonner";
 import { TenantOpsGate } from "@/components/auth/role-gates";
 import {
@@ -14,6 +14,11 @@ import {
   locationPhotoType,
   type AttendancePhotoPreview
 } from "@/components/attendance/attendance-photo";
+import {
+  AttendancePrintReport,
+  attendancePrintOfficeNames,
+  attendancePrintPeriod
+} from "@/components/attendance/attendance-print-report";
 import { DateDayPicker, defaultOpsDate } from "@/components/ops/date-day-picker";
 import { MonthYearPicker, defaultOpsMonth } from "@/components/ops/month-year-picker";
 import { OfficeFilter } from "@/components/ops/office-filter";
@@ -30,6 +35,7 @@ import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/badge";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
+import { tenantContextApi } from "@/features/context/tenant-context-api";
 import { operationsApi } from "@/features/operations/operations-api";
 import { employeeName, formatCheckoutDateTime, formatDate, formatDateTime, formatLateMinutes, formatLeaveDays, minutesToHours } from "@/lib/utils/format";
 import type { AttendanceDayRosterRow, Timesheet } from "@/types/operations";
@@ -108,6 +114,12 @@ function AttendancePageInner() {
     queryFn: () => operationsApi.attendanceConfig()
   });
 
+  const officesQuery = useQuery({
+    queryKey: ["tenant-context"],
+    queryFn: tenantContextApi.get,
+    enabled: showOfficeFilter
+  });
+
   const configMutate = useMutation({
     mutationFn: (input: {
       photoRequiredEnabled?: boolean;
@@ -136,15 +148,38 @@ function AttendancePageInner() {
   const periodItems = (periodQuery.data?.items ?? []).filter((row) => matchesSearch(row.employee, search));
   const d = detail.data as Timesheet | undefined;
   const todayMax = defaultOpsDate();
+  const printPeriod = attendancePrintPeriod(mode, { date, month, rangeFrom, rangeTo });
+  const printOfficeNames = attendancePrintOfficeNames({
+    officeId,
+    catalog: officesQuery.data?.offices ?? [],
+    fallbackNames: user?.offices?.map((o) => o.name) ?? (officeLabel ? officeLabel.split(", ") : []),
+    rowOffices: (mode === "day" ? dayItems : periodItems).map((row) => row.office)
+  });
 
   return (
     <div className="min-w-0 space-y-6">
+      <AttendancePrintReport
+        mode={mode}
+        period={printPeriod}
+        officeNames={printOfficeNames}
+        showOffice={showOfficeFilter}
+        dayRows={dayItems}
+        periodRows={periodItems}
+      />
+
+      <div className="space-y-6 print:hidden">
       <PageHeader
         title={isOfficeAdmin ? "Office attendance" : "Attendance"}
         description={
           isOfficeAdmin
             ? `Review daily attendance for ${officeLabel ?? "your assigned offices"}.`
             : "Full employee roster by day, month, or custom date range - exception counts and location evidence."
+        }
+        action={
+          <Button type="button" variant="outline" onClick={() => window.print()}>
+            <Printer className="size-4" />
+            Print
+          </Button>
         }
       />
 
@@ -514,6 +549,7 @@ function AttendancePageInner() {
         </DialogContent>
       </Dialog>
       <AttendancePhotoLightbox photos={photoPreview} onClose={() => setPhotoPreview(null)} />
+      </div>
     </div>
   );
 }
@@ -577,7 +613,7 @@ function DayRow({
             View
           </Button>
         ) : (
-          <span className="text-xs text-slate-400"><//span>
+          <span className="text-xs text-slate-400">-</span>
         )}
       </Td>
     </TableRow>

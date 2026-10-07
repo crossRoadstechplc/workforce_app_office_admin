@@ -23,6 +23,8 @@ export const performanceApi = {
       await apiFetch<unknown>(`/admin/evaluations/cycles${params ? `?${params}` : ""}`)
     ),
   createCycle: async (body: unknown) => d<EvaluationCycle>(await apiFetch<unknown>("/admin/evaluations/cycles", { method: "POST", body: JSON.stringify(body) })),
+  updateCycle: async (id: string, body: unknown) =>
+    d<EvaluationCycle>(await apiFetch<unknown>(`/admin/evaluations/cycles/${id}`, { method: "PATCH", body: JSON.stringify(body) })),
   openCycle: async (id: string, body?: unknown) =>
     d<EvaluationCycle>(await apiFetch<unknown>(`/admin/evaluations/cycles/${id}/open`, { method: "POST", body: JSON.stringify(body ?? {}) })),
   closeCycle: async (id: string) =>

@@ -95,6 +95,7 @@ export type LeaveRequestList = {
 export type AttendanceCorrectnessRequestRow = {
   id: string;
   workDate: string;
+  session?: LeaveDaySession;
   status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
   employeeNote?: string | null;
   adminNote?: string | null;

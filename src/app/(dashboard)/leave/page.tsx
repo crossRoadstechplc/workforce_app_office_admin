@@ -368,7 +368,10 @@ function LeavePageInner() {
                     <div className="text-xs text-slate-500">{row.employee.employeeCode}</div>
                   </Td>
                   {showOfficeFilter && <Td>{row.employee.office?.name ?? "-"}</Td>}
-                  <Td>{formatDate(row.workDate)}</Td>
+                  <Td>
+                    {formatDate(row.workDate)}
+                    <div className="mt-1 text-xs text-slate-500">{formatLeaveSession(row.session)}</div>
+                  </Td>
                   <Td className="max-w-xs truncate text-slate-600">{row.employeeNote ?? "-"}</Td>
                   <Td className="text-sm text-slate-600">
                     {row.timesheet?.actualCheckIn
@@ -483,8 +486,9 @@ function LeavePageInner() {
           </DialogDescription>
           {selectedCorrection && (
             <div className="mt-5 space-y-5">
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <Info l="Status" v={selectedCorrection.status} />
+                <Info l="Session" v={formatLeaveSession(selectedCorrection.session)} />
                 <Info l="Requested" v={formatDateTime(selectedCorrection.createdAt)} />
               </div>
               {selectedCorrection.employeeNote ? (
