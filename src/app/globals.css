@@ -377,6 +377,15 @@ button { cursor: pointer; }
     white-space: nowrap;
   }
 
+  .attendance-print-report .att-print-table .col-no {
+    width: 28pt;
+    text-align: center;
+  }
+
+  .attendance-print-report .att-print-table th.col-no {
+    text-align: center;
+  }
+
   .attendance-print-report .att-print-footer {
     margin-top: 8pt;
     font-size: 7.5pt;

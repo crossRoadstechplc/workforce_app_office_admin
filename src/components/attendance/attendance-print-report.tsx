@@ -77,6 +77,7 @@ export function AttendancePrintReport({
         <table className="att-print-table">
           <thead>
             <tr>
+              <th className="col-no">No.</th>
               <th>Employee</th>
               <th>Code</th>
               {showOffice ? <th>Office</th> : null}
@@ -89,8 +90,9 @@ export function AttendancePrintReport({
             </tr>
           </thead>
           <tbody>
-            {dayRows.map((row) => (
+            {dayRows.map((row, index) => (
               <tr key={row.employee.id}>
+                <td className="num col-no">{index + 1}</td>
                 <td>{employeeName(row.employee)}</td>
                 <td>{row.employee.employeeCode}</td>
                 {showOffice ? <td>{row.office?.name ?? ""}</td> : null}
@@ -104,7 +106,7 @@ export function AttendancePrintReport({
             ))}
             {!dayRows.length ? (
               <tr>
-                <td colSpan={showOffice ? 9 : 8}>No employees match this filter.</td>
+                <td colSpan={showOffice ? 10 : 9}>No employees match this filter.</td>
               </tr>
             ) : null}
           </tbody>
@@ -113,6 +115,7 @@ export function AttendancePrintReport({
         <table className="att-print-table">
           <thead>
             <tr>
+              <th className="col-no">No.</th>
               <th>Employee</th>
               <th>Code</th>
               {showOffice ? <th>Office</th> : null}
@@ -127,8 +130,9 @@ export function AttendancePrintReport({
             </tr>
           </thead>
           <tbody>
-            {periodRows.map((row) => (
+            {periodRows.map((row, index) => (
               <tr key={row.employee.id}>
+                <td className="num col-no">{index + 1}</td>
                 <td>{employeeName(row.employee)}</td>
                 <td>{row.employee.employeeCode}</td>
                 {showOffice ? <td>{row.office?.name ?? ""}</td> : null}
@@ -144,7 +148,7 @@ export function AttendancePrintReport({
             ))}
             {!periodRows.length ? (
               <tr>
-                <td colSpan={showOffice ? 11 : 10}>No employees match this filter.</td>
+                <td colSpan={showOffice ? 12 : 11}>No employees match this filter.</td>
               </tr>
             ) : null}
           </tbody>
