@@ -23,7 +23,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { Textarea } from "@/components/ui/textarea";
 import { operationsApi } from "@/features/operations/operations-api";
-import { formatDate, formatCheckoutDateTime, formatDateTime, formatLateMinutes, formatCheckoutTime, minutesToHours } from "@/lib/utils/format";
+import { formatDate, formatCheckoutDateTime, formatDateTime, formatLateMinutes, formatCheckoutTime, formatTime, minutesToHours } from "@/lib/utils/format";
 import type { Timesheet, Worksheet } from "@/types/operations";
 
 const PAGE_SIZE = 10;
