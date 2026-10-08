@@ -139,7 +139,7 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
             <Info label="Office" value={e.office?.name} />
             <Info label="Schedule" value={e.schedule?.name} />
             <Info label="Start date" value={e.employmentStartDate?.slice(0, 10)} />
-            <Info label="Birth date" value={e.birthDate?.slice(0, 10) ?? "—"} />
+            <Info label="Birth date" value={e.birthDate?.slice(0, 10) ?? "Not set"} />
             <Info label="Direct supervisor" value={supervisorName} />
             {e.supervisor && e.supervisorHasPortalAccess === false ? (
               <p className="text-xs text-amber-700">This supervisor has no portal login, so they cannot score evaluations until they are an office or company admin.</p>

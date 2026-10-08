@@ -36,7 +36,7 @@ export function BirthdayBanner({ people }: { people: BirthdayPerson[] }) {
             Happy Birthday, <span className="birthday-banner-names text-rose-700">{formatNames(people)}</span>!
           </p>
           <p className="mt-0.5 text-sm text-slate-600">
-            {people.length} {label} — send your congratulations.
+            {people.length} {label}. Send your congratulations.
           </p>
         </div>
       </div>
