@@ -23,6 +23,7 @@ export type Employee = {
   departmentId?: string | null;
   evaluationTemplateId?: string | null;
   employmentStartDate: string;
+  birthDate?: string | null;
   status: "ACTIVE" | "INACTIVE" | "TERMINATED";
   officeId?: string | null;
   scheduleId?: string | null;

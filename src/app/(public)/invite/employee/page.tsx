@@ -41,6 +41,7 @@ function EmployeeInviteInner() {
     const payload = invite.data?.payload;
     return {
       employmentStartDate: payload?.employmentStartDate ?? "",
+      birthDate: payload?.birthDate ?? "",
       jobTitle: payload?.jobTitle ?? "",
       departmentId: payload?.departmentId ?? "",
       evaluationTemplateId: payload?.evaluationTemplateId ?? ""
@@ -74,6 +75,7 @@ function EmployeeInviteInner() {
         departmentId: defaults.departmentId || undefined,
         evaluationTemplateId: defaults.evaluationTemplateId || undefined,
         employmentStartDate: String(f.get("employmentStartDate")),
+        birthDate: String(f.get("birthDate") || "") || undefined,
         employeeCode: String(f.get("employeeCode") || "") || undefined,
         officeId: invite.data?.office?.id,
         scheduleId: invite.data?.schedule?.id,
@@ -159,6 +161,7 @@ function EmployeeInviteInner() {
             <Field label="Phone" name="phone" />
             <Field label="Job title" name="jobTitle" defaultValue={defaults.jobTitle ?? ""} />
             <Field label="Start date" name="employmentStartDate" type="date" required defaultValue={defaults.employmentStartDate} />
+            <Field label="Birth date" name="birthDate" type="date" defaultValue={defaults.birthDate} />
             <Field label="Employee code" name="employeeCode" placeholder="Leave blank to auto-generate" />
             <div>
               <Label>Office</Label>

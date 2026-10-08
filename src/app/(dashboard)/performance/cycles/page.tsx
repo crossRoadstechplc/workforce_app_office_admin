@@ -41,6 +41,10 @@ type CycleFormProps = {
   setFrom: (v: string) => void;
   to: string;
   setTo: (v: string) => void;
+  attendanceFrom: string;
+  setAttendanceFrom: (v: string) => void;
+  attendanceTo: string;
+  setAttendanceTo: (v: string) => void;
   selfDue: string;
   setSelfDue: (v: string) => void;
   evalDue: string;
@@ -64,6 +68,10 @@ function CycleFormFields({
   setFrom,
   to,
   setTo,
+  attendanceFrom,
+  setAttendanceFrom,
+  attendanceTo,
+  setAttendanceTo,
   selfDue,
   setSelfDue,
   evalDue,
@@ -79,6 +87,13 @@ function CycleFormFields({
   showNameAndDates = true,
   showAssignment = true
 }: CycleFormProps) {
+  const attendanceMatchesPeriod = attendanceFrom === from && attendanceTo === to;
+  const applyPeriodPreset = (periodFrom: string) => {
+    setFrom(periodFrom);
+    setTo(today);
+    setAttendanceFrom(periodFrom);
+    setAttendanceTo(today);
+  };
   return (
     <>
       {showNameAndDates && (
@@ -87,21 +102,81 @@ function CycleFormFields({
             <Label>Name</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
-          <div className="flex flex-wrap gap-2">
-            {presets.map((p) => (
-              <Button key={p.label} type="button" size="sm" variant="outline" onClick={() => { setFrom(p.from); setTo(today); }}>
-                {p.label}
-              </Button>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>From</Label>
-              <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} required />
+          <div>
+            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-500">Review period</p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              {presets.map((p) => (
+                <Button key={p.label} type="button" size="sm" variant="outline" onClick={() => applyPeriodPreset(p.from)}>
+                  {p.label}
+                </Button>
+              ))}
             </div>
-            <div>
-              <Label>To</Label>
-              <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} required />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>From</Label>
+                <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} required />
+              </div>
+              <div>
+                <Label>To</Label>
+                <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} required />
+              </div>
+            </div>
+          </div>
+          <div>
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Attendance period</p>
+              {!attendanceMatchesPeriod && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setAttendanceFrom(from);
+                    setAttendanceTo(to);
+                  }}
+                >
+                  Same as review period
+                </Button>
+              )}
+            </div>
+            <p className="mb-2 text-xs text-slate-500">
+              Used for Reliability and Attendance scoring. Defaults to the review period; change if needed.
+            </p>
+            <div className="mb-2 flex flex-wrap gap-2">
+              {presets.map((p) => (
+                <Button
+                  key={`att-${p.label}`}
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setAttendanceFrom(p.from);
+                    setAttendanceTo(today);
+                  }}
+                >
+                  {p.label}
+                </Button>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>From</Label>
+                <Input
+                  type="date"
+                  value={attendanceFrom}
+                  onChange={(e) => setAttendanceFrom(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label>To</Label>
+                <Input
+                  type="date"
+                  value={attendanceTo}
+                  onChange={(e) => setAttendanceTo(e.target.value)}
+                  required
+                />
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -157,6 +232,8 @@ function CyclesInner() {
   const today = new Date().toISOString().slice(0, 10);
   const [from, setFrom] = useState(isoDaysAgo(90));
   const [to, setTo] = useState(today);
+  const [attendanceFrom, setAttendanceFrom] = useState(isoDaysAgo(90));
+  const [attendanceTo, setAttendanceTo] = useState(today);
   const [name, setName] = useState("Q review");
   const [officeId, setOfficeId] = useState("");
   const [templateId, setTemplateId] = useState("");
@@ -177,6 +254,8 @@ function CyclesInner() {
     setName(cycle.name);
     setFrom(toDateInput(cycle.periodStart));
     setTo(toDateInput(cycle.periodEnd));
+    setAttendanceFrom(toDateInput(cycle.attendancePeriodStart ?? cycle.periodStart));
+    setAttendanceTo(toDateInput(cycle.attendancePeriodEnd ?? cycle.periodEnd));
     setSelfDue(toDateInput(cycle.selfDueAt));
     setEvalDue(toDateInput(cycle.evaluatorDueAt));
     setOfficeId("");
@@ -184,9 +263,12 @@ function CyclesInner() {
   };
 
   const resetCreateForm = () => {
+    const start = isoDaysAgo(90);
     setName("Q review");
-    setFrom(isoDaysAgo(90));
+    setFrom(start);
     setTo(today);
+    setAttendanceFrom(start);
+    setAttendanceTo(today);
     setSelfDue("");
     setEvalDue("");
     setOfficeId("");
@@ -197,6 +279,8 @@ function CyclesInner() {
     name,
     periodStart: from,
     periodEnd: to,
+    attendancePeriodStart: attendanceFrom,
+    attendancePeriodEnd: attendanceTo,
     officeId: officeId || undefined,
     templateId: templateId || undefined,
     selfDueAt: selfDue ? new Date(selfDue).toISOString() : null,
@@ -208,6 +292,8 @@ function CyclesInner() {
     name,
     periodStart: from,
     periodEnd: to,
+    attendancePeriodStart: attendanceFrom,
+    attendancePeriodEnd: attendanceTo,
     selfDueAt: selfDue ? new Date(selfDue).toISOString() : null,
     evaluatorDueAt: evalDue ? new Date(evalDue).toISOString() : null
   });
@@ -318,13 +404,26 @@ function CyclesInner() {
     []
   );
 
+  const setReviewFrom = (value: string) => {
+    if (attendanceFrom === from) setAttendanceFrom(value);
+    setFrom(value);
+  };
+  const setReviewTo = (value: string) => {
+    if (attendanceTo === to) setAttendanceTo(value);
+    setTo(value);
+  };
+
   const formProps: CycleFormProps = {
     name,
     setName,
     from,
-    setFrom,
+    setFrom: setReviewFrom,
     to,
-    setTo,
+    setTo: setReviewTo,
+    attendanceFrom,
+    setAttendanceFrom,
+    attendanceTo,
+    setAttendanceTo,
     selfDue,
     setSelfDue,
     evalDue,
@@ -398,7 +497,16 @@ function CyclesInner() {
               {active.map((c) => (
                 <tr key={c.id}>
                   <td className="px-4 py-3 font-medium">{c.name}</td>
-                  <td className="px-4 py-3">{formatDateRange(c.periodStart, c.periodEnd)}</td>
+                  <td className="px-4 py-3">
+                    <div>{formatDateRange(c.periodStart, c.periodEnd)}</div>
+                    {c.attendancePeriodStart &&
+                    c.attendancePeriodEnd &&
+                    (c.attendancePeriodStart !== c.periodStart || c.attendancePeriodEnd !== c.periodEnd) ? (
+                      <div className="text-xs text-slate-500">
+                        Attendance {formatDateRange(c.attendancePeriodStart, c.attendancePeriodEnd)}
+                      </div>
+                    ) : null}
+                  </td>
                   <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
                   <td className="px-4 py-3">{c.counts?.awaitingSelf ?? ""}</td>
                   <td className="px-4 py-3">{c.counts?.awaitingEvaluator ?? ""}</td>
@@ -447,7 +555,7 @@ function CyclesInner() {
       </section>
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogTitle>New evaluation cycle</DialogTitle>
           <form
             className="mt-4 space-y-4"
@@ -476,7 +584,7 @@ function CyclesInner() {
       </Dialog>
 
       <Dialog open={!!editDraftId} onOpenChange={(v) => { if (!v) setEditDraftId(null); }}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogTitle>Edit draft cycle</DialogTitle>
           <form
             className="mt-4 space-y-4"
@@ -486,7 +594,7 @@ function CyclesInner() {
             }}
           >
             <p className="text-sm text-slate-600">
-              Update the name, review period, and due dates for this draft. Office and template are chosen when you open it.
+              Update the name, review period, attendance period, and due dates for this draft. Office and template are chosen when you open it.
             </p>
             <CycleFormFields {...formProps} showNameAndDates showAssignment={false} />
             <div className="flex justify-end gap-2">
@@ -566,7 +674,16 @@ function DraftRow({
   return (
     <tr>
       <td className="px-4 py-3 font-medium">{cycle.name}</td>
-      <td className="px-4 py-3">{formatDateRange(cycle.periodStart, cycle.periodEnd)}</td>
+      <td className="px-4 py-3">
+        <div>{formatDateRange(cycle.periodStart, cycle.periodEnd)}</div>
+        {cycle.attendancePeriodStart &&
+        cycle.attendancePeriodEnd &&
+        (cycle.attendancePeriodStart !== cycle.periodStart || cycle.attendancePeriodEnd !== cycle.periodEnd) ? (
+          <div className="text-xs text-slate-500">
+            Attendance {formatDateRange(cycle.attendancePeriodStart, cycle.attendancePeriodEnd)}
+          </div>
+        ) : null}
+      </td>
       <td className="px-4 py-3"><StatusBadge status={cycle.status} /></td>
       <td className="px-4 py-3">
         <div className="flex gap-2">

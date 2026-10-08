@@ -25,12 +25,15 @@ export function NewEvaluationDialog({ open, onOpenChange }: { open: boolean; onO
   const [cycleId, setCycleId] = useState("");
   const [name, setName] = useState("Performance review");
   const today = new Date().toISOString().slice(0, 10);
-  const [from, setFrom] = useState(() => {
+  const defaultFrom = () => {
     const d = new Date();
     d.setDate(d.getDate() - 90);
     return d.toISOString().slice(0, 10);
-  });
+  };
+  const [from, setFrom] = useState(defaultFrom);
   const [to, setTo] = useState(today);
+  const [attendanceFrom, setAttendanceFrom] = useState(defaultFrom);
+  const [attendanceTo, setAttendanceTo] = useState(today);
 
   const departments = useQuery({ queryKey: ["departments", "select"], queryFn: employeeApi.departments, enabled: open });
   const employees = useQuery({
@@ -66,6 +69,8 @@ export function NewEvaluationDialog({ open, onOpenChange }: { open: boolean; onO
         name,
         periodStart: from,
         periodEnd: to,
+        attendancePeriodStart: attendanceFrom,
+        attendancePeriodEnd: attendanceTo,
         employeeIds: [employeeId],
         open: true
       });
@@ -135,19 +140,48 @@ export function NewEvaluationDialog({ open, onOpenChange }: { open: boolean; onO
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>Period start</Label>
+                  <Label>Review period start</Label>
                   <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} required />
                 </div>
                 <div>
-                  <Label>Period end</Label>
+                  <Label>Review period end</Label>
                   <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} required />
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Attendance from</Label>
+                  <Input
+                    type="date"
+                    value={attendanceFrom}
+                    onChange={(e) => setAttendanceFrom(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Attendance to</Label>
+                  <Input
+                    type="date"
+                    value={attendanceTo}
+                    onChange={(e) => setAttendanceTo(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-slate-500">
+                Attendance period drives Reliability and Attendance scoring. Defaults to the review period.
+              </p>
             </>
           )}
           {selectedCycle ? (
             <p className="text-sm text-slate-500">
-              {selectedCycle.periodStart} to {selectedCycle.periodEnd}
+              Review {selectedCycle.periodStart} to {selectedCycle.periodEnd}
+              {selectedCycle.attendancePeriodStart &&
+              selectedCycle.attendancePeriodEnd &&
+              (selectedCycle.attendancePeriodStart !== selectedCycle.periodStart ||
+                selectedCycle.attendancePeriodEnd !== selectedCycle.periodEnd)
+                ? ` · Attendance ${selectedCycle.attendancePeriodStart} to ${selectedCycle.attendancePeriodEnd}`
+                : null}
             </p>
           ) : null}
           <div className="flex justify-end gap-2">

@@ -110,6 +110,17 @@ export function EvaluationPrintReport({
                   {formatDateRange(ev.cycle.periodStart, ev.cycle.periodEnd)}
                 </td>
               </tr>
+              {ev.cycle.attendancePeriodStart &&
+              ev.cycle.attendancePeriodEnd &&
+              (ev.cycle.attendancePeriodStart !== ev.cycle.periodStart ||
+                ev.cycle.attendancePeriodEnd !== ev.cycle.periodEnd) ? (
+                <tr>
+                  <th>Attendance period</th>
+                  <td colSpan={3}>
+                    {formatDateRange(ev.cycle.attendancePeriodStart, ev.cycle.attendancePeriodEnd)}
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </section>

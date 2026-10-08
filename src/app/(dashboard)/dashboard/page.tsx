@@ -18,6 +18,7 @@ import {
 import { dashboardApi } from "@/features/dashboard/dashboard-api";
 import { PageHeader } from "@/components/layout/page-header";
 import { MetricCard } from "@/components/dashboard/metric-card";
+import { BirthdayBanner } from "@/components/dashboard/birthday-banner";
 import { AttendanceChart } from "@/components/dashboard/attendance-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -80,6 +81,8 @@ function TenantDashboard() {
           ) : undefined
         }
       />
+
+      {!today.isLoading && (s?.birthdaysToday?.length ?? 0) > 0 ? <BirthdayBanner people={s!.birthdaysToday!} /> : null}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {today.isLoading ? (

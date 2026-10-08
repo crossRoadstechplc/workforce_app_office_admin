@@ -14,6 +14,7 @@ export type CreateEmployeeInput = {
   departmentId?: string;
   evaluationTemplateId?: string;
   employmentStartDate: string;
+  birthDate?: string | null;
   officeId?: string;
   scheduleId?: string;
   supervisorId?: string | null;
@@ -31,6 +32,7 @@ export type UpdateEmployeeInput = {
   departmentId?: string | null;
   evaluationTemplateId?: string | null;
   employmentStartDate?: string;
+  birthDate?: string | null;
   officeId?: string | null;
   scheduleId?: string | null;
   supervisorId?: string | null;

@@ -21,6 +21,7 @@ export function EditEmployeeInviteDialog({ invite, open, onOpenChange }: EditEmp
   const qc = useQueryClient();
   const [email, setEmail] = useState("");
   const [employmentStartDate, setEmploymentStartDate] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [officeId, setOfficeId] = useState("");
   const [scheduleId, setScheduleId] = useState("");
@@ -36,6 +37,7 @@ export function EditEmployeeInviteDialog({ invite, open, onOpenChange }: EditEmp
     if (!open || !invite) return;
     setEmail(invite.email);
     setEmploymentStartDate(invite.payload?.employmentStartDate ?? "");
+    setBirthDate(invite.payload?.birthDate ?? "");
     setJobTitle(invite.payload?.jobTitle ?? "");
     setOfficeId(invite.officeId ?? "");
     setScheduleId(invite.scheduleId ?? "");
@@ -51,6 +53,7 @@ export function EditEmployeeInviteDialog({ invite, open, onOpenChange }: EditEmp
         officeId: officeId || null,
         scheduleId: scheduleId || null,
         employmentStartDate: employmentStartDate || undefined,
+        birthDate: birthDate || undefined,
         jobTitle: jobTitle || null,
         departmentId: departmentId || null,
         evaluationTemplateId: evaluationTemplateId || null
@@ -98,6 +101,10 @@ export function EditEmployeeInviteDialog({ invite, open, onOpenChange }: EditEmp
               value={employmentStartDate}
               onChange={(e) => setEmploymentStartDate(e.target.value)}
             />
+          </div>
+          <div>
+            <Label htmlFor="invite-birth-date">Birth date</Label>
+            <Input id="invite-birth-date" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
           </div>
           <div>
             <Label htmlFor="invite-job-title">Job title</Label>

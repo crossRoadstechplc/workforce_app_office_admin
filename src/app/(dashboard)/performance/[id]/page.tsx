@@ -147,6 +147,12 @@ function EvaluationWorkspace({ params }: { params: Promise<{ id: string }> }) {
             </p>
             <p className="text-sm text-slate-500">
               Period {formatDateRange(ev.cycle.periodStart, ev.cycle.periodEnd)} · {ev.cycle.name}
+              {ev.cycle.attendancePeriodStart &&
+              ev.cycle.attendancePeriodEnd &&
+              (ev.cycle.attendancePeriodStart !== ev.cycle.periodStart ||
+                ev.cycle.attendancePeriodEnd !== ev.cycle.periodEnd)
+                ? ` · Attendance ${formatDateRange(ev.cycle.attendancePeriodStart, ev.cycle.attendancePeriodEnd)}`
+                : null}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

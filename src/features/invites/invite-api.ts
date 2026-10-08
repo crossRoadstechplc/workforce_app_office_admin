@@ -12,7 +12,13 @@ export type InvitePreview = {
   office: { id: string; name: string } | null;
   schedule: { id: string; name: string } | null;
   offices: string[];
-  payload: { employmentStartDate?: string; jobTitle?: string | null; departmentId?: string | null; evaluationTemplateId?: string | null } | null;
+  payload: {
+    employmentStartDate?: string;
+    birthDate?: string;
+    jobTitle?: string | null;
+    departmentId?: string | null;
+    evaluationTemplateId?: string | null;
+  } | null;
 };
 
 export type InviteRecord = {
@@ -26,7 +32,13 @@ export type InviteRecord = {
   organization?: { name: string };
   office?: { name: string } | null;
   schedule?: { name: string } | null;
-  payload?: { employmentStartDate?: string; jobTitle?: string | null; departmentId?: string | null; evaluationTemplateId?: string | null } | null;
+  payload?: {
+    employmentStartDate?: string;
+    birthDate?: string;
+    jobTitle?: string | null;
+    departmentId?: string | null;
+    evaluationTemplateId?: string | null;
+  } | null;
 };
 
 async function publicFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -61,6 +73,7 @@ export const publicInviteApi = {
       departmentId?: string;
       evaluationTemplateId?: string;
       employmentStartDate: string;
+      birthDate?: string;
       employeeCode?: string;
       officeId?: string;
       scheduleId?: string;
@@ -86,6 +99,7 @@ export const inviteApi = {
       officeId?: string | null;
       scheduleId?: string | null;
       employmentStartDate?: string;
+      birthDate?: string;
       jobTitle?: string | null;
       departmentId?: string | null;
       evaluationTemplateId?: string | null;
@@ -100,6 +114,7 @@ export const inviteApi = {
     officeId?: string;
     scheduleId?: string;
     employmentStartDate?: string;
+    birthDate?: string;
     jobTitle?: string;
     departmentId?: string;
     evaluationTemplateId?: string;

@@ -11,6 +11,8 @@ export type EvaluationItemSection = "METRIC";
 export type EvaluationScoringSource = "HUMAN" | "SYSTEM_ATTENDANCE";
 
 export type PeriodSnapshot = {
+  attendancePeriodStart?: string;
+  attendancePeriodEnd?: string;
   attendanceDays: number;
   lateDays: number;
   lateMinutes: number;
@@ -97,6 +99,9 @@ export type EvaluationCycle = {
   created?: number;
   periodStart: string;
   periodEnd: string;
+  /** Range used for system Reliability/Attendance scoring; defaults to review period. */
+  attendancePeriodStart?: string;
+  attendancePeriodEnd?: string;
   selfDueAt?: string | null;
   evaluatorDueAt?: string | null;
   numberPrefix?: string | null;

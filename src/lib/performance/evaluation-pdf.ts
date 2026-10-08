@@ -119,6 +119,21 @@ export async function buildEvaluationPdf(ev: Evaluation): Promise<Blob> {
     "Review period",
     formatDateRange(ev.cycle.periodStart, ev.cycle.periodEnd)
   );
+  if (
+    ev.cycle.attendancePeriodStart &&
+    ev.cycle.attendancePeriodEnd &&
+    (ev.cycle.attendancePeriodStart !== ev.cycle.periodStart ||
+      ev.cycle.attendancePeriodEnd !== ev.cycle.periodEnd)
+  ) {
+    y = kvRow(
+      doc,
+      y,
+      "Attendance period",
+      formatDateRange(ev.cycle.attendancePeriodStart, ev.cycle.attendancePeriodEnd),
+      "",
+      ""
+    );
+  }
   y += 4;
 
   y = sectionTitle(doc, "2. Evaluation results", y);

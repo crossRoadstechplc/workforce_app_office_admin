@@ -22,6 +22,7 @@ type EmployeeForm = {
   departmentId: string;
   evaluationTemplateId: string;
   employmentStartDate: string;
+  birthDate: string;
   officeId: string;
   scheduleId: string;
   supervisorId: string;
@@ -39,6 +40,7 @@ function employeeToForm(e: Employee): EmployeeForm {
     departmentId: e.departmentId ?? e.department?.id ?? "",
     evaluationTemplateId: e.evaluationTemplateId ?? e.evaluationTemplate?.id ?? "",
     employmentStartDate: e.employmentStartDate?.slice(0, 10) ?? "",
+    birthDate: e.birthDate?.slice(0, 10) ?? "",
     officeId: e.officeId ?? "",
     scheduleId: e.scheduleId ?? "",
     supervisorId: e.supervisorId ?? ""
@@ -78,6 +80,7 @@ export function EmployeeFormDialog({ open, onOpenChange, employee, onSaved }: Em
         departmentId: form.departmentId || null,
         evaluationTemplateId: form.evaluationTemplateId || null,
         employmentStartDate: form.employmentStartDate,
+        birthDate: form.birthDate || null,
         officeId: form.officeId || null,
         scheduleId: form.scheduleId || null,
         supervisorId: form.supervisorId || null
@@ -149,6 +152,9 @@ export function EmployeeFormDialog({ open, onOpenChange, employee, onSaved }: Em
           <Field label="Start date" required>
             <Input type="date" value={form.employmentStartDate} onChange={(e) => setField("employmentStartDate", e.target.value)} required />
           </Field>
+          <Field label="Birth date">
+            <Input type="date" value={form.birthDate} onChange={(e) => setField("birthDate", e.target.value)} />
+          </Field>
           <div className="sm:col-span-2">
             <SupervisorSelect value={form.supervisorId} excludeId={employee.id} onChange={(id) => setField("supervisorId", id)} />
           </div>
@@ -178,6 +184,7 @@ function blankForm(): EmployeeForm {
     departmentId: "",
     evaluationTemplateId: "",
     employmentStartDate: "",
+    birthDate: "",
     officeId: "",
     scheduleId: "",
     supervisorId: ""

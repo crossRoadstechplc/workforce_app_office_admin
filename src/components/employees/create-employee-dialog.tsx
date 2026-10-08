@@ -75,6 +75,7 @@ export function CreateEmployeeDialog() {
       departmentId: String(f.get("departmentId") || "") || undefined,
       evaluationTemplateId: String(f.get("evaluationTemplateId") || "") || undefined,
       employmentStartDate: String(f.get("employmentStartDate")),
+      birthDate: String(f.get("birthDate") || "") || undefined,
       officeId: String(f.get("officeId") || "") || undefined,
       scheduleId: String(f.get("scheduleId") || "") || undefined,
       supervisorId: String(f.get("supervisorId") || "") || undefined,
@@ -90,6 +91,7 @@ export function CreateEmployeeDialog() {
       officeId: String(f.get("officeId") || "") || undefined,
       scheduleId: String(f.get("scheduleId") || "") || undefined,
       employmentStartDate: String(f.get("employmentStartDate") || "") || undefined,
+      birthDate: String(f.get("birthDate") || "") || undefined,
       jobTitle: String(f.get("jobTitle") || "") || undefined,
       departmentId: String(f.get("departmentId") || "") || undefined,
       evaluationTemplateId: String(f.get("evaluationTemplateId") || "") || undefined
@@ -186,6 +188,7 @@ export function CreateEmployeeDialog() {
                 <Field label="Phone" name="phone" />
                 <Field label="Job title" name="jobTitle" />
                 <Field label="Start date" name="employmentStartDate" type="date" required />
+                <Field label="Birth date" name="birthDate" type="date" />
                 <EmployeeAssignmentSelects offices={offices.data} schedules={schedules.data} departments={departments.data} evaluationTemplates={evaluationTemplates.data} />
                 <div className="sm:col-span-2">
                   <SupervisorSelect value="" />
@@ -206,6 +209,7 @@ export function CreateEmployeeDialog() {
               <form onSubmit={submitInvite} className="mt-6 grid gap-4 sm:grid-cols-2">
                 <Field label="Email" name="email" type="email" required />
                 <Field label="Start date" name="employmentStartDate" type="date" />
+                <Field label="Birth date" name="birthDate" type="date" />
                 <Field label="Job title" name="jobTitle" />
                 <EmployeeAssignmentSelects offices={offices.data} schedules={schedules.data} departments={departments.data} evaluationTemplates={evaluationTemplates.data} />
                 <p className="text-xs text-slate-500 sm:col-span-2">
