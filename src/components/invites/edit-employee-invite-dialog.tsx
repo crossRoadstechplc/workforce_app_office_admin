@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { employeeApi } from "@/features/employees/employee-api";
 import { inviteApi, type InviteRecord } from "@/features/invites/invite-api";
 import { EmployeeAssignmentSelects } from "@/components/employees/employee-form-dialog";
+import { BirthMonthDayField } from "@/components/employees/birth-month-day-field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -102,10 +103,7 @@ export function EditEmployeeInviteDialog({ invite, open, onOpenChange }: EditEmp
               onChange={(e) => setEmploymentStartDate(e.target.value)}
             />
           </div>
-          <div>
-            <Label htmlFor="invite-birth-date">Birth date</Label>
-            <Input id="invite-birth-date" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
-          </div>
+          <BirthMonthDayField id="invite-birth-date" value={birthDate} onChange={setBirthDate} />
           <div>
             <Label htmlFor="invite-job-title">Job title</Label>
             <Input id="invite-job-title" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} />

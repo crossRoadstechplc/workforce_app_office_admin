@@ -1,44 +1,44 @@
 "use client";
 
 import { Cake } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
 import type { BirthdayPerson } from "@/types/dashboard";
-
-function formatNames(people: BirthdayPerson[]) {
-  const names = people.map((p) => p.displayName || `${p.firstName} ${p.lastName}`.trim());
-  if (names.length === 1) return names[0];
-  if (names.length === 2) return `${names[0]} & ${names[1]}`;
-  return `${names.slice(0, -1).join(", ")}, & ${names[names.length - 1]}`;
-}
 
 export function BirthdayBanner({ people }: { people: BirthdayPerson[] }) {
   if (!people.length) return null;
 
-  const label = people.length === 1 ? "birthday today" : "birthdays today";
-
   return (
-    <div
-      className={cn(
-        "birthday-banner relative mb-6 overflow-hidden rounded-2xl border border-rose-200/80",
-        "bg-gradient-to-r from-rose-50 via-amber-50 to-sky-50 px-5 py-4 shadow-sm"
-      )}
-      role="status"
-      aria-live="polite"
-    >
-      <div className="birthday-banner-shimmer pointer-events-none absolute inset-0" aria-hidden />
-      <div className="relative flex items-start gap-3 sm:items-center">
-        <div className="birthday-banner-icon flex size-11 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
-          <Cake className="size-5" />
+    <div className="mb-6 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm" role="region" aria-label="Birthdays this week">
+      <div className="flex items-center gap-2">
+        <div className="flex size-9 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+          <Cake className="size-4" />
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-700/80">Celebrate</p>
-          <p className="mt-1 text-base font-semibold tracking-tight text-slate-900 sm:text-lg">
-            Happy Birthday, <span className="birthday-banner-names text-rose-700">{formatNames(people)}</span>!
-          </p>
-          <p className="mt-0.5 text-sm text-slate-600">
-            {people.length} {label}. Send your congratulations.
+        <div>
+          <p className="text-sm font-semibold text-slate-900">Birthdays this week</p>
+          <p className="text-xs text-slate-500">
+            {people.length} {people.length === 1 ? "person" : "people"}
           </p>
         </div>
+      </div>
+
+      <div className="mt-3 overflow-hidden rounded-lg border border-slate-100">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+            <tr>
+              <th className="px-3 py-2 font-medium">Name</th>
+              <th className="px-3 py-2 font-medium">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {people.map((person) => (
+              <tr key={person.id} className="border-t border-slate-100">
+                <td className="px-3 py-2.5 font-medium text-slate-800">
+                  {person.displayName || `${person.firstName} ${person.lastName}`.trim()}
+                </td>
+                <td className="px-3 py-2.5 text-slate-600">{person.dateLabel}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

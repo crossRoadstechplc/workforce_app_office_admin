@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SupervisorSelect } from "@/components/employees/supervisor-select";
+import { BirthMonthDayField } from "@/components/employees/birth-month-day-field";
 import type { Employee } from "@/types/employee";
 
 type EmployeeForm = {
@@ -152,9 +153,7 @@ export function EmployeeFormDialog({ open, onOpenChange, employee, onSaved }: Em
           <Field label="Start date" required>
             <Input type="date" value={form.employmentStartDate} onChange={(e) => setField("employmentStartDate", e.target.value)} required />
           </Field>
-          <Field label="Birth date">
-            <Input type="date" value={form.birthDate} onChange={(e) => setField("birthDate", e.target.value)} />
-          </Field>
+          <BirthMonthDayField value={form.birthDate} onChange={(v) => setField("birthDate", v)} />
           <div className="sm:col-span-2">
             <SupervisorSelect value={form.supervisorId} excludeId={employee.id} onChange={(id) => setField("supervisorId", id)} />
           </div>

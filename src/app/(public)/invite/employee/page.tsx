@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { EmployeeSetupComplete } from "@/components/invites/employee-setup-complete";
+import { BirthMonthDayField } from "@/components/employees/birth-month-day-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -161,7 +162,7 @@ function EmployeeInviteInner() {
             <Field label="Phone" name="phone" />
             <Field label="Job title" name="jobTitle" defaultValue={defaults.jobTitle ?? ""} />
             <Field label="Start date" name="employmentStartDate" type="date" required defaultValue={defaults.employmentStartDate} />
-            <Field label="Birth date" name="birthDate" type="date" defaultValue={defaults.birthDate} />
+            <BirthMonthDayField name="birthDate" defaultValue={defaults.birthDate} />
             <Field label="Employee code" name="employeeCode" placeholder="Leave blank to auto-generate" />
             <div>
               <Label>Office</Label>

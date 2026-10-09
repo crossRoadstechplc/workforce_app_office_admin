@@ -82,7 +82,9 @@ function TenantDashboard() {
         }
       />
 
-      {!today.isLoading && (s?.birthdaysToday?.length ?? 0) > 0 ? <BirthdayBanner people={s!.birthdaysToday!} /> : null}
+      {!today.isLoading && (s?.birthdaysThisWeek?.length ?? 0) > 0 ? (
+        <BirthdayBanner people={s!.birthdaysThisWeek!} />
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {today.isLoading ? (

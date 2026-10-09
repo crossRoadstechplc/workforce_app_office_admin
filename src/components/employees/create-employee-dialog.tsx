@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CopyValue } from "@/components/ui/copy-value";
 import { EmployeeAssignmentSelects } from "@/components/employees/employee-form-dialog";
+import { BirthMonthDayField } from "@/components/employees/birth-month-day-field";
 import { SupervisorSelect } from "@/components/employees/supervisor-select";
 import { EasyPasswordField } from "@/components/invites/easy-password-field";
 import { passwordMeetsRules, EASY_PASSWORD_HINT } from "@/features/invites/invite-api";
@@ -188,7 +189,7 @@ export function CreateEmployeeDialog() {
                 <Field label="Phone" name="phone" />
                 <Field label="Job title" name="jobTitle" />
                 <Field label="Start date" name="employmentStartDate" type="date" required />
-                <Field label="Birth date" name="birthDate" type="date" />
+                <BirthMonthDayField name="birthDate" />
                 <EmployeeAssignmentSelects offices={offices.data} schedules={schedules.data} departments={departments.data} evaluationTemplates={evaluationTemplates.data} />
                 <div className="sm:col-span-2">
                   <SupervisorSelect value="" />
@@ -209,7 +210,7 @@ export function CreateEmployeeDialog() {
               <form onSubmit={submitInvite} className="mt-6 grid gap-4 sm:grid-cols-2">
                 <Field label="Email" name="email" type="email" required />
                 <Field label="Start date" name="employmentStartDate" type="date" />
-                <Field label="Birth date" name="birthDate" type="date" />
+                <BirthMonthDayField name="birthDate" />
                 <Field label="Job title" name="jobTitle" />
                 <EmployeeAssignmentSelects offices={offices.data} schedules={schedules.data} departments={departments.data} evaluationTemplates={evaluationTemplates.data} />
                 <p className="text-xs text-slate-500 sm:col-span-2">

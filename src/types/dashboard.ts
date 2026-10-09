@@ -1,4 +1,13 @@
-export type BirthdayPerson = { id: string; firstName: string; lastName: string; displayName: string };
+export type BirthdayPerson = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  month: number;
+  day: number;
+  dateLabel: string;
+  occursOn: string;
+};
 export type TodaySummary = {
   date: string;
   totalEmployees: number;
@@ -11,7 +20,7 @@ export type TodaySummary = {
   missingCheckout: number;
   worksheetsSubmitted: number;
   pendingLeaveRequests: number;
-  birthdaysToday?: BirthdayPerson[];
+  birthdaysThisWeek?: BirthdayPerson[];
 };
 export type AttendanceTrend = { date:string; attendance:number; late:number; missingCheckout:number; approvedLeaveRequests:number }[];
 export type LeaveSummaryItem = { status:string; requests:number; days:number };

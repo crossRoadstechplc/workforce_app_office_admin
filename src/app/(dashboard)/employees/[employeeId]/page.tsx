@@ -17,6 +17,7 @@ import { TenantOpsGate } from "@/components/auth/role-gates";
 import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
 import { SupervisorSelect } from "@/components/employees/supervisor-select";
 import { employeeName } from "@/lib/utils/format";
+import { formatBirthMonthDay } from "@/lib/birth-date";
 import { AnnualLeaveSummary } from "@/components/leave/annual-leave-summary";
 import { EmployeeOpsHistory } from "@/components/employees/employee-ops-history";
 
@@ -139,7 +140,7 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
             <Info label="Office" value={e.office?.name} />
             <Info label="Schedule" value={e.schedule?.name} />
             <Info label="Start date" value={e.employmentStartDate?.slice(0, 10)} />
-            <Info label="Birth date" value={e.birthDate?.slice(0, 10) ?? "Not set"} />
+            <Info label="Birthday" value={formatBirthMonthDay(e.birthDate)} />
             <Info label="Direct supervisor" value={supervisorName} />
             {e.supervisor && e.supervisorHasPortalAccess === false ? (
               <p className="text-xs text-amber-700">This supervisor has no portal login, so they cannot score evaluations until they are an office or company admin.</p>
