@@ -34,6 +34,7 @@ export function NewEvaluationDialog({ open, onOpenChange }: { open: boolean; onO
   const [to, setTo] = useState(today);
   const [attendanceFrom, setAttendanceFrom] = useState(defaultFrom);
   const [attendanceTo, setAttendanceTo] = useState(today);
+  const [attendanceOpen, setAttendanceOpen] = useState(false);
 
   const departments = useQuery({ queryKey: ["departments", "select"], queryFn: employeeApi.departments, enabled: open });
   const employees = useQuery({
@@ -84,6 +85,7 @@ export function NewEvaluationDialog({ open, onOpenChange }: { open: boolean; onO
       }
       onOpenChange(false);
       setEmployeeId("");
+      setAttendanceOpen(false);
       void qc.invalidateQueries({ queryKey: ["evaluations"] });
       void qc.invalidateQueries({ queryKey: ["evaluation-cycles"] });
     },
@@ -141,36 +143,85 @@ export function NewEvaluationDialog({ open, onOpenChange }: { open: boolean; onO
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Review period start</Label>
-                  <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} required />
+                  <Input
+                    type="date"
+                    value={from}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (attendanceFrom === from) setAttendanceFrom(value);
+                      setFrom(value);
+                    }}
+                    required
+                  />
                 </div>
                 <div>
                   <Label>Review period end</Label>
-                  <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} required />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>Attendance from</Label>
                   <Input
                     type="date"
-                    value={attendanceFrom}
-                    onChange={(e) => setAttendanceFrom(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label>Attendance to</Label>
-                  <Input
-                    type="date"
-                    value={attendanceTo}
-                    onChange={(e) => setAttendanceTo(e.target.value)}
+                    value={to}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (attendanceTo === to) setAttendanceTo(value);
+                      setTo(value);
+                    }}
                     required
                   />
                 </div>
               </div>
-              <p className="text-xs text-slate-500">
-                Attendance period drives Reliability and Attendance scoring. Defaults to the review period.
-              </p>
+              <div className="rounded-md border border-slate-200 bg-slate-50/60 px-3 py-2.5">
+                {!attendanceOpen ? (
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Attendance period</p>
+                      <p className="mt-0.5 text-xs text-slate-500">Same as review period</p>
+                    </div>
+                    <Button type="button" size="sm" variant="outline" onClick={() => setAttendanceOpen(true)}>
+                      Customize
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Attendance period</p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setAttendanceFrom(from);
+                          setAttendanceTo(to);
+                          setAttendanceOpen(false);
+                        }}
+                      >
+                        Use review period
+                      </Button>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Used for Reliability and Attendance scoring.
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label>From</Label>
+                        <Input
+                          type="date"
+                          value={attendanceFrom}
+                          onChange={(e) => setAttendanceFrom(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label>To</Label>
+                        <Input
+                          type="date"
+                          value={attendanceTo}
+                          onChange={(e) => setAttendanceTo(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </>
           )}
           {selectedCycle ? (

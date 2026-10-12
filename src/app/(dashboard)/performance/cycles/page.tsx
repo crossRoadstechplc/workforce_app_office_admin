@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -88,12 +88,25 @@ function CycleFormFields({
   showAssignment = true
 }: CycleFormProps) {
   const attendanceMatchesPeriod = attendanceFrom === from && attendanceTo === to;
+  const [attendanceOpen, setAttendanceOpen] = useState(false);
+
+  useEffect(() => {
+    if (!attendanceMatchesPeriod) setAttendanceOpen(true);
+  }, [attendanceMatchesPeriod]);
+
   const applyPeriodPreset = (periodFrom: string) => {
     setFrom(periodFrom);
     setTo(today);
     setAttendanceFrom(periodFrom);
     setAttendanceTo(today);
   };
+
+  const hideAttendanceEditor = () => {
+    setAttendanceFrom(from);
+    setAttendanceTo(to);
+    setAttendanceOpen(false);
+  };
+
   return (
     <>
       {showNameAndDates && (
@@ -122,62 +135,66 @@ function CycleFormFields({
               </div>
             </div>
           </div>
-          <div>
-            <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Attendance period</p>
-              {!attendanceMatchesPeriod && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setAttendanceFrom(from);
-                    setAttendanceTo(to);
-                  }}
-                >
-                  Same as review period
+          <div className="rounded-md border border-slate-200 bg-slate-50/60 px-3 py-2.5">
+            {!attendanceOpen ? (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Attendance period</p>
+                  <p className="mt-0.5 text-xs text-slate-500">Same as review period (for Reliability and Attendance scoring)</p>
+                </div>
+                <Button type="button" size="sm" variant="outline" onClick={() => setAttendanceOpen(true)}>
+                  Customize
                 </Button>
-              )}
-            </div>
-            <p className="mb-2 text-xs text-slate-500">
-              Used for Reliability and Attendance scoring. Defaults to the review period; change if needed.
-            </p>
-            <div className="mb-2 flex flex-wrap gap-2">
-              {presets.map((p) => (
-                <Button
-                  key={`att-${p.label}`}
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setAttendanceFrom(p.from);
-                    setAttendanceTo(today);
-                  }}
-                >
-                  {p.label}
-                </Button>
-              ))}
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>From</Label>
-                <Input
-                  type="date"
-                  value={attendanceFrom}
-                  onChange={(e) => setAttendanceFrom(e.target.value)}
-                  required
-                />
               </div>
-              <div>
-                <Label>To</Label>
-                <Input
-                  type="date"
-                  value={attendanceTo}
-                  onChange={(e) => setAttendanceTo(e.target.value)}
-                  required
-                />
+            ) : (
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Attendance period</p>
+                  <Button type="button" size="sm" variant="ghost" onClick={hideAttendanceEditor}>
+                    Use review period
+                  </Button>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Used for Reliability and Attendance scoring. Change only if it should differ from the review period.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {presets.map((p) => (
+                    <Button
+                      key={`att-${p.label}`}
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setAttendanceFrom(p.from);
+                        setAttendanceTo(today);
+                      }}
+                    >
+                      {p.label}
+                    </Button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>From</Label>
+                    <Input
+                      type="date"
+                      value={attendanceFrom}
+                      onChange={(e) => setAttendanceFrom(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>To</Label>
+                    <Input
+                      type="date"
+                      value={attendanceTo}
+                      onChange={(e) => setAttendanceTo(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -239,6 +256,7 @@ function CyclesInner() {
   const [templateId, setTemplateId] = useState("");
   const [selfDue, setSelfDue] = useState("");
   const [evalDue, setEvalDue] = useState("");
+  const [formNonce, setFormNonce] = useState(0);
 
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: ["evaluation-cycles"] });
@@ -260,6 +278,7 @@ function CyclesInner() {
     setEvalDue(toDateInput(cycle.evaluatorDueAt));
     setOfficeId("");
     setTemplateId("");
+    setFormNonce((n) => n + 1);
   };
 
   const resetCreateForm = () => {
@@ -273,6 +292,7 @@ function CyclesInner() {
     setEvalDue("");
     setOfficeId("");
     setTemplateId("");
+    setFormNonce((n) => n + 1);
   };
 
   const cycleBody = (open: boolean) => ({
@@ -564,7 +584,7 @@ function CyclesInner() {
               createAndOpen.mutate();
             }}
           >
-            <CycleFormFields {...formProps} />
+            <CycleFormFields key={`create-${formNonce}`} {...formProps} />
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
               <Button
@@ -596,7 +616,7 @@ function CyclesInner() {
             <p className="text-sm text-slate-600">
               Update the name, review period, attendance period, and due dates for this draft. Office and template are chosen when you open it.
             </p>
-            <CycleFormFields {...formProps} showNameAndDates showAssignment={false} />
+            <CycleFormFields key={`edit-${formNonce}`} {...formProps} showNameAndDates showAssignment={false} />
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setEditDraftId(null)}>Cancel</Button>
               <Button type="submit" disabled={updateDraft.isPending || !name.trim() || !from || !to}>
