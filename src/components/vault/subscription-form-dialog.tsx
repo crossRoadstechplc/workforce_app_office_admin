@@ -10,9 +10,21 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { configurationApi, itemsOf } from "@/features/configuration/configuration-api";
+import { employeeApi } from "@/features/employees/employee-api";
 import { vaultApi } from "@/features/vault/vault-api";
 import { hasVaultToken } from "@/features/vault/vault-token-store";
-import type { BillingCycle, OfficeSubscription, SubscriptionStatus } from "@/types/vault";
+import type { Employee } from "@/types/employee";
+import type {
+  BillingCycle,
+  OfficeSubscription,
+  SubscriptionAssigneeType,
+  SubscriptionStatus
+} from "@/types/vault";
+
+function unwrapEmployees(raw: unknown): Employee[] {
+  const r = raw as { data?: { items?: Employee[] }; items?: Employee[] } | undefined;
+  return r?.data?.items ?? r?.items ?? [];
+}
 
 function monthStart(yearMonth: string) {
   return `${yearMonth}-01`;
@@ -43,6 +55,9 @@ type FormState = {
   notes: string;
   officeId: string;
   loginCredentialId: string;
+  assigneeType: SubscriptionAssigneeType;
+  employeeId: string;
+  departmentId: string;
 };
 
 const blank: FormState = {
@@ -58,7 +73,10 @@ const blank: FormState = {
   endMonth: "",
   notes: "",
   officeId: "",
-  loginCredentialId: ""
+  loginCredentialId: "",
+  assigneeType: "COMPANY",
+  employeeId: "",
+  departmentId: ""
 };
 
 export function SubscriptionFormDialog({
@@ -74,12 +92,24 @@ export function SubscriptionFormDialog({
 }) {
   const [form, setForm] = useState<FormState>(blank);
   const officesQ = useQuery({ queryKey: ["offices"], queryFn: () => configurationApi.offices(), enabled: open });
+  const departmentsQ = useQuery({
+    queryKey: ["departments"],
+    queryFn: () => configurationApi.departments(),
+    enabled: open
+  });
+  const employeesQ = useQuery({
+    queryKey: ["employees", "vault-sub"],
+    queryFn: () => employeeApi.list(new URLSearchParams({ page: "1", pageSize: "100", status: "ACTIVE" })),
+    enabled: open
+  });
   const credsQ = useQuery({
     queryKey: ["vault-credentials"],
     queryFn: () => vaultApi.credentials(),
     enabled: open && hasVaultToken("credentials")
   });
   const offices = itemsOf(officesQ.data ?? []);
+  const departments = itemsOf(departmentsQ.data ?? []);
+  const employees = unwrapEmployees(employeesQ.data);
 
   useEffect(() => {
     if (!open) return;
@@ -98,7 +128,10 @@ export function SubscriptionFormDialog({
             endMonth: toYearMonth(editing.endDate),
             notes: editing.notes ?? "",
             officeId: editing.officeId ?? "",
-            loginCredentialId: editing.loginCredentialId ?? ""
+            loginCredentialId: editing.loginCredentialId ?? "",
+            assigneeType: editing.assigneeType ?? "COMPANY",
+            employeeId: editing.employeeId ?? "",
+            departmentId: editing.departmentId ?? ""
           }
         : blank
     );
@@ -108,6 +141,8 @@ export function SubscriptionFormDialog({
     mutationFn: async () => {
       if (form.name.trim().length < 2) throw new Error("Name is required");
       if (!form.startMonth) throw new Error("Start month is required");
+      if (form.assigneeType === "PERSON" && !form.employeeId) throw new Error("Select a person");
+      if (form.assigneeType === "TEAM" && !form.departmentId) throw new Error("Select a team");
       const seats = Number(form.seats);
       const unitAmount = Number(form.unitAmount);
       if (!Number.isFinite(seats) || seats < 1) throw new Error("Seats must be at least 1");
@@ -127,6 +162,9 @@ export function SubscriptionFormDialog({
         notes: form.notes.trim() || null,
         officeId: form.officeId || null,
         loginCredentialId: form.loginCredentialId || null,
+        assigneeType: form.assigneeType,
+        employeeId: form.assigneeType === "PERSON" ? form.employeeId : null,
+        departmentId: form.assigneeType === "TEAM" ? form.departmentId : null,
         ...(editing && (seats !== editing.seats || unitAmount !== Number(editing.unitAmount))
           ? { fromYearMonth: new Date().toISOString().slice(0, 7) }
           : {})
@@ -146,11 +184,13 @@ export function SubscriptionFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogTitle>{editing ? "Edit subscription" : "Add subscription"}</DialogTitle>
-        <DialogDescription>Seats and unit price generate a row for each month in the range. Past months stay frozen when you change seats later.</DialogDescription>
+        <DialogDescription>
+          Same product can be added more than once for different people or teams. New months start as Waiting.
+        </DialogDescription>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <Label htmlFor="sub-name">Name</Label>
-            <Input id="sub-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Microsoft 365" />
+            <Input id="sub-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Cursor Pro" />
           </div>
           <div>
             <Label htmlFor="sub-vendor">Vendor</Label>
@@ -160,6 +200,54 @@ export function SubscriptionFormDialog({
             <Label htmlFor="sub-cat">Category</Label>
             <Input id="sub-cat" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="software" />
           </div>
+          <div>
+            <Label htmlFor="sub-for">For</Label>
+            <Select
+              id="sub-for"
+              value={form.assigneeType}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  assigneeType: e.target.value as SubscriptionAssigneeType,
+                  employeeId: "",
+                  departmentId: ""
+                })
+              }
+            >
+              <option value="COMPANY">Company</option>
+              <option value="PERSON">Person</option>
+              <option value="TEAM">Team</option>
+            </Select>
+          </div>
+          {form.assigneeType === "PERSON" ? (
+            <div>
+              <Label htmlFor="sub-person">Person</Label>
+              <Select id="sub-person" value={form.employeeId} onChange={(e) => setForm({ ...form, employeeId: e.target.value })}>
+                <option value="">
+                  {employeesQ.isLoading ? "Loading…" : employeesQ.isError ? "Could not load people" : "Select person"}
+                </option>
+                {employees.map((emp) => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.firstName} {emp.lastName}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          ) : null}
+          {form.assigneeType === "TEAM" ? (
+            <div>
+              <Label htmlFor="sub-team">Team</Label>
+              <Select id="sub-team" value={form.departmentId} onChange={(e) => setForm({ ...form, departmentId: e.target.value })}>
+                <option value="">Select team</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          ) : null}
+          {form.assigneeType === "COMPANY" ? <div className="hidden sm:block" /> : null}
           <div>
             <Label htmlFor="sub-seats">How many (seats)</Label>
             <Input id="sub-seats" type="number" min={1} value={form.seats} onChange={(e) => setForm({ ...form, seats: e.target.value })} />
@@ -199,7 +287,7 @@ export function SubscriptionFormDialog({
           <div>
             <Label htmlFor="sub-office">Office</Label>
             <Select id="sub-office" value={form.officeId} onChange={(e) => setForm({ ...form, officeId: e.target.value })}>
-              <option value="">Company-wide</option>
+              <option value="">Any office</option>
               {offices.map((o) => (
                 <option key={o.id} value={o.id}>
                   {o.name}

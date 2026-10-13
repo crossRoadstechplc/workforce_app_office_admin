@@ -57,7 +57,11 @@ export const vaultApi = {
   updateSubscription: async (id: string, input: Partial<SubscriptionInput>) =>
     unwrap<OfficeSubscription>(await vaultFetch("subscriptions", `/admin/vault/subscriptions/${id}`, { method: "PATCH", body: JSON.stringify(input) })),
   deleteSubscription: async (id: string) => vaultFetch<void>("subscriptions", `/admin/vault/subscriptions/${id}`, { method: "DELETE" }),
-  upsertPeriod: async (id: string, yearMonth: string, input: { seats?: number; amount?: number; paid?: boolean; notes?: string | null }) =>
+  upsertPeriod: async (
+    id: string,
+    yearMonth: string,
+    input: { seats?: number; amount?: number; paid?: boolean; paymentStatus?: "WAITING" | "PAID" | "CANCELLED"; notes?: string | null }
+  ) =>
     unwrap<SubscriptionPeriod>(
       await vaultFetch("subscriptions", `/admin/vault/subscriptions/${id}/periods/${yearMonth}`, { method: "PUT", body: JSON.stringify(input) })
     )

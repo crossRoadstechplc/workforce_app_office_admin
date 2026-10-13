@@ -6,6 +6,10 @@ export type SubscriptionStatus = "ACTIVE" | "PAUSED" | "CANCELLED" | "EXPIRED";
 
 export type BillingCycle = "MONTHLY" | "YEARLY";
 
+export type SubscriptionAssigneeType = "PERSON" | "TEAM" | "COMPANY";
+
+export type PeriodPaymentStatus = "WAITING" | "PAID" | "CANCELLED";
+
 export type VaultUnlockResult = {
   vaultToken: string;
   scope: VaultScope;
@@ -46,6 +50,7 @@ export type SubscriptionPeriod = {
   seats: number;
   amount: string;
   paid: boolean;
+  paymentStatus: PeriodPaymentStatus;
   paidAt?: string | null;
   notes?: string | null;
 };
@@ -54,6 +59,12 @@ export type OfficeSubscription = {
   id: string;
   officeId?: string | null;
   officeName?: string | null;
+  assigneeType: SubscriptionAssigneeType;
+  employeeId?: string | null;
+  employeeName?: string | null;
+  departmentId?: string | null;
+  departmentName?: string | null;
+  assigneeLabel: string;
   name: string;
   vendor?: string | null;
   category?: string | null;
@@ -70,6 +81,16 @@ export type OfficeSubscription = {
   loginCredentialTitle?: string | null;
   currentMonthSeats: number;
   currentMonthAmount: string;
+  currentMonthPaymentStatus: PeriodPaymentStatus;
+  lastMonthPaymentStatus?: PeriodPaymentStatus | null;
+  lastMonthYearMonth?: string;
+  currentYearMonth: string;
+  actionYearMonth: string;
+  actionPaymentStatus: PeriodPaymentStatus;
+  actionSeats: number;
+  actionAmount: string;
+  historyPeriods: SubscriptionPeriod[];
+  recentPeriods: SubscriptionPeriod[];
   periods: SubscriptionPeriod[];
   createdAt?: string;
   updatedAt?: string;
@@ -90,12 +111,22 @@ export type SubscriptionInput = {
   notes?: string | null;
   officeId?: string | null;
   loginCredentialId?: string | null;
+  assigneeType?: SubscriptionAssigneeType;
+  employeeId?: string | null;
+  departmentId?: string | null;
   fromYearMonth?: string;
 };
 
 export type SubscriptionSummary = {
   yearMonth: string;
+  nextYearMonth?: string;
   activeCount: number;
+  waitingCount?: number;
+  waitingSeats?: number;
+  waitingTotal?: string;
+  paidThisMonthCount?: number;
+  paidThisMonthTotal?: string;
+  cancelledThisMonthCount?: number;
   thisMonthSeats: number;
   thisMonthTotal: string;
   renewingSoon: Array<{ id: string; name: string; endDate?: string | null; seats: number; currency: string }>;

@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils/cn";
 
 const styles: Record<string, string> = {
-  ACTIVE: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  ACTIVE: "bg-sky-50 text-sky-800 ring-sky-600/30",
   INACTIVE: "bg-slate-100 text-slate-600 ring-slate-500/20",
   TERMINATED: "bg-red-50 text-red-700 ring-red-600/20",
   OPEN: "bg-blue-50 text-blue-700 ring-blue-600/20",
@@ -24,7 +24,9 @@ const styles: Record<string, string> = {
   PENDING: "bg-amber-50 text-amber-700 ring-amber-600/20",
   APPROVED: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
   REJECTED: "bg-red-50 text-red-700 ring-red-600/20",
-  CANCELLED: "bg-slate-100 text-slate-600 ring-slate-500/20",
+  CANCELLED: "bg-rose-50 text-rose-700 ring-rose-600/25",
+  WAITING: "bg-amber-50 text-amber-800 ring-amber-500/30",
+  PAID: "bg-emerald-50 text-emerald-800 ring-emerald-600/30",
   PAUSED: "bg-amber-50 text-amber-700 ring-amber-600/20",
   EXPIRED: "bg-red-50 text-red-700 ring-red-600/20",
   SELF_DRAFT: "bg-sky-50 text-sky-700 ring-sky-600/20",
@@ -47,7 +49,11 @@ const labels: Record<string, string> = {
   PRESENT_LATE: "Late",
   COMPLETED_ON_TIME: "Completed",
   COMPLETED_LATE: "Completed late",
-  MISSING_CHECKOUT: "Missing checkout"
+  MISSING_CHECKOUT: "Missing checkout",
+  WAITING: "Waiting",
+  PAID: "Paid",
+  CANCELLED: "Cancelled",
+  ACTIVE: "Active"
 };
 
 export function statusLabel(status: string) {
