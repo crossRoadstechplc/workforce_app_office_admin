@@ -21,6 +21,15 @@ export const EMERGENCY_CONTACT_RELATIONS: { value: EmergencyContactRelation; lab
   { value: "OTHER", label: "Other" }
 ];
 
+export type EmergencyContact = {
+  id: string;
+  name: string;
+  phone: string;
+  relation: EmergencyContactRelation;
+  relationOther?: string | null;
+  sortOrder?: number;
+};
+
 export function formatEmergencyRelation(
   relation?: EmergencyContactRelation | null,
   other?: string | null
@@ -51,10 +60,7 @@ export type Employee = {
   middleName?: string | null;
   lastName: string;
   phone?: string | null;
-  emergencyContactName?: string | null;
-  emergencyContactPhone?: string | null;
-  emergencyContactRelation?: EmergencyContactRelation | null;
-  emergencyContactRelationOther?: string | null;
+  emergencyContacts?: EmergencyContact[];
   jobTitle?: string | null;
   departmentId?: string | null;
   evaluationTemplateId?: string | null;

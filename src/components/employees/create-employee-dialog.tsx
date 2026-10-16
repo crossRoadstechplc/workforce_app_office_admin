@@ -15,8 +15,6 @@ import { BirthMonthDayField } from "@/components/employees/birth-month-day-field
 import { SupervisorSelect } from "@/components/employees/supervisor-select";
 import { EasyPasswordField } from "@/components/invites/easy-password-field";
 import { passwordMeetsRules, EASY_PASSWORD_HINT } from "@/features/invites/invite-api";
-import { EMERGENCY_CONTACT_RELATIONS } from "@/types/employee";
-
 type CreateResult = { temporaryPassword: string; employeeCode: string };
 type InviteResult = { emailSent: boolean; inviteId?: string; emailError?: string; email: string };
 
@@ -25,7 +23,6 @@ export function CreateEmployeeDialog() {
   const [mode, setMode] = useState<"create" | "invite">("create");
   const [result, setResult] = useState<CreateResult | null>(null);
   const [inviteResult, setInviteResult] = useState<InviteResult | null>(null);
-  const [emergencyRelation, setEmergencyRelation] = useState("");
   const qc = useQueryClient();
   const offices = useQuery({ queryKey: ["offices", "select"], queryFn: employeeApi.offices, enabled: open });
   const schedules = useQuery({ queryKey: ["schedules", "select"], queryFn: employeeApi.schedules, enabled: open });
@@ -74,11 +71,6 @@ export function CreateEmployeeDialog() {
       middleName: String(f.get("middleName") || "") || undefined,
       lastName: String(f.get("lastName")),
       phone: String(f.get("phone") || "") || undefined,
-      emergencyContactName: String(f.get("emergencyContactName") || "") || undefined,
-      emergencyContactPhone: String(f.get("emergencyContactPhone") || "") || undefined,
-      emergencyContactRelation: emergencyRelation || undefined,
-      emergencyContactRelationOther:
-        emergencyRelation === "OTHER" ? String(f.get("emergencyContactRelationOther") || "") || undefined : undefined,
       jobTitle: String(f.get("jobTitle") || "") || undefined,
       departmentId: String(f.get("departmentId") || "") || undefined,
       evaluationTemplateId: String(f.get("evaluationTemplateId") || "") || undefined,
@@ -110,7 +102,6 @@ export function CreateEmployeeDialog() {
     setResult(null);
     setInviteResult(null);
     setMode("create");
-    setEmergencyRelation("");
   }
 
   function closeDialog() {
@@ -195,27 +186,6 @@ export function CreateEmployeeDialog() {
                 <Field label="Last name" name="lastName" required />
                 <Field label="Middle name" name="middleName" />
                 <Field label="Phone" name="phone" />
-                <Field label="Emergency contact name" name="emergencyContactName" />
-                <Field label="Emergency contact phone" name="emergencyContactPhone" />
-                <div>
-                  <Label htmlFor="emergencyContactRelation">Relationship</Label>
-                  <select
-                    id="emergencyContactRelation"
-                    className="h-10 w-full rounded-lg border bg-white px-3 text-sm"
-                    value={emergencyRelation}
-                    onChange={(e) => setEmergencyRelation(e.target.value)}
-                  >
-                    <option value="">Select relationship</option>
-                    {EMERGENCY_CONTACT_RELATIONS.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {emergencyRelation === "OTHER" ? (
-                  <Field label="Specify relationship" name="emergencyContactRelationOther" placeholder="e.g. Cousin, Neighbor" />
-                ) : null}
                 <Field label="Job title" name="jobTitle" />
                 <Field label="Start date" name="employmentStartDate" type="date" required />
                 <BirthMonthDayField name="birthDate" />

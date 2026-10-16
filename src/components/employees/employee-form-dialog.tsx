@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SupervisorSelect } from "@/components/employees/supervisor-select";
 import { BirthMonthDayField } from "@/components/employees/birth-month-day-field";
-import { EMERGENCY_CONTACT_RELATIONS, type Employee } from "@/types/employee";
+import type { Employee } from "@/types/employee";
 
 type EmployeeForm = {
   employeeCode: string;
@@ -19,10 +19,6 @@ type EmployeeForm = {
   middleName: string;
   lastName: string;
   phone: string;
-  emergencyContactName: string;
-  emergencyContactPhone: string;
-  emergencyContactRelation: string;
-  emergencyContactRelationOther: string;
   jobTitle: string;
   departmentId: string;
   evaluationTemplateId: string;
@@ -41,10 +37,6 @@ function employeeToForm(e: Employee): EmployeeForm {
     middleName: e.middleName ?? "",
     lastName: e.lastName,
     phone: e.phone ?? "",
-    emergencyContactName: e.emergencyContactName ?? "",
-    emergencyContactPhone: e.emergencyContactPhone ?? "",
-    emergencyContactRelation: e.emergencyContactRelation ?? "",
-    emergencyContactRelationOther: e.emergencyContactRelationOther ?? "",
     jobTitle: e.jobTitle ?? "",
     departmentId: e.departmentId ?? e.department?.id ?? "",
     evaluationTemplateId: e.evaluationTemplateId ?? e.evaluationTemplate?.id ?? "",
@@ -85,11 +77,6 @@ export function EmployeeFormDialog({ open, onOpenChange, employee, onSaved }: Em
         middleName: form.middleName || null,
         lastName: form.lastName,
         phone: form.phone || null,
-        emergencyContactName: form.emergencyContactName || null,
-        emergencyContactPhone: form.emergencyContactPhone || null,
-        emergencyContactRelation: form.emergencyContactRelation || null,
-        emergencyContactRelationOther:
-          form.emergencyContactRelation === "OTHER" ? form.emergencyContactRelationOther || null : null,
         jobTitle: form.jobTitle || null,
         departmentId: form.departmentId || null,
         evaluationTemplateId: form.evaluationTemplateId || null,
@@ -146,35 +133,6 @@ export function EmployeeFormDialog({ open, onOpenChange, employee, onSaved }: Em
           <Field label="Phone">
             <Input value={form.phone} onChange={(e) => setField("phone", e.target.value)} />
           </Field>
-          <Field label="Emergency contact name">
-            <Input value={form.emergencyContactName} onChange={(e) => setField("emergencyContactName", e.target.value)} />
-          </Field>
-          <Field label="Emergency contact phone">
-            <Input value={form.emergencyContactPhone} onChange={(e) => setField("emergencyContactPhone", e.target.value)} />
-          </Field>
-          <Field label="Relationship">
-            <select
-              className="h-10 w-full rounded-lg border bg-white px-3 text-sm"
-              value={form.emergencyContactRelation}
-              onChange={(e) => setField("emergencyContactRelation", e.target.value)}
-            >
-              <option value="">Select relationship</option>
-              {EMERGENCY_CONTACT_RELATIONS.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-          {form.emergencyContactRelation === "OTHER" ? (
-            <Field label="Specify relationship">
-              <Input
-                value={form.emergencyContactRelationOther}
-                onChange={(e) => setField("emergencyContactRelationOther", e.target.value)}
-                placeholder="e.g. Cousin, Neighbor"
-              />
-            </Field>
-          ) : null}
           <Field label="Job title">
             <Input value={form.jobTitle} onChange={(e) => setField("jobTitle", e.target.value)} />
           </Field>
@@ -221,10 +179,6 @@ function blankForm(): EmployeeForm {
     middleName: "",
     lastName: "",
     phone: "",
-    emergencyContactName: "",
-    emergencyContactPhone: "",
-    emergencyContactRelation: "",
-    emergencyContactRelationOther: "",
     jobTitle: "",
     departmentId: "",
     evaluationTemplateId: "",

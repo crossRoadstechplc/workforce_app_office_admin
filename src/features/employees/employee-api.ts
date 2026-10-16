@@ -1,6 +1,15 @@
 import { apiFetch } from "@/lib/api/api-client";
 import { tenantContextApi } from "@/features/context/tenant-context-api";
-import type { Employee, EmployeeList, Office, Schedule, Department, EvaluationTemplateOption } from "@/types/employee";
+import type {
+  EmergencyContact,
+  EmergencyContactRelation,
+  Employee,
+  EmployeeList,
+  Office,
+  Schedule,
+  Department,
+  EvaluationTemplateOption
+} from "@/types/employee";
 import type { AnnualLeaveBalance } from "@/types/leave-balance";
 
 export type CreateEmployeeInput = {
@@ -10,10 +19,6 @@ export type CreateEmployeeInput = {
   middleName?: string;
   lastName: string;
   phone?: string;
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
-  emergencyContactRelation?: string;
-  emergencyContactRelationOther?: string;
   jobTitle?: string;
   departmentId?: string;
   evaluationTemplateId?: string;
@@ -32,10 +37,6 @@ export type UpdateEmployeeInput = {
   middleName?: string | null;
   lastName?: string;
   phone?: string | null;
-  emergencyContactName?: string | null;
-  emergencyContactPhone?: string | null;
-  emergencyContactRelation?: string | null;
-  emergencyContactRelationOther?: string | null;
   jobTitle?: string | null;
   departmentId?: string | null;
   evaluationTemplateId?: string | null;
@@ -44,6 +45,13 @@ export type UpdateEmployeeInput = {
   officeId?: string | null;
   scheduleId?: string | null;
   supervisorId?: string | null;
+};
+
+export type EmergencyContactInput = {
+  name: string;
+  phone: string;
+  relation: EmergencyContactRelation;
+  relationOther?: string | null;
 };
 
 export const employeeApi = {
@@ -106,5 +114,19 @@ export const employeeApi = {
       const r = await apiFetch<any>("/admin/evaluations/templates");
       return (Array.isArray(r) ? r : r.items ?? r.data ?? []) as EvaluationTemplateOption[];
     }
-  }
+  },
+  createEmergencyContact: (employeeId: string, input: EmergencyContactInput) =>
+    apiFetch<EmergencyContact>(`/admin/employees/${employeeId}/emergency-contacts`, {
+      method: "POST",
+      body: JSON.stringify(input)
+    }),
+  updateEmergencyContact: (employeeId: string, contactId: string, input: Partial<EmergencyContactInput>) =>
+    apiFetch<EmergencyContact>(`/admin/employees/${employeeId}/emergency-contacts/${contactId}`, {
+      method: "PATCH",
+      body: JSON.stringify(input)
+    }),
+  deleteEmergencyContact: (employeeId: string, contactId: string) =>
+    apiFetch<{ id: string; deleted: boolean }>(`/admin/employees/${employeeId}/emergency-contacts/${contactId}`, {
+      method: "DELETE"
+    })
 };

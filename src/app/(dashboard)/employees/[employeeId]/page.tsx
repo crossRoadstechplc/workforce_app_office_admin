@@ -18,9 +18,9 @@ import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog"
 import { SupervisorSelect } from "@/components/employees/supervisor-select";
 import { employeeName } from "@/lib/utils/format";
 import { formatBirthMonthDay } from "@/lib/birth-date";
-import { formatEmergencyRelation } from "@/types/employee";
 import { AnnualLeaveSummary } from "@/components/leave/annual-leave-summary";
 import { EmployeeOpsHistory } from "@/components/employees/employee-ops-history";
+import { EmergencyContactsPanel } from "@/components/employees/emergency-contacts-panel";
 
 export default function EmployeeDetailPage({ params }: { params: Promise<{ employeeId: string }> }) {
   return (
@@ -136,15 +136,10 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
           <CardHeader>
             <CardTitle>Contact</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-4">
             <Info label="Email" value={e.user.email} />
             <Info label="Phone" value={e.phone} />
-            <Info label="Emergency contact" value={e.emergencyContactName} />
-            <Info label="Emergency phone" value={e.emergencyContactPhone} />
-            <Info
-              label="Relationship"
-              value={formatEmergencyRelation(e.emergencyContactRelation, e.emergencyContactRelationOther)}
-            />
+            <EmergencyContactsPanel employeeId={e.id} contacts={e.emergencyContacts ?? []} />
           </CardContent>
         </Card>
         <Card>
