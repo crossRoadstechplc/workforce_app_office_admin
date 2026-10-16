@@ -10,6 +10,8 @@ export type CreateEmployeeInput = {
   middleName?: string;
   lastName: string;
   phone?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
   jobTitle?: string;
   departmentId?: string;
   evaluationTemplateId?: string;
@@ -28,6 +30,8 @@ export type UpdateEmployeeInput = {
   middleName?: string | null;
   lastName?: string;
   phone?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
   jobTitle?: string | null;
   departmentId?: string | null;
   evaluationTemplateId?: string | null;
