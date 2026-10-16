@@ -128,6 +128,8 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
           <CardContent className="space-y-3">
             <Info label="Email" value={e.user.email} />
             <Info label="Phone" value={e.phone} />
+            <Info label="Emergency contact" value={e.emergencyContactName} />
+            <Info label="Emergency phone" value={e.emergencyContactPhone} />
             <Info label="Department" value={e.department?.name} />
             <Info label="Evaluation template" value={e.evaluationTemplate?.name} />
           </CardContent>

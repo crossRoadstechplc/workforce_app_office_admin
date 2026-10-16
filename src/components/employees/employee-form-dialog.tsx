@@ -19,6 +19,8 @@ type EmployeeForm = {
   middleName: string;
   lastName: string;
   phone: string;
+  emergencyContactName: string;
+  emergencyContactPhone: string;
   jobTitle: string;
   departmentId: string;
   evaluationTemplateId: string;
@@ -37,6 +39,8 @@ function employeeToForm(e: Employee): EmployeeForm {
     middleName: e.middleName ?? "",
     lastName: e.lastName,
     phone: e.phone ?? "",
+    emergencyContactName: e.emergencyContactName ?? "",
+    emergencyContactPhone: e.emergencyContactPhone ?? "",
     jobTitle: e.jobTitle ?? "",
     departmentId: e.departmentId ?? e.department?.id ?? "",
     evaluationTemplateId: e.evaluationTemplateId ?? e.evaluationTemplate?.id ?? "",
@@ -77,6 +81,8 @@ export function EmployeeFormDialog({ open, onOpenChange, employee, onSaved }: Em
         middleName: form.middleName || null,
         lastName: form.lastName,
         phone: form.phone || null,
+        emergencyContactName: form.emergencyContactName || null,
+        emergencyContactPhone: form.emergencyContactPhone || null,
         jobTitle: form.jobTitle || null,
         departmentId: form.departmentId || null,
         evaluationTemplateId: form.evaluationTemplateId || null,
@@ -133,6 +139,12 @@ export function EmployeeFormDialog({ open, onOpenChange, employee, onSaved }: Em
           <Field label="Phone">
             <Input value={form.phone} onChange={(e) => setField("phone", e.target.value)} />
           </Field>
+          <Field label="Emergency contact name">
+            <Input value={form.emergencyContactName} onChange={(e) => setField("emergencyContactName", e.target.value)} />
+          </Field>
+          <Field label="Emergency contact phone">
+            <Input value={form.emergencyContactPhone} onChange={(e) => setField("emergencyContactPhone", e.target.value)} />
+          </Field>
           <Field label="Job title">
             <Input value={form.jobTitle} onChange={(e) => setField("jobTitle", e.target.value)} />
           </Field>
@@ -179,6 +191,8 @@ function blankForm(): EmployeeForm {
     middleName: "",
     lastName: "",
     phone: "",
+    emergencyContactName: "",
+    emergencyContactPhone: "",
     jobTitle: "",
     departmentId: "",
     evaluationTemplateId: "",

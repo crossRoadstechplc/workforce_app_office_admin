@@ -19,6 +19,8 @@ export type Employee = {
   middleName?: string | null;
   lastName: string;
   phone?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
   jobTitle?: string | null;
   departmentId?: string | null;
   evaluationTemplateId?: string | null;

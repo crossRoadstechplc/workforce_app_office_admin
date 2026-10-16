@@ -72,6 +72,8 @@ export function CreateEmployeeDialog() {
       middleName: String(f.get("middleName") || "") || undefined,
       lastName: String(f.get("lastName")),
       phone: String(f.get("phone") || "") || undefined,
+      emergencyContactName: String(f.get("emergencyContactName") || "") || undefined,
+      emergencyContactPhone: String(f.get("emergencyContactPhone") || "") || undefined,
       jobTitle: String(f.get("jobTitle") || "") || undefined,
       departmentId: String(f.get("departmentId") || "") || undefined,
       evaluationTemplateId: String(f.get("evaluationTemplateId") || "") || undefined,
@@ -187,6 +189,8 @@ export function CreateEmployeeDialog() {
                 <Field label="Last name" name="lastName" required />
                 <Field label="Middle name" name="middleName" />
                 <Field label="Phone" name="phone" />
+                <Field label="Emergency contact name" name="emergencyContactName" />
+                <Field label="Emergency contact phone" name="emergencyContactPhone" />
                 <Field label="Job title" name="jobTitle" />
                 <Field label="Start date" name="employmentStartDate" type="date" required />
                 <BirthMonthDayField name="birthDate" />
