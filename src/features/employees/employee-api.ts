@@ -12,6 +12,8 @@ export type CreateEmployeeInput = {
   phone?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
+  emergencyContactRelation?: string;
+  emergencyContactRelationOther?: string;
   jobTitle?: string;
   departmentId?: string;
   evaluationTemplateId?: string;
@@ -32,6 +34,8 @@ export type UpdateEmployeeInput = {
   phone?: string | null;
   emergencyContactName?: string | null;
   emergencyContactPhone?: string | null;
+  emergencyContactRelation?: string | null;
+  emergencyContactRelationOther?: string | null;
   jobTitle?: string | null;
   departmentId?: string | null;
   evaluationTemplateId?: string | null;

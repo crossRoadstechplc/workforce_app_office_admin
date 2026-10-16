@@ -1,3 +1,35 @@
+export type EmergencyContactRelation =
+  | "MOTHER"
+  | "FATHER"
+  | "BROTHER"
+  | "SISTER"
+  | "SPOUSE"
+  | "CHILD"
+  | "FRIEND"
+  | "RELATIVE"
+  | "OTHER";
+
+export const EMERGENCY_CONTACT_RELATIONS: { value: EmergencyContactRelation; label: string }[] = [
+  { value: "MOTHER", label: "Mother" },
+  { value: "FATHER", label: "Father" },
+  { value: "BROTHER", label: "Brother" },
+  { value: "SISTER", label: "Sister" },
+  { value: "SPOUSE", label: "Spouse" },
+  { value: "CHILD", label: "Child" },
+  { value: "FRIEND", label: "Friend" },
+  { value: "RELATIVE", label: "Relative" },
+  { value: "OTHER", label: "Other" }
+];
+
+export function formatEmergencyRelation(
+  relation?: EmergencyContactRelation | null,
+  other?: string | null
+): string | null {
+  if (!relation) return null;
+  if (relation === "OTHER") return other?.trim() || "Other";
+  return EMERGENCY_CONTACT_RELATIONS.find((item) => item.value === relation)?.label ?? relation;
+}
+
 export type Office = { id:string; name:string; address?:string|null; isActive:boolean };
 export type ScheduleDay = { weekday:number; checkInTime:string; checkOutTime:string };
 export type Schedule = { id:string; name:string; checkInTime:string; checkOutTime:string; lateGraceMinutes:number; workingDays:number[]; days?:ScheduleDay[]; isActive:boolean };
@@ -21,6 +53,8 @@ export type Employee = {
   phone?: string | null;
   emergencyContactName?: string | null;
   emergencyContactPhone?: string | null;
+  emergencyContactRelation?: EmergencyContactRelation | null;
+  emergencyContactRelationOther?: string | null;
   jobTitle?: string | null;
   departmentId?: string | null;
   evaluationTemplateId?: string | null;
