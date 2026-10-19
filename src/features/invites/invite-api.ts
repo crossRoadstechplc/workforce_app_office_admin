@@ -78,6 +78,12 @@ export const publicInviteApi = {
       officeId?: string;
       scheduleId?: string;
       password?: string;
+      emergencyContacts?: Array<{
+        name: string;
+        phone: string;
+        relation: string;
+        relationOther?: string | null;
+      }>;
     }
   ) =>
     publicFetch<{ email: string; employeeCode: string; existingAccount?: boolean }>(`/invites/${encodeURIComponent(token)}/accept-employee`, {

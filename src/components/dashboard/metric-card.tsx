@@ -26,16 +26,39 @@ export function MetricCard({
   value,
   helper,
   icon: Icon,
-  tone = "blue"
+  tone = "blue",
+  onClick
 }: {
   label: string;
   value: number | string;
   helper: string;
   icon: LucideIcon;
   tone?: keyof typeof tones;
+  onClick?: () => void;
 }) {
+  const interactive = Boolean(onClick);
+
   return (
-    <Card className="min-w-0 overflow-hidden transition-shadow hover:shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+    <Card
+      role={interactive ? "button" : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={
+        interactive
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onClick?.();
+              }
+            }
+          : undefined
+      }
+      className={cn(
+        "min-w-0 overflow-hidden transition-shadow hover:shadow-[0_8px_24px_rgba(15,23,42,0.06)]",
+        interactive &&
+          "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-2"
+      )}
+    >
       <CardContent className={cn("bg-gradient-to-br pt-5", tones[tone].wash)}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">

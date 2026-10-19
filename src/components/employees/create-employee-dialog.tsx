@@ -122,41 +122,19 @@ export function CreateEmployeeDialog() {
           Add employee
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogTitle>{result ? "Employee created" : inviteResult ? "Employee invite" : "Register employee"}</DialogTitle>
-        <DialogDescription>
-          {result
-            ? "Share the employee code and temporary password through a secure channel. The password is shown only once."
-            : inviteResult
-              ? inviteResult.emailSent
-                ? `${inviteResult.email} will complete their own profile from the email link.`
-                : inviteResult.emailError ?? "The invite was saved, but the email could not be sent."
-              : "Create the account now, or send a form link so the employee enters their own details."}
-        </DialogDescription>
-        {result ? (
-          <div className="mt-6 space-y-4">
-            <CopyValue label="Employee code" value={result.employeeCode} />
-            <CopyValue label="Temporary password" value={result.temporaryPassword} tone="amber" />
-            <p className="text-xs text-slate-500">
-              Share this password with the employee. They can sign in with email or employee code. {EASY_PASSWORD_HINT}
-            </p>
-            <Button className="w-full" onClick={closeDialog}>
-              Done
-            </Button>
-          </div>
-        ) : inviteResult ? (
-          <div className="mt-6 space-y-4">
-            {!inviteResult.emailSent && inviteResult.inviteId ? (
-              <Button variant="outline" disabled={resend.isPending} onClick={() => resend.mutate(inviteResult.inviteId!)}>
-                {resend.isPending ? "Resending..." : "Resend invite"}
-              </Button>
-            ) : null}
-            <Button className="w-full" onClick={closeDialog}>
-              Done
-            </Button>
-          </div>
-        ) : (
-          <>
+      <DialogContent className="flex max-h-[92vh] max-w-3xl flex-col overflow-hidden p-0 sm:max-w-3xl">
+        <div className="shrink-0 border-b border-slate-100 px-6 pb-4 pt-6 pr-12">
+          <DialogTitle>{result ? "Employee created" : inviteResult ? "Employee invite" : "Register employee"}</DialogTitle>
+          <DialogDescription>
+            {result
+              ? "Share the employee code and temporary password through a secure channel. The password is shown only once."
+              : inviteResult
+                ? inviteResult.emailSent
+                  ? `${inviteResult.email} will complete their own profile from the email link.`
+                  : inviteResult.emailError ?? "The invite was saved, but the email could not be sent."
+                : "Create the account now, or send a form link so the employee enters their own details."}
+          </DialogDescription>
+          {!result && !inviteResult ? (
             <div className="mt-4 grid grid-cols-2 rounded-lg border p-1 text-sm">
               <button
                 type="button"
@@ -173,8 +151,35 @@ export function CreateEmployeeDialog() {
                 Invite by email
               </button>
             </div>
-            {mode === "create" ? (
-              <form onSubmit={submitCreate} className="mt-6 grid gap-4 sm:grid-cols-2">
+          ) : null}
+        </div>
+
+        {result ? (
+          <div className="space-y-4 overflow-y-auto px-6 py-5">
+            <CopyValue label="Employee code" value={result.employeeCode} />
+            <CopyValue label="Temporary password" value={result.temporaryPassword} tone="amber" />
+            <p className="text-xs text-slate-500">
+              Share this password with the employee. They can sign in with email or employee code. {EASY_PASSWORD_HINT}
+            </p>
+            <Button className="w-full" onClick={closeDialog}>
+              Done
+            </Button>
+          </div>
+        ) : inviteResult ? (
+          <div className="space-y-4 overflow-y-auto px-6 py-5">
+            {!inviteResult.emailSent && inviteResult.inviteId ? (
+              <Button variant="outline" disabled={resend.isPending} onClick={() => resend.mutate(inviteResult.inviteId!)}>
+                {resend.isPending ? "Resending..." : "Resend invite"}
+              </Button>
+            ) : null}
+            <Button className="w-full" onClick={closeDialog}>
+              Done
+            </Button>
+          </div>
+        ) : mode === "create" ? (
+          <form onSubmit={submitCreate} className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Field
                   label="Employee code"
                   name="employeeCode"
@@ -196,17 +201,21 @@ export function CreateEmployeeDialog() {
                 <div className="sm:col-span-2">
                   <EasyPasswordField id="temporaryPassword" name="temporaryPassword" optional />
                 </div>
-                <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
-                  <Button type="button" variant="outline" onClick={closeDialog}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={mutation.isPending}>
-                    {mutation.isPending ? "Creating…" : "Create employee"}
-                  </Button>
-                </div>
-              </form>
-            ) : (
-              <form onSubmit={submitInvite} className="mt-6 grid gap-4 sm:grid-cols-2">
+              </div>
+            </div>
+            <div className="flex shrink-0 justify-end gap-2 border-t border-slate-100 bg-white px-6 py-4">
+              <Button type="button" variant="outline" onClick={closeDialog}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? "Creating…" : "Create employee"}
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={submitInvite} className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Email" name="email" type="email" required />
                 <Field label="Start date" name="employmentStartDate" type="date" />
                 <BirthMonthDayField name="birthDate" />
@@ -215,17 +224,17 @@ export function CreateEmployeeDialog() {
                 <p className="text-xs text-slate-500 sm:col-span-2">
                   The employee opens a form from the email, fills the rest of their details, and chooses a password of at least 6 characters.
                 </p>
-                <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
-                  <Button type="button" variant="outline" onClick={closeDialog}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={inviteMut.isPending}>
-                    {inviteMut.isPending ? "Sending…" : "Send invite"}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </>
+              </div>
+            </div>
+            <div className="flex shrink-0 justify-end gap-2 border-t border-slate-100 bg-white px-6 py-4">
+              <Button type="button" variant="outline" onClick={closeDialog}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={inviteMut.isPending}>
+                {inviteMut.isPending ? "Sending…" : "Send invite"}
+              </Button>
+            </div>
+          </form>
         )}
       </DialogContent>
     </Dialog>

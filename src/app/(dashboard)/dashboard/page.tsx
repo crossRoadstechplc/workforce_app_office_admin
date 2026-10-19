@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { endOfToday, format, subDays } from "date-fns";
@@ -20,6 +20,10 @@ import { PageHeader } from "@/components/layout/page-header";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { BirthdayBanner } from "@/components/dashboard/birthday-banner";
 import { AttendanceChart } from "@/components/dashboard/attendance-chart";
+import {
+  SummaryEmployeesDialog,
+  type SummaryCategory
+} from "@/components/dashboard/summary-employees-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
@@ -52,6 +56,7 @@ export default function DashboardPage() {
 function TenantDashboard() {
   const { isOfficeAdmin, user } = useAuth();
   const officeLabel = user?.offices?.map((o) => o.name).join(", ");
+  const [summaryCategory, setSummaryCategory] = useState<SummaryCategory | null>(null);
 
   const to = format(endOfToday(), "yyyy-MM-dd");
   const from = format(subDays(new Date(), 13), "yyyy-MM-dd");
@@ -91,14 +96,22 @@ function TenantDashboard() {
           Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-36" />)
         ) : (
           <>
-            <MetricCard label="Employees" value={s!.totalEmployees} helper="Active in scope" icon={Users} />
-            <MetricCard label="Checked in" value={s!.checkedIn} helper={`${s!.checkedOut} already checked out`} icon={UserCheck} tone="green" />
-            <MetricCard label="Late" value={s!.late} helper={`${s!.onTime} on time`} icon={Clock3} tone="amber" />
-            <MetricCard label="On leave" value={s!.onLeave} helper={`${s!.pendingLeaveRequests} pending requests`} icon={Plane} />
-            <MetricCard label="Missing checkout" value={s!.missingCheckout} helper="Needs attention" icon={AlertTriangle} tone="red" />
+            <MetricCard label="Employees" value={s!.totalEmployees} helper="Active in scope" icon={Users} onClick={() => setSummaryCategory("employees")} />
+            <MetricCard label="Checked in" value={s!.checkedIn} helper={`${s!.checkedOut} already checked out`} icon={UserCheck} tone="green" onClick={() => setSummaryCategory("checkedIn")} />
+            <MetricCard label="Late" value={s!.late} helper={`${s!.onTime} on time`} icon={Clock3} tone="amber" onClick={() => setSummaryCategory("late")} />
+            <MetricCard label="On leave" value={s!.onLeave} helper={`${s!.pendingLeaveRequests} pending requests`} icon={Plane} onClick={() => setSummaryCategory("onLeave")} />
+            <MetricCard label="Missing checkout" value={s!.missingCheckout} helper="Needs attention" icon={AlertTriangle} tone="red" onClick={() => setSummaryCategory("missingCheckout")} />
           </>
         )}
       </div>
+
+      <SummaryEmployeesDialog
+        open={summaryCategory !== null}
+        onOpenChange={(open) => {
+          if (!open) setSummaryCategory(null);
+        }}
+        category={summaryCategory}
+      />
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.7fr_1fr]">
         <Card>

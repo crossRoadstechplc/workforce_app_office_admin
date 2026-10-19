@@ -1,7 +1,7 @@
 "use client";
 import { use, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, KeyRound, Pencil, UserX } from "lucide-react";
+import { KeyRound, Pencil, UserX } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { employeeApi } from "@/features/employees/employee-api";
@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { CopyValue } from "@/components/ui/copy-value";
 import { TenantOpsGate } from "@/components/auth/role-gates";
+import { EmployeeBrowseNav } from "@/components/employees/employee-browse-nav";
 import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
 import { SupervisorSelect } from "@/components/employees/supervisor-select";
 import { employeeName } from "@/lib/utils/format";
@@ -73,12 +74,7 @@ function EmployeeDetailInner({ params }: { params: Promise<{ employeeId: string 
 
   return (
     <>
-      <div className="mb-6">
-        <Link href="/employees" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-950">
-          <ArrowLeft className="size-4" />
-          Employees
-        </Link>
-      </div>
+      <EmployeeBrowseNav currentId={employeeId} />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-center gap-4">
           <div className="grid size-14 place-items-center rounded-2xl bg-slate-900 text-lg font-bold text-white">

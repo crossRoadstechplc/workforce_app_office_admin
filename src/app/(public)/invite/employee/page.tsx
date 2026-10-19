@@ -3,7 +3,7 @@
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EmployeeSetupComplete } from "@/components/invites/employee-setup-complete";
 import { BirthMonthDayField } from "@/components/employees/birth-month-day-field";
@@ -12,6 +12,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { passwordMeetsRules, publicInviteApi, EASY_PASSWORD_HINT } from "@/features/invites/invite-api";
+import {
+  EMERGENCY_CONTACT_RELATIONS,
+  type EmergencyContactRelation
+} from "@/types/employee";
+
+const MAX_EMERGENCY_CONTACTS = 5;
+
+type EmergencyDraft = {
+  name: string;
+  phone: string;
+  relation: EmergencyContactRelation | "";
+  relationOther: string;
+};
+
+const emptyEmergency = (): EmergencyDraft => ({
+  name: "",
+  phone: "",
+  relation: "",
+  relationOther: ""
+});
 
 export default function EmployeeInvitePage() {
   return (
@@ -37,6 +57,7 @@ function EmployeeInviteInner() {
   });
   const [result, setResult] = useState<{ employeeCode: string; email: string; existingAccount?: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyDraft[]>([emptyEmergency()]);
 
   const defaults = useMemo(() => {
     const payload = invite.data?.payload;
@@ -48,6 +69,28 @@ function EmployeeInviteInner() {
       evaluationTemplateId: payload?.evaluationTemplateId ?? ""
     };
   }, [invite.data]);
+
+  function updateEmergency(index: number, patch: Partial<EmergencyDraft>) {
+    setEmergencyContacts((rows) => rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+  }
+
+  function collectEmergencyContacts() {
+    const filled = emergencyContacts.filter((row) => row.name.trim() || row.phone.trim() || row.relation);
+    for (const row of filled) {
+      if (!row.name.trim() || !row.phone.trim() || !row.relation) {
+        throw new Error("Each emergency contact needs name, phone, and relationship");
+      }
+      if (row.relation === "OTHER" && !row.relationOther.trim()) {
+        throw new Error("Specify the relationship when Other is selected");
+      }
+    }
+    return filled.map((row) => ({
+      name: row.name.trim(),
+      phone: row.phone.trim(),
+      relation: row.relation,
+      relationOther: row.relation === "OTHER" ? row.relationOther.trim() : null
+    }));
+  }
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -65,6 +108,15 @@ function EmployeeInviteInner() {
         return;
       }
     }
+
+    let contacts: ReturnType<typeof collectEmergencyContacts>;
+    try {
+      contacts = collectEmergencyContacts();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Check emergency contacts");
+      return;
+    }
+
     setBusy(true);
     try {
       const created = await publicInviteApi.acceptEmployee(token, {
@@ -80,6 +132,7 @@ function EmployeeInviteInner() {
         employeeCode: String(f.get("employeeCode") || "") || undefined,
         officeId: invite.data?.office?.id,
         scheduleId: invite.data?.schedule?.id,
+        ...(contacts.length ? { emergencyContacts: contacts } : {}),
         ...(requiresPassword ? { password } : {})
       });
       setResult(created);
@@ -144,13 +197,13 @@ function EmployeeInviteInner() {
           <h1 className="mt-4 text-5xl font-semibold leading-tight">Complete your employee profile.</h1>
           <p className="mt-5 text-lg leading-8 text-slate-300">
             {requiresPassword
-              ? "Enter your details, choose a password, then continue in the employee app."
-              : "Enter your employee details. You can keep using your existing account password."}
+              ? "Enter your details, birthday, emergency contact, and password, then continue in the employee app."
+              : "Enter your employee details, birthday, and emergency contact. You can keep using your existing account password."}
           </p>
         </div>
       </section>
       <section className="flex items-start justify-center p-6 lg:items-center">
-        <form onSubmit={submit} className="w-full max-w-xl">
+        <form onSubmit={submit} className="w-full max-w-xl py-6">
           <h2 className="text-3xl font-semibold tracking-tight">Your information</h2>
           <p className="mt-2 text-sm text-slate-500">
             Invited as <span className="font-medium text-slate-700">{data.email}</span>
@@ -179,6 +232,81 @@ function EmployeeInviteInner() {
               </>
             ) : null}
           </div>
+
+          <div className="mt-8 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900">Emergency contacts</h3>
+                <p className="text-xs text-slate-500">Optional. Add up to {MAX_EMERGENCY_CONTACTS} contacts.</p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={emergencyContacts.length >= MAX_EMERGENCY_CONTACTS}
+                onClick={() => setEmergencyContacts((rows) => [...rows, emptyEmergency()])}
+              >
+                <Plus className="size-4" />
+                Add
+              </Button>
+            </div>
+            {emergencyContacts.map((row, index) => (
+              <div key={index} className="rounded-xl border border-slate-200 p-4">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Contact {index + 1}</p>
+                  {emergencyContacts.length > 1 ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 px-0"
+                      onClick={() => setEmergencyContacts((rows) => rows.filter((_, i) => i !== index))}
+                    >
+                      <Trash2 className="size-4 text-rose-600" />
+                    </Button>
+                  ) : null}
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <Label>Name</Label>
+                    <Input value={row.name} onChange={(e) => updateEmergency(index, { name: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Phone</Label>
+                    <Input value={row.phone} onChange={(e) => updateEmergency(index, { phone: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Relationship</Label>
+                    <select
+                      className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm"
+                      value={row.relation}
+                      onChange={(e) =>
+                        updateEmergency(index, { relation: e.target.value as EmergencyContactRelation | "" })
+                      }
+                    >
+                      <option value="">Select relationship</option>
+                      {EMERGENCY_CONTACT_RELATIONS.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {row.relation === "OTHER" ? (
+                    <div>
+                      <Label>Specify relationship</Label>
+                      <Input
+                        value={row.relationOther}
+                        onChange={(e) => updateEmergency(index, { relationOther: e.target.value })}
+                        placeholder="e.g. Cousin, Neighbor"
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+
           {requiresPassword ? (
             <p className="mt-3 text-xs text-slate-500">{EASY_PASSWORD_HINT}</p>
           ) : (
