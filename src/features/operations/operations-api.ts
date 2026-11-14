@@ -1,6 +1,7 @@
 import { apiFetch } from "@/lib/api/api-client";
 import type {
   AttendanceCorrectnessRequestRow,
+  AttendanceCorrectnessSubmission,
   AttendanceDayRoster,
   AttendanceMonthSummary,
   AttendanceRangeSummary,
@@ -58,6 +59,22 @@ export const operationsApi = {
     d<any>(await apiFetch<any>(`/admin/attendance/correctness-requests/${id}/approve`, { method: "POST", body: JSON.stringify({ adminNote }) })),
   rejectCorrectnessRequest: async (id: string, adminNote?: string) =>
     d<any>(await apiFetch<any>(`/admin/attendance/correctness-requests/${id}/reject`, { method: "POST", body: JSON.stringify({ adminNote }) })),
+  approveCorrectnessSubmission: async (submissionId: string, adminNote?: string) =>
+    d<AttendanceCorrectnessSubmission>(
+      await apiFetch<any>(`/admin/attendance/correctness-requests/submissions/${submissionId}/approve`, {
+        method: "POST",
+        body: JSON.stringify({ adminNote })
+      })
+    ),
+  rejectCorrectnessSubmission: async (submissionId: string, adminNote?: string) =>
+    d<AttendanceCorrectnessSubmission>(
+      await apiFetch<any>(`/admin/attendance/correctness-requests/submissions/${submissionId}/reject`, {
+        method: "POST",
+        body: JSON.stringify({ adminNote })
+      })
+    ),
+  correctnessSubmission: async (submissionId: string) =>
+    d<AttendanceCorrectnessSubmission>(await apiFetch<any>(`/admin/attendance/correctness-requests/submissions/${submissionId}`)),
   correctnessRequests: async (params: URLSearchParams) =>
     d<AttendanceCorrectnessRequestRow[]>(await apiFetch<any>(`/admin/attendance/correctness-requests?${params}`)),
   worksheets: async (params: URLSearchParams) => d<HistoryList<Worksheet>>(await apiFetch<any>(`/admin/worksheets?${params}`)),

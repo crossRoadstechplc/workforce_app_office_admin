@@ -25,7 +25,7 @@ export type EmergencyContact = {
   id: string;
   name: string;
   phone: string;
-  relation: EmergencyContactRelation;
+  relation?: EmergencyContactRelation | null;
   relationOther?: string | null;
   sortOrder?: number;
 };

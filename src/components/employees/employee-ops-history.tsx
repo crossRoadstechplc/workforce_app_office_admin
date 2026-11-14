@@ -25,10 +25,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { operationsApi } from "@/features/operations/operations-api";
 import { formatDate, formatCheckoutDateTime, formatDateTime, formatLateMinutes, formatCheckoutTime, formatTime, minutesToHours } from "@/lib/utils/format";
 import type { Timesheet, Worksheet } from "@/types/operations";
+import { CompanyAssetManager } from "@/components/company-assets/company-asset-manager";
 
 const PAGE_SIZE = 10;
 
-type EmployeePanel = "leave" | "attendance" | "worksheets";
+type EmployeePanel = "leave" | "attendance" | "worksheets" | "assets";
 
 function monthRange(year: number, month: number) {
   const mm = String(month).padStart(2, "0");
@@ -80,6 +81,9 @@ export function EmployeeOpsHistory({ employeeId, leave }: { employeeId: string; 
         onToggle={() => toggle("attendance")}
         periodFilter={periodFilter}
       />
+      <CollapsibleGadget title="Company assets" open={openPanel === "assets"} onToggle={() => toggle("assets")}>
+        <CompanyAssetManager employeeId={employeeId} />
+      </CollapsibleGadget>
       <EmployeeWorksheetHistory
         employeeId={employeeId}
         from={range?.from}

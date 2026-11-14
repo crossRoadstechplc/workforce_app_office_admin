@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AssetDraftEditor } from "@/components/company-assets/asset-draft-editor";
+import { collectAssetDrafts, type AssetDraft, type AssetType } from "@/features/company-assets/company-asset-api";
 
 type EditEmployeeInviteDialogProps = {
   invite: InviteRecord | null;
@@ -28,6 +30,7 @@ export function EditEmployeeInviteDialog({ invite, open, onOpenChange }: EditEmp
   const [scheduleId, setScheduleId] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [evaluationTemplateId, setEvaluationTemplateId] = useState("");
+  const [assets, setAssets] = useState<AssetDraft[]>([]);
 
   const offices = useQuery({ queryKey: ["offices", "select"], queryFn: employeeApi.offices, enabled: open });
   const schedules = useQuery({ queryKey: ["schedules", "select"], queryFn: employeeApi.schedules, enabled: open });
@@ -44,11 +47,23 @@ export function EditEmployeeInviteDialog({ invite, open, onOpenChange }: EditEmp
     setScheduleId(invite.scheduleId ?? "");
     setDepartmentId(invite.payload?.departmentId ?? "");
     setEvaluationTemplateId(invite.payload?.evaluationTemplateId ?? "");
+    setAssets(
+      (invite.payload?.assets ?? []).map((asset) => ({
+        type: (asset.type === "LAPTOP" || asset.type === "DESKTOP" || asset.type === "CAR" || asset.type === "OTHER"
+          ? asset.type
+          : "OTHER") as AssetType,
+        name: asset.name,
+        identifier: asset.identifier,
+        notes: asset.notes ?? ""
+      }))
+    );
   }, [open, invite]);
 
   const save = useMutation({
     mutationFn: () => {
       if (!invite) throw new Error("No invite selected");
+      const collected = collectAssetDrafts(assets);
+      if ("error" in collected && collected.error) throw new Error(collected.error);
       return inviteApi.update(invite.id, {
         email: email.trim(),
         officeId: officeId || null,
@@ -57,7 +72,8 @@ export function EditEmployeeInviteDialog({ invite, open, onOpenChange }: EditEmp
         birthDate: birthDate || undefined,
         jobTitle: jobTitle || null,
         departmentId: departmentId || null,
-        evaluationTemplateId: evaluationTemplateId || null
+        evaluationTemplateId: evaluationTemplateId || null,
+        assets: collected.assets ?? []
       });
     },
     onSuccess: (result) => {
@@ -78,7 +94,7 @@ export function EditEmployeeInviteDialog({ invite, open, onOpenChange }: EditEmp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-3xl">
         <DialogTitle>Edit employee invite</DialogTitle>
         <DialogDescription>
           Fix the email or pre-filled details before the employee completes their profile. Changing the email invalidates the old link and sends a new invite.
@@ -122,6 +138,7 @@ export function EditEmployeeInviteDialog({ invite, open, onOpenChange }: EditEmp
             onDepartmentChange={setDepartmentId}
             onEvaluationTemplateChange={setEvaluationTemplateId}
           />
+          <AssetDraftEditor value={assets} onChange={setAssets} />
           <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel

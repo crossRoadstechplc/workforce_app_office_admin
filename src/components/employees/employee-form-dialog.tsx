@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { SupervisorSelect } from "@/components/employees/supervisor-select";
 import { BirthMonthDayField } from "@/components/employees/birth-month-day-field";
 import type { Employee } from "@/types/employee";
+import { CompanyAssetManager } from "@/components/company-assets/company-asset-manager";
 
 type EmployeeForm = {
   employeeCode: string;
@@ -105,9 +106,9 @@ export function EmployeeFormDialog({ open, onOpenChange, employee, onSaved }: Em
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
         <DialogTitle>Edit employee</DialogTitle>
-        <DialogDescription>Update profile details, work assignment, and supervisor.</DialogDescription>
+        <DialogDescription>Update profile details, work assignment, and the company items this person holds.</DialogDescription>
         <form
           className="mt-5 grid gap-4 sm:grid-cols-2"
           onSubmit={(e) => {
@@ -166,6 +167,13 @@ export function EmployeeFormDialog({ open, onOpenChange, employee, onSaved }: Em
             </Button>
           </div>
         </form>
+        <div className="mt-6 border-t border-slate-100 pt-5">
+          <h3 className="text-sm font-semibold text-slate-900">Company assets</h3>
+          <p className="mb-4 mt-1 text-xs leading-5 text-slate-500">
+            These save on their own. The employee accepts or declines each item from Company assets in the employee app.
+          </p>
+          <CompanyAssetManager employeeId={employee.id} />
+        </div>
       </DialogContent>
     </Dialog>
   );

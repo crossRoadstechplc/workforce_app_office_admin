@@ -18,6 +18,7 @@ export type InvitePreview = {
     jobTitle?: string | null;
     departmentId?: string | null;
     evaluationTemplateId?: string | null;
+    assets?: Array<{ type: string; name: string; identifier: string; notes?: string | null }>;
   } | null;
 };
 
@@ -38,6 +39,7 @@ export type InviteRecord = {
     jobTitle?: string | null;
     departmentId?: string | null;
     evaluationTemplateId?: string | null;
+    assets?: Array<{ type: string; name: string; identifier: string; notes?: string | null }>;
   } | null;
 };
 
@@ -81,7 +83,7 @@ export const publicInviteApi = {
       emergencyContacts?: Array<{
         name: string;
         phone: string;
-        relation: string;
+        relation?: string;
         relationOther?: string | null;
       }>;
     }
@@ -109,6 +111,7 @@ export const inviteApi = {
       jobTitle?: string | null;
       departmentId?: string | null;
       evaluationTemplateId?: string | null;
+      assets?: Array<{ type: "LAPTOP" | "DESKTOP" | "CAR" | "OTHER"; name: string; identifier: string; notes?: string }>;
     }
   ) =>
     apiFetch<{ invite: InviteRecord; inviteId: string; emailChanged: boolean; emailSent: boolean; emailError?: string }>(
@@ -124,6 +127,7 @@ export const inviteApi = {
     jobTitle?: string;
     departmentId?: string;
     evaluationTemplateId?: string;
+    assets?: Array<{ type: "LAPTOP" | "DESKTOP" | "CAR" | "OTHER"; name: string; identifier: string; notes?: string }>;
   }) =>
     apiFetch<{ invite: InviteRecord; emailSent: boolean; inviteId: string; emailError?: string }>("/admin/employees/invites", {
       method: "POST",

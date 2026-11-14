@@ -16,6 +16,7 @@ import {
   EMERGENCY_CONTACT_RELATIONS,
   type EmergencyContactRelation
 } from "@/types/employee";
+import { assetTypeLabel } from "@/features/company-assets/company-asset-api";
 
 const MAX_EMERGENCY_CONTACTS = 5;
 
@@ -75,10 +76,10 @@ function EmployeeInviteInner() {
   }
 
   function collectEmergencyContacts() {
-    const filled = emergencyContacts.filter((row) => row.name.trim() || row.phone.trim() || row.relation);
+    const filled = emergencyContacts.filter((row) => row.name.trim() || row.phone.trim());
     for (const row of filled) {
-      if (!row.name.trim() || !row.phone.trim() || !row.relation) {
-        throw new Error("Each emergency contact needs name, phone, and relationship");
+      if (!row.name.trim() || !row.phone.trim()) {
+        throw new Error("Each emergency contact needs a name and phone number");
       }
       if (row.relation === "OTHER" && !row.relationOther.trim()) {
         throw new Error("Specify the relationship when Other is selected");
@@ -87,7 +88,7 @@ function EmployeeInviteInner() {
     return filled.map((row) => ({
       name: row.name.trim(),
       phone: row.phone.trim(),
-      relation: row.relation,
+      ...(row.relation ? { relation: row.relation } : {}),
       relationOther: row.relation === "OTHER" ? row.relationOther.trim() : null
     }));
   }
@@ -208,6 +209,25 @@ function EmployeeInviteInner() {
           <p className="mt-2 text-sm text-slate-500">
             Invited as <span className="font-medium text-slate-700">{data.email}</span>
           </p>
+          {data.payload?.assets?.length ? (
+            <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-semibold text-slate-900">Company items waiting for you</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                After you finish this form, open Company assets in the employee app and accept or decline each item.
+              </p>
+              <ul className="mt-3 space-y-2">
+                {data.payload.assets.map((asset) => (
+                  <li key={`${asset.type}-${asset.identifier}`} className="rounded-lg bg-white px-3 py-2 text-sm">
+                    <span className="font-medium text-slate-900">{asset.name}</span>
+                    <span className="text-slate-500">
+                      {" "}
+                      · {assetTypeLabel(asset.type)} · {asset.identifier}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <Field label="First name" name="firstName" required />
             <Field label="Last name" name="lastName" required />

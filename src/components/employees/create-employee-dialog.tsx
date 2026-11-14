@@ -15,6 +15,8 @@ import { BirthMonthDayField } from "@/components/employees/birth-month-day-field
 import { SupervisorSelect } from "@/components/employees/supervisor-select";
 import { EasyPasswordField } from "@/components/invites/easy-password-field";
 import { passwordMeetsRules, EASY_PASSWORD_HINT } from "@/features/invites/invite-api";
+import { AssetDraftEditor } from "@/components/company-assets/asset-draft-editor";
+import { collectAssetDrafts, type AssetDraft } from "@/features/company-assets/company-asset-api";
 type CreateResult = { temporaryPassword: string; employeeCode: string };
 type InviteResult = { emailSent: boolean; inviteId?: string; emailError?: string; email: string };
 
@@ -23,6 +25,7 @@ export function CreateEmployeeDialog() {
   const [mode, setMode] = useState<"create" | "invite">("create");
   const [result, setResult] = useState<CreateResult | null>(null);
   const [inviteResult, setInviteResult] = useState<InviteResult | null>(null);
+  const [assets, setAssets] = useState<AssetDraft[]>([]);
   const qc = useQueryClient();
   const offices = useQuery({ queryKey: ["offices", "select"], queryFn: employeeApi.offices, enabled: open });
   const schedules = useQuery({ queryKey: ["schedules", "select"], queryFn: employeeApi.schedules, enabled: open });
@@ -64,6 +67,11 @@ export function CreateEmployeeDialog() {
       toast.error(EASY_PASSWORD_HINT);
       return;
     }
+    const collected = collectAssetDrafts(assets);
+    if ("error" in collected && collected.error) {
+      toast.error(collected.error);
+      return;
+    }
     mutation.mutate({
       email: String(f.get("email")),
       ...(employeeCode ? { employeeCode } : {}),
@@ -79,13 +87,19 @@ export function CreateEmployeeDialog() {
       officeId: String(f.get("officeId") || "") || undefined,
       scheduleId: String(f.get("scheduleId") || "") || undefined,
       supervisorId: String(f.get("supervisorId") || "") || undefined,
-      ...(password ? { temporaryPassword: password } : {})
+      ...(password ? { temporaryPassword: password } : {}),
+      ...(collected.assets?.length ? { assets: collected.assets } : {})
     });
   }
 
   function submitInvite(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
+    const collected = collectAssetDrafts(assets);
+    if ("error" in collected && collected.error) {
+      toast.error(collected.error);
+      return;
+    }
     inviteMut.mutate({
       email: String(f.get("email")),
       officeId: String(f.get("officeId") || "") || undefined,
@@ -94,7 +108,8 @@ export function CreateEmployeeDialog() {
       birthDate: String(f.get("birthDate") || "") || undefined,
       jobTitle: String(f.get("jobTitle") || "") || undefined,
       departmentId: String(f.get("departmentId") || "") || undefined,
-      evaluationTemplateId: String(f.get("evaluationTemplateId") || "") || undefined
+      evaluationTemplateId: String(f.get("evaluationTemplateId") || "") || undefined,
+      ...(collected.assets?.length ? { assets: collected.assets } : {})
     });
   }
 
@@ -102,6 +117,7 @@ export function CreateEmployeeDialog() {
     setResult(null);
     setInviteResult(null);
     setMode("create");
+    setAssets([]);
   }
 
   function closeDialog() {
@@ -201,6 +217,7 @@ export function CreateEmployeeDialog() {
                 <div className="sm:col-span-2">
                   <EasyPasswordField id="temporaryPassword" name="temporaryPassword" optional />
                 </div>
+                <AssetDraftEditor value={assets} onChange={setAssets} />
               </div>
             </div>
             <div className="flex shrink-0 justify-end gap-2 border-t border-slate-100 bg-white px-6 py-4">
@@ -221,8 +238,9 @@ export function CreateEmployeeDialog() {
                 <BirthMonthDayField name="birthDate" />
                 <Field label="Job title" name="jobTitle" />
                 <EmployeeAssignmentSelects offices={offices.data} schedules={schedules.data} departments={departments.data} evaluationTemplates={evaluationTemplates.data} />
+                <AssetDraftEditor value={assets} onChange={setAssets} />
                 <p className="text-xs text-slate-500 sm:col-span-2">
-                  The employee opens a form from the email, fills the rest of their details, and chooses a password of at least 6 characters.
+                  The employee opens a form from the email, fills the rest of their details, and chooses a password of at least 6 characters. Assigned items stay waiting until they confirm them in the app.
                 </p>
               </div>
             </div>

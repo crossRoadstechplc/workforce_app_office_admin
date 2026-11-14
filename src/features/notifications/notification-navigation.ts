@@ -24,6 +24,7 @@ export function notificationHref(n: Notification): string | null {
   if (
     type === "ATTENDANCE_CORRECTNESS_SUBMITTED" ||
     entity === "AttendanceCorrectnessRequest" ||
+    entity === "AttendanceCorrectnessSubmission" ||
     type.startsWith("ATTENDANCE_CORRECTNESS")
   ) {
     return correctionQuery(n.relatedEntityId ? { requestId: n.relatedEntityId } : {});
@@ -39,6 +40,9 @@ export function notificationHref(n: Notification): string | null {
   }
   if (entity === "MeetingBooking" || type.startsWith("MEETING_")) {
     return "/meetings";
+  }
+  if (entity === "CompanyAsset" || type.startsWith("COMPANY_ASSET_")) {
+    return "/company-assets";
   }
   if (entity === "ChatConversation" || type === "CHAT_MESSAGE") {
     return n.relatedEntityId ? `/chat` : "/chat";

@@ -22,6 +22,7 @@ import { FilterBar } from "@/components/ui/filter-bar";
 import { Table, TableBody, TableEmpty, TableHead, TableRow, TableShell, Td, Th } from "@/components/ui/table-shell";
 import { Textarea } from "@/components/ui/textarea";
 import { operationsApi } from "@/features/operations/operations-api";
+import { groupCorrectionSubmissions, pendingCorrectionSubmissionCount } from "@/features/operations/group-correction-submissions";
 import { employeeName, formatDate, formatDateTime, formatDateRange, formatCheckoutDateTime, formatLateMinutes, formatLeaveDays, formatLeaveSession, minutesToHours } from "@/lib/utils/format";
 import type { LeaveRequest } from "@/types/operations";
 import { AnnualLeaveSummary } from "@/components/leave/annual-leave-summary";
@@ -66,7 +67,7 @@ function LeavePageInner() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [selectedLeaveId, setSelectedLeaveId] = useState<string | null>(null);
-  const [selectedCorrectionId, setSelectedCorrectionId] = useState<string | null>(null);
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [adminNote, setAdminNote] = useState("");
 
@@ -77,7 +78,7 @@ function LeavePageInner() {
       if (status) setCorrectionStatus(status);
       if (date) setCorrectionDate(date);
       const openId = searchParams.get("requestId");
-      if (openId) setSelectedCorrectionId(openId);
+      if (openId) setSelectedSubmissionId(openId);
     } else {
       if (status) setLeaveStatus(status);
       const openId = searchParams.get("requestId");
@@ -134,6 +135,12 @@ function LeavePageInner() {
     queryFn: () => operationsApi.correctnessRequests(correctionCountsParams)
   });
 
+  const correctionSubmissionQuery = useQuery({
+    queryKey: ["correction-submission", selectedSubmissionId],
+    queryFn: () => operationsApi.correctnessSubmission(selectedSubmissionId!),
+    enabled: !!selectedSubmissionId
+  });
+
   const leaveDetail = useQuery({
     queryKey: ["leave", selectedLeaveId],
     queryFn: () => operationsApi.leave(selectedLeaveId!),
@@ -152,15 +159,16 @@ function LeavePageInner() {
   });
 
   const correctionDecision = useMutation({
-    mutationFn: ({ id, action }: { id: string; action: "approve" | "reject" }) =>
+    mutationFn: ({ submissionId, action }: { submissionId: string; action: "approve" | "reject" }) =>
       action === "approve"
-        ? operationsApi.approveCorrectnessRequest(id, adminNote || undefined)
-        : operationsApi.rejectCorrectnessRequest(id, adminNote || undefined),
+        ? operationsApi.approveCorrectnessSubmission(submissionId, adminNote || undefined)
+        : operationsApi.rejectCorrectnessSubmission(submissionId, adminNote || undefined),
     onSuccess: () => {
       toast.success("Correction updated");
       setAdminNote("");
-      setSelectedCorrectionId(null);
+      setSelectedSubmissionId(null);
       void qc.invalidateQueries({ queryKey: ["correction-requests"] });
+      void qc.invalidateQueries({ queryKey: ["correction-submission"] });
       void qc.invalidateQueries({ queryKey: ["leave-requests"] });
       void qc.invalidateQueries({ queryKey: ["dashboard"] });
       void qc.invalidateQueries({ queryKey: ["attendance-day-roster"] });
@@ -178,27 +186,35 @@ function LeavePageInner() {
 
   const leaveCounts = leaveCountsQuery.data?.counts;
   const correctionRows = correctionCountsQuery.data ?? [];
+  const correctionSubmissions = useMemo(() => groupCorrectionSubmissions(correctionRows), [correctionRows]);
+  const correctionListSubmissions = useMemo(
+    () => groupCorrectionSubmissions(correctionQuery.data ?? []).filter((s) => matchesSearch(s.employee, search)),
+    [correctionQuery.data, search]
+  );
+
   const correctionCounts = useMemo(() => {
-    const counts = { total: correctionRows.length, pending: 0, approved: 0, rejected: 0, cancelled: 0 };
-    for (const row of correctionRows) {
-      if (row.status === "PENDING") counts.pending += 1;
-      if (row.status === "APPROVED") counts.approved += 1;
-      if (row.status === "REJECTED") counts.rejected += 1;
-      if (row.status === "CANCELLED") counts.cancelled += 1;
-    }
-    return counts;
+    const submissions = groupCorrectionSubmissions(correctionRows);
+    return {
+      total: submissions.length,
+      pending: submissions.filter((s) => s.status === "PENDING" || s.days.some((d) => d.status === "PENDING")).length,
+      approved: submissions.filter((s) => s.status === "APPROVED").length,
+      rejected: submissions.filter((s) => s.status === "REJECTED").length,
+      cancelled: submissions.filter((s) => s.status === "CANCELLED").length
+    };
   }, [correctionRows]);
 
   const pendingLeaveBadge = leaveCounts?.pending ?? 0;
-  const pendingCorrectionBadge = correctionCounts.pending;
+  const pendingCorrectionBadge = pendingCorrectionSubmissionCount(correctionRows);
 
   if (activeTab === "leave" && leaveQuery.isLoading) return <PageSkeleton />;
   if (activeTab === "correction" && correctionQuery.isLoading) return <PageSkeleton />;
 
   const leaveItems = (leaveQuery.data?.items ?? []).filter((row) => matchesSearch(row.employee, search));
-  const correctionItems = (correctionQuery.data ?? []).filter((row) => matchesSearch(row.employee, search));
   const leaveDetailData = leaveDetail.data as LeaveRequest | undefined;
-  const selectedCorrection = correctionItems.find((r) => r.id === selectedCorrectionId) ?? correctionRows.find((r) => r.id === selectedCorrectionId);
+  const selectedSubmission =
+    correctionSubmissionQuery.data ??
+    correctionSubmissions.find((s) => s.submissionId === selectedSubmissionId) ??
+    correctionListSubmissions.find((s) => s.submissionId === selectedSubmissionId);
   const meta = leaveQuery.data?.meta;
 
   return (
@@ -355,40 +371,40 @@ function LeavePageInner() {
           <Table>
             <TableHead>
               <tr>
-                {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Work date", "Note", "Attendance", "Status", ""].map((h) => (
+                {["Employee", ...(showOfficeFilter ? ["Office"] : []), "Dates", "Note", "Days", "Status", ""].map((h) => (
                   <Th key={h || "actions"}>{h}</Th>
                 ))}
               </tr>
             </TableHead>
             <TableBody>
-              {correctionItems.map((row) => (
-                <TableRow key={row.id}>
+              {correctionListSubmissions.map((row) => (
+                <TableRow key={row.submissionId}>
                   <Td>
                     <b>{employeeName(row.employee)}</b>
                     <div className="text-xs text-slate-500">{row.employee.employeeCode}</div>
                   </Td>
                   {showOfficeFilter && <Td>{row.employee.office?.name ?? "-"}</Td>}
                   <Td>
-                    {formatDate(row.workDate)}
-                    <div className="mt-1 text-xs text-slate-500">{formatLeaveSession(row.session)}</div>
+                    {row.dayCount === 1
+                      ? formatDate(row.workDateFrom)
+                      : formatDateRange(row.workDateFrom, row.workDateTo)}
+                    <div className="mt-1 text-xs text-slate-500">
+                      {row.dayCount === 1 ? formatLeaveSession(row.days[0]?.session) : `${row.dayCount} days`}
+                    </div>
                   </Td>
                   <Td className="max-w-xs truncate text-slate-600">{row.employeeNote ?? "-"}</Td>
-                  <Td className="text-sm text-slate-600">
-                    {row.timesheet?.actualCheckIn
-                      ? `${formatDateTime(row.timesheet.actualCheckIn)} · ${minutesToHours(row.timesheet.workedMinutes)}`
-                      : "No timesheet"}
+                  <Td className="text-sm text-slate-600 tabular-nums">{row.dayCount}</Td>
+                  <Td>
+                    <CorrectionStatusBadge status={row.status === "PARTIAL" ? "PENDING" : row.status} />
                   </Td>
                   <Td>
-                    <CorrectionStatusBadge status={row.status} />
-                  </Td>
-                  <Td>
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedCorrectionId(row.id)}>
-                      {row.status === "PENDING" ? "Review" : "Details"}
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedSubmissionId(row.submissionId)}>
+                      {row.status === "PENDING" || row.days.some((d) => d.status === "PENDING") ? "Review" : "Details"}
                     </Button>
                   </Td>
                 </TableRow>
               ))}
-              {!correctionItems.length && (
+              {!correctionListSubmissions.length && (
                 <TableEmpty colSpan={showOfficeFilter ? 7 : 6}>No correction requests match this filter.</TableEmpty>
               )}
             </TableBody>
@@ -476,43 +492,54 @@ function LeavePageInner() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!selectedCorrectionId} onOpenChange={(v) => !v && setSelectedCorrectionId(null)}>
+      <Dialog open={!!selectedSubmissionId} onOpenChange={(v) => !v && setSelectedSubmissionId(null)}>
         <DialogContent className="max-w-2xl">
           <DialogTitle>Attendance correction</DialogTitle>
           <DialogDescription>
-            {selectedCorrection
-              ? `${employeeName(selectedCorrection.employee)} · ${formatDate(selectedCorrection.workDate)}`
+            {selectedSubmission
+              ? `${employeeName(selectedSubmission.employee)} · ${
+                  selectedSubmission.dayCount === 1
+                    ? formatDate(selectedSubmission.workDateFrom)
+                    : formatDateRange(selectedSubmission.workDateFrom, selectedSubmission.workDateTo)
+                }`
               : "Loading..."}
           </DialogDescription>
-          {selectedCorrection && (
+          {selectedSubmission && (
             <div className="mt-5 space-y-5">
               <div className="grid gap-3 sm:grid-cols-3">
-                <Info l="Status" v={selectedCorrection.status} />
-                <Info l="Session" v={formatLeaveSession(selectedCorrection.session)} />
-                <Info l="Requested" v={formatDateTime(selectedCorrection.createdAt)} />
+                <Info l="Status" v={selectedSubmission.status} />
+                <Info l="Days" v={String(selectedSubmission.dayCount)} />
+                <Info l="Requested" v={formatDateTime(selectedSubmission.createdAt)} />
               </div>
-              {selectedCorrection.employeeNote ? (
+              {selectedSubmission.employeeNote ? (
                 <div className="rounded-xl bg-slate-50 p-4">
                   <div className="text-xs font-semibold uppercase text-slate-500">Employee note</div>
-                  <p className="mt-2 text-sm leading-6">{selectedCorrection.employeeNote}</p>
+                  <p className="mt-2 text-sm leading-6">{selectedSubmission.employeeNote}</p>
                 </div>
               ) : null}
-              {selectedCorrection.timesheet ? (
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <Info
-                    l="Check in"
-                    v={selectedCorrection.timesheet.actualCheckIn ? formatDateTime(selectedCorrection.timesheet.actualCheckIn) : "-"}
-                  />
-                  <Info
-                    l="Check out"
-                    v={formatCheckoutDateTime(selectedCorrection.timesheet)}
-                  />
-                  <Info l="Late" v={formatLateMinutes(selectedCorrection.timesheet.lateMinutes)} />
+              <div>
+                <h3 className="mb-2 text-sm font-semibold">Day breakdown</h3>
+                <div className="max-h-64 space-y-2 overflow-y-auto">
+                  {selectedSubmission.days.map((day) => (
+                    <div
+                      key={day.id}
+                      className="rounded-lg border px-3 py-2 text-sm"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-medium">{formatDate(day.workDate)}</span>
+                        <CorrectionStatusBadge status={day.status} />
+                      </div>
+                      <div className="mt-1 text-xs text-slate-500">{formatLeaveSession(day.session)}</div>
+                      <div className="mt-1 text-xs text-slate-600">
+                        {day.timesheet?.actualCheckIn
+                          ? `Check-in ${formatDateTime(day.timesheet.actualCheckIn)} · ${minutesToHours(day.timesheet.workedMinutes)} worked`
+                          : "No timesheet — approving will create from schedule"}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                <p className="text-sm text-slate-500">No timesheet existed for this day. Approving will create one from the schedule.</p>
-              )}
-              {selectedCorrection.status === "PENDING" && (
+              </div>
+              {selectedSubmission.days.some((d) => d.status === "PENDING") && (
                 <>
                   <div>
                     <Label>Admin note (optional)</Label>
@@ -522,15 +549,15 @@ function LeavePageInner() {
                     <Button
                       variant="secondary"
                       disabled={correctionDecision.isPending}
-                      onClick={() => correctionDecision.mutate({ id: selectedCorrection.id, action: "reject" })}
+                      onClick={() => correctionDecision.mutate({ submissionId: selectedSubmission.submissionId, action: "reject" })}
                     >
-                      Reject
+                      Reject all pending
                     </Button>
                     <Button
                       disabled={correctionDecision.isPending}
-                      onClick={() => correctionDecision.mutate({ id: selectedCorrection.id, action: "approve" })}
+                      onClick={() => correctionDecision.mutate({ submissionId: selectedSubmission.submissionId, action: "approve" })}
                     >
-                      Approve correction
+                      Approve all pending
                     </Button>
                   </div>
                 </>

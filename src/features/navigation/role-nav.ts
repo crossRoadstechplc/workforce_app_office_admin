@@ -9,6 +9,7 @@ import {
   ClipboardCheck,
   ClipboardList,
   DoorOpen,
+  Package,
   FileBarChart2,
   LayoutDashboard,
   Users,
@@ -84,6 +85,7 @@ const companySections: NavSection[] = [
       { label: "Schedules", href: "/schedules", icon: BookOpenCheck },
       { label: "Departments", href: "/departments", icon: Building },
       { label: "Employees", href: "/employees", icon: Users },
+      { label: "Company assets", href: "/company-assets", icon: Package },
       { label: "Evaluation templates", href: "/performance/templates", icon: ClipboardCheck },
       { label: "Office Admins", href: "/office-admins", icon: UserSquare2 },
       { label: "Private vault", href: "/vault", icon: Lock }
@@ -131,6 +133,7 @@ const officeSections: NavSection[] = [
     title: "Workforce",
     items: [
       { label: "Employees", href: "/employees", icon: Users },
+      { label: "Company assets", href: "/company-assets", icon: Package },
       { label: "Attendance", href: "/attendance", icon: Clock3 },
       { label: "Holidays", href: "/holidays", icon: CalendarRange },
       { label: "Worksheets", href: "/worksheets", icon: ClipboardList },
@@ -164,7 +167,7 @@ export function navSectionsForRoles(roles: string[] | undefined): NavSection[] {
 /** Paths each portal role may access (prefix match). */
 const platformPaths = ["/platform", "/organizations", "/org-admins", "/audit", "/notifications"];
 const companyOnlyPaths = ["/offices", "/schedules", "/departments", "/office-admins", "/performance/templates", "/performance/cycles", "/meetings", "/vault"];
-const tenantOpsPaths = ["/dashboard", "/employees", "/attendance", "/holidays", "/worksheets", "/leave", "/performance", "/reports", "/notifications", "/audit", "/task-operations", "/chat"];
+const tenantOpsPaths = ["/dashboard", "/employees", "/company-assets", "/attendance", "/holidays", "/worksheets", "/leave", "/performance", "/reports", "/notifications", "/audit", "/task-operations", "/chat"];
 
 export function isPathAllowed(pathname: string, roles: string[] | undefined): boolean {
   const kind = resolvePortalRole(roles);

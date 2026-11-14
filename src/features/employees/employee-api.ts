@@ -28,6 +28,7 @@ export type CreateEmployeeInput = {
   scheduleId?: string;
   supervisorId?: string | null;
   temporaryPassword?: string;
+  assets?: Array<{ type: "LAPTOP" | "DESKTOP" | "CAR" | "OTHER"; name: string; identifier: string; notes?: string }>;
 };
 
 export type UpdateEmployeeInput = {

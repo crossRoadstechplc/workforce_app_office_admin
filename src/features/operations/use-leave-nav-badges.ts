@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { operationsApi } from "@/features/operations/operations-api";
+import { pendingCorrectionSubmissionCount } from "@/features/operations/group-correction-submissions";
 
 export function useLeaveNavBadges(enabled = true) {
   const leaveCounts = useQuery({
@@ -19,7 +20,7 @@ export function useLeaveNavBadges(enabled = true) {
   });
 
   const pendingLeave = leaveCounts.data?.counts.pending ?? 0;
-  const pendingCorrections = correctionPending.data?.length ?? 0;
+  const pendingCorrections = pendingCorrectionSubmissionCount(correctionPending.data ?? []);
 
   return {
     pendingLeave,

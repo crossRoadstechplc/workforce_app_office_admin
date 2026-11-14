@@ -94,6 +94,7 @@ export type LeaveRequestList = {
 
 export type AttendanceCorrectnessRequestRow = {
   id: string;
+  submissionId?: string;
   workDate: string;
   session?: LeaveDaySession;
   status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
@@ -113,6 +114,18 @@ export type AttendanceCorrectnessRequestRow = {
     isLate: boolean;
     isMissingCheckout: boolean;
   } | null;
+};
+
+export type AttendanceCorrectnessSubmission = {
+  submissionId: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | "PARTIAL";
+  employee: Person;
+  employeeNote?: string | null;
+  createdAt: string;
+  dayCount: number;
+  workDateFrom: string;
+  workDateTo: string;
+  days: AttendanceCorrectnessRequestRow[];
 };
 
 export type Notification = {

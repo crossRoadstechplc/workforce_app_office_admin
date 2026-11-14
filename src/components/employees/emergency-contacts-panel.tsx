@@ -56,8 +56,8 @@ export function EmergencyContactsPanel({
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!draft.name.trim() || !draft.phone.trim() || !draft.relation) {
-        throw new Error("Name, phone, and relationship are required");
+      if (!draft.name.trim() || !draft.phone.trim()) {
+        throw new Error("Name and phone are required");
       }
       if (draft.relation === "OTHER" && !draft.relationOther.trim()) {
         throw new Error("Specify the relationship when Other is selected");
@@ -65,7 +65,7 @@ export function EmergencyContactsPanel({
       const payload = {
         name: draft.name.trim(),
         phone: draft.phone.trim(),
-        relation: draft.relation,
+        ...(draft.relation ? { relation: draft.relation } : { relation: null }),
         relationOther: draft.relation === "OTHER" ? draft.relationOther.trim() : null
       };
       if (editing) return employeeApi.updateEmergencyContact(employeeId, editing.id, payload);
@@ -107,9 +107,11 @@ export function EmergencyContactsPanel({
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-slate-900">{contact.name}</p>
                   <p className="text-sm text-slate-600">{contact.phone}</p>
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    {formatEmergencyRelation(contact.relation, contact.relationOther)}
-                  </p>
+                  {formatEmergencyRelation(contact.relation, contact.relationOther) ? (
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      {formatEmergencyRelation(contact.relation, contact.relationOther)}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex shrink-0 gap-1">
                   <Button
@@ -143,7 +145,7 @@ export function EmergencyContactsPanel({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogTitle>{editing ? "Edit emergency contact" : "Add emergency contact"}</DialogTitle>
-          <DialogDescription>Name, phone, and relationship for this contact.</DialogDescription>
+          <DialogDescription>Name and phone are required. Relationship is optional.</DialogDescription>
           <form
             className="mt-4 grid gap-3"
             onSubmit={(e) => {
@@ -165,7 +167,6 @@ export function EmergencyContactsPanel({
                 className="h-10 w-full rounded-lg border bg-white px-3 text-sm"
                 value={draft.relation}
                 onChange={(e) => setDraft((d) => ({ ...d, relation: e.target.value as EmergencyContactRelation | "" }))}
-                required
               >
                 <option value="">Select relationship</option>
                 {EMERGENCY_CONTACT_RELATIONS.map((item) => (
