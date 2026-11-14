@@ -48,7 +48,7 @@ export function EmergencyContactsPanel({
     setDraft({
       name: contact.name,
       phone: contact.phone,
-      relation: contact.relation,
+      relation: contact.relation ?? "",
       relationOther: contact.relationOther ?? ""
     });
     setOpen(true);

@@ -51,7 +51,7 @@ export type UpdateEmployeeInput = {
 export type EmergencyContactInput = {
   name: string;
   phone: string;
-  relation: EmergencyContactRelation;
+  relation?: EmergencyContactRelation | null;
   relationOther?: string | null;
 };
 
