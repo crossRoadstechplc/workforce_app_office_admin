@@ -10,6 +10,7 @@ import {
   AttendancePhotoThumb,
   locationPhotoTitle,
   locationPhotoType,
+  locationSourceLabel,
   type AttendancePhotoPreview
 } from "@/components/attendance/attendance-photo";
 import { MonthYearPicker, defaultOpsMonth } from "@/components/ops/month-year-picker";
@@ -405,9 +406,7 @@ function TimesheetDetailDialog({ timesheetId, onClose }: { timesheetId: string |
                           <div>
                             <b>{type.replaceAll("_", " ")}</b>
                             <div className="mt-1 text-slate-500">
-                              {location.source === "DESKTOP"
-                                ? "Company PC (no GPS)"
-                                : `${location.distanceFromOfficeMeters ?? ""}m from office · accuracy ${location.accuracyMeters ?? ""}m`}
+                              {locationSourceLabel(location)}
                             </div>
                           </div>
                         </div>

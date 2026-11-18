@@ -38,12 +38,14 @@ export const operationsApi = {
       photoRequired: boolean;
       photosAvailable: boolean;
       desktopSkipLocationEnabled: boolean;
+      iosSkipLocationEnabled: boolean;
       autoCheckoutEnabled: boolean;
       autoCheckoutTime: string;
     }>(await apiFetch<any>("/admin/attendance/config")),
   updateAttendanceConfig: async (input: {
     photoRequiredEnabled?: boolean;
     desktopSkipLocationEnabled?: boolean;
+    iosSkipLocationEnabled?: boolean;
     autoCheckoutEnabled?: boolean;
     autoCheckoutTime?: string;
   }) =>
@@ -52,6 +54,7 @@ export const operationsApi = {
       photoRequired: boolean;
       photosAvailable: boolean;
       desktopSkipLocationEnabled: boolean;
+      iosSkipLocationEnabled: boolean;
       autoCheckoutEnabled: boolean;
       autoCheckoutTime: string;
     }>(await apiFetch<any>("/admin/attendance/config", { method: "PATCH", body: JSON.stringify(input) })),

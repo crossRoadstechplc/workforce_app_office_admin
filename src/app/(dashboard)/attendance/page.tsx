@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Camera, ChevronDown, Clock, Monitor, Printer, Search } from "lucide-react";
+import { Camera, ChevronDown, Clock, Monitor, Printer, Search, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { TenantOpsGate } from "@/components/auth/role-gates";
 import {
@@ -12,6 +12,7 @@ import {
   AttendancePhotoThumb,
   locationPhotoTitle,
   locationPhotoType,
+  locationSourceLabel,
   type AttendancePhotoPreview
 } from "@/components/attendance/attendance-photo";
 import {
@@ -124,6 +125,7 @@ function AttendancePageInner() {
     mutationFn: (input: {
       photoRequiredEnabled?: boolean;
       desktopSkipLocationEnabled?: boolean;
+      iosSkipLocationEnabled?: boolean;
       autoCheckoutEnabled?: boolean;
       autoCheckoutTime?: string;
     }) => operationsApi.updateAttendanceConfig(input),
@@ -261,6 +263,44 @@ function AttendancePageInner() {
                 <span
                   className={`size-2.5 shrink-0 rounded-full ${configQuery.data.desktopSkipLocationEnabled ? "bg-blue-600" : "bg-slate-300"}`}
                   aria-label={configQuery.data.desktopSkipLocationEnabled ? "Enabled" : "Disabled"}
+                />
+              )}
+            </CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between gap-4 py-4">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Smartphone className="size-4 text-slate-500" />
+                  Skip location on iPhone / iPad
+                </CardTitle>
+                <p className="mt-1 text-sm text-slate-500">
+                  iOS devices (app, Safari and other iOS browsers) can check in without GPS, like company PCs. These
+                  records are marked &quot;location skipped&quot;. Android still needs GPS.
+                </p>
+              </div>
+              {showOfficeFilter ? (
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={configQuery.data.iosSkipLocationEnabled}
+                  aria-label="Skip location on iPhone and iPad"
+                  disabled={configMutate.isPending}
+                  onClick={() =>
+                    configMutate.mutate({ iosSkipLocationEnabled: !configQuery.data!.iosSkipLocationEnabled })
+                  }
+                  className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 ${
+                    configQuery.data.iosSkipLocationEnabled ? "bg-blue-600" : "bg-slate-200"
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block size-5 translate-y-0.5 rounded-full bg-white shadow transition-transform ${
+                      configQuery.data.iosSkipLocationEnabled ? "translate-x-5" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              ) : (
+                <span
+                  className={`size-2.5 shrink-0 rounded-full ${configQuery.data.iosSkipLocationEnabled ? "bg-blue-600" : "bg-slate-300"}`}
+                  aria-label={configQuery.data.iosSkipLocationEnabled ? "Enabled" : "Disabled"}
                 />
               )}
             </CardHeader>
@@ -531,9 +571,7 @@ function AttendancePageInner() {
                           <div>
                             <b>{type.replaceAll("_", " ")}</b>
                             <div className="mt-1 text-slate-500">
-                              {l.source === "DESKTOP"
-                                ? "Company PC (no GPS)"
-                                : `${l.distanceFromOfficeMeters ?? ""}m from office · accuracy ${l.accuracyMeters ?? ""}m`}
+                              {locationSourceLabel(l)}
                             </div>
                           </div>
                         </div>

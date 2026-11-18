@@ -125,6 +125,17 @@ export function AttendancePhotoLightbox({
   );
 }
 
+/** One-line description of how a check-in/out location was captured. */
+export function locationSourceLabel(location: {
+  source?: string | null;
+  distanceFromOfficeMeters?: number | null;
+  accuracyMeters?: number | null;
+}) {
+  if (location.source === "DESKTOP") return "Company PC (no GPS)";
+  if (location.source === "IOS") return "iPhone / iPad (location skipped)";
+  return `${location.distanceFromOfficeMeters ?? ""}m from office · accuracy ${location.accuracyMeters ?? ""}m`;
+}
+
 export function locationPhotoType(location: { type?: string; locationType?: string }) {
   return location.type ?? location.locationType ?? "PHOTO";
 }

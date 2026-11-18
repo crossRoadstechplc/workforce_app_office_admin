@@ -33,7 +33,7 @@ export type Timesheet = {
   locations?: Array<{
     type?: string;
     locationType?: string;
-    source?: "GPS" | "DESKTOP" | string;
+    source?: "GPS" | "DESKTOP" | "IOS" | string;
     latitude?: number | null;
     longitude?: number | null;
     accuracyMeters?: number | null;
