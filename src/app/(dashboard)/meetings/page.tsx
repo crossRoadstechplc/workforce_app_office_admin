@@ -123,7 +123,7 @@ function QueueInner() {
         </div>
         <div className="min-w-0 flex-1">
           <Label>Search</Label>
-          <Input className="mt-1.5" placeholder="Title, name, or email" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+          <Input className="mt-1.5" placeholder="Title, name, email, code or app" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
         </div>
       </FilterBar>
 
@@ -131,7 +131,7 @@ function QueueInner() {
         <table className="w-full text-left text-sm">
           <thead className="border-b bg-slate-50 text-xs uppercase text-slate-500">
             <tr>
-              {["When", "Room", "Title", "Booked by", "Status", ""].map((h) => (
+              {["When", "Room", "Title", "Booked by", "Source", "Status", ""].map((h) => (
                 <th key={h || "a"} className="px-4 py-3">{h}</th>
               ))}
             </tr>
@@ -151,6 +151,16 @@ function QueueInner() {
                 <td className="px-4 py-3">
                   <div>{row.organizerName ?? row.bookedBy?.email}</div>
                   <div className="text-xs text-slate-500">{row.bookedBy?.email}</div>
+                </td>
+                <td className="px-4 py-3">
+                  {row.source === "API" ? (
+                    <span title={row.externalId ? `External ID: ${row.externalId}` : undefined}>
+                      <span className="inline-flex rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700 ring-1 ring-inset ring-violet-600/20">API</span>
+                      <div className="mt-1 text-xs text-slate-500">{row.integration?.name ?? "Integration"}</div>
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-500">App</span>
+                  )}
                 </td>
                 <td className="px-4 py-3"><StatusBadge status={row.rescheduledAt ? "RESCHEDULED" : row.status} /></td>
                 <td className="px-4 py-3">
@@ -176,7 +186,7 @@ function QueueInner() {
             ))}
             {!items.length && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-slate-500">No bookings in this view.</td>
+                <td colSpan={7} className="px-4 py-10 text-center text-slate-500">No bookings in this view.</td>
               </tr>
             )}
           </tbody>

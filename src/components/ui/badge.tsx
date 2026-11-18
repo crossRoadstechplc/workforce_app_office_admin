@@ -37,7 +37,10 @@ const styles: Record<string, string> = {
   DRAFT: "bg-slate-100 text-slate-600 ring-slate-500/20",
   CLOSED: "bg-slate-100 text-slate-600 ring-slate-500/20",
   BOOKED: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  RESCHEDULED: "bg-amber-50 text-amber-700 ring-amber-600/20"
+  RESCHEDULED: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  REVOKED: "bg-red-50 text-red-700 ring-red-600/20",
+  SUCCEEDED: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  FAILED: "bg-red-50 text-red-700 ring-red-600/20"
 };
 
 const labels: Record<string, string> = {

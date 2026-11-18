@@ -22,6 +22,11 @@ export type MeetingBooking = {
   organizerName?: string | null;
   rescheduledAt?: string | null;
   cancelledAt?: string | null;
+  /** APP = employee app / portal, API = booked by an external integration. */
+  source?: "APP" | "API";
+  externalId?: string | null;
+  cancelReason?: string | null;
+  integration?: { id: string; name: string } | null;
   room?: { id: string; name: string; location?: string | null; capacity?: number };
   office?: { id: string; name: string; timezone?: string };
   bookedBy?: { id: string; email: string };

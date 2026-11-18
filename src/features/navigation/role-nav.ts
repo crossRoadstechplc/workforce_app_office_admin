@@ -1,5 +1,7 @@
 import {
   MonitorSmartphone,
+  KeyRound,
+  Code2,
   Bell,
   BookOpenCheck,
   Building2,
@@ -108,8 +110,13 @@ const companySections: NavSection[] = [
     items: [
       { label: "Bookings", href: "/meetings", icon: CalendarRange },
       { label: "Rooms", href: "/meetings/rooms", icon: DoorOpen },
-      { label: "Displays", href: "/meetings/displays", icon: MonitorSmartphone }
+      { label: "Displays", href: "/meetings/displays", icon: MonitorSmartphone },
+      { label: "API access", href: "/meetings/integrations", icon: KeyRound }
     ]
+  },
+  {
+    title: "Developer",
+    items: [{ label: "API documentation", href: "/developer", icon: Code2 }]
   },
   {
     title: "Insights",
@@ -166,7 +173,7 @@ export function navSectionsForRoles(roles: string[] | undefined): NavSection[] {
 
 /** Paths each portal role may access (prefix match). */
 const platformPaths = ["/platform", "/organizations", "/org-admins", "/audit", "/notifications"];
-const companyOnlyPaths = ["/offices", "/schedules", "/departments", "/office-admins", "/performance/templates", "/performance/cycles", "/meetings", "/vault"];
+const companyOnlyPaths = ["/offices", "/schedules", "/departments", "/office-admins", "/performance/templates", "/performance/cycles", "/meetings", "/vault", "/developer"];
 const tenantOpsPaths = ["/dashboard", "/employees", "/company-assets", "/attendance", "/holidays", "/worksheets", "/leave", "/performance", "/reports", "/notifications", "/audit", "/task-operations", "/chat"];
 
 export function isPathAllowed(pathname: string, roles: string[] | undefined): boolean {
